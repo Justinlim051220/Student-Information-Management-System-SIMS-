@@ -33,7 +33,7 @@
         <!-- Logo -->
         <div class="login-logo">
           <img src="Images/logo.png" alt="ONTI International University Malaysia" 
-               style="height: 60px; width: auto;" />
+               style="height: 55px; width: auto;" />
         </div>
 
         <!-- Heading -->
