@@ -96,6 +96,7 @@
   <ItemGroup>
     <Content Include="About.aspx" />
     <Content Include="Admin\Dashboard.aspx" />
+    <Content Include="Admin\ManageLecturers.aspx" />
     <Content Include="Admin\ManageProgrammes.aspx" />
     <Content Include="Admin\ManageStudents.aspx" />
     <Content Include="Contact.aspx" />
@@ -163,6 +164,13 @@
     <Content Include="Bundle.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Admin\ManageLecturers.aspx.cs">
+      <DependentUpon>ManageLecturers.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ManageLecturers.aspx.designer.cs">
+      <DependentUpon>ManageLecturers.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\ManageProgrammes.aspx.cs">
       <DependentUpon>ManageProgrammes.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

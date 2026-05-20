@@ -82,7 +82,7 @@
                             <asp:BoundField DataField="Description" HeaderText="Description" />
                             <asp:TemplateField HeaderText="Actions">
                                 <ItemTemplate>
-                                    <asp:LinkButton runat="server" CommandName="Edit" 
+                                    <asp:LinkButton runat="server" CommandName="EditProgramme" 
                                         CommandArgument='<%# Eval("ProgrammeId") %>' 
                                         CssClass="btn btn-sm btn-outline" style="margin-right:8px;">
                                         <i class="fa-solid fa-edit"></i> Edit

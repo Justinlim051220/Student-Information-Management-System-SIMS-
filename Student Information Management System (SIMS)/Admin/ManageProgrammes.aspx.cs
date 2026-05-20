@@ -117,7 +117,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
         {
             int programmeId = Convert.ToInt32(e.CommandArgument);
 
-            if (e.CommandName == "Edit")
+            if (e.CommandName == "EditProgramme")        // ← Changed here
             {
                 LoadProgrammeForEdit(programmeId);
             }
