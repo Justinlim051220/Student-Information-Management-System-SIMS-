@@ -164,11 +164,9 @@
       </div>
     </div>
     <!-- Log Out -->
-    <asp:LinkButton ID="lbLogout" runat="server"
-      OnClick="lbLogout_Click"
-      OnClientClick="return confirm('Are you sure you want to log out?');"
-      style="display:block;margin-top:12px;font-size:12px;color:rgba(255,255,255,0.45);font-weight:700;">
-      <i class="fa-solid fa-right-from-bracket"></i> Log Out
+        <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link" 
+        OnClientClick="showLogoutModal(); return false;">
+        <i class="fa-solid fa-right-from-bracket"></i> Log Out
     </asp:LinkButton>
   </div>
 
@@ -465,7 +463,36 @@
     document.getElementById('sidebar').classList.toggle('open');
   }
 </script>
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26,26,46,0.85); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 12px; width: 100%; max-width: 380px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); overflow: hidden;">
+            <div style="padding: 25px 30px 10px; text-align: center; border-bottom: 1px solid #eee;">
+                <h3>🔒 Log Out</h3>
+            </div>
+            <div style="padding: 25px 30px; text-align: center; color: #555;">
+                <p>Are you sure you want to log out of the SIMS system?</p>
+            </div>
+            <div style="padding: 20px 30px 25px; display: flex; gap: 12px; justify-content: center; border-top: 1px solid #eee;">
+                <button type="button" onclick="hideLogoutModal()" style="padding: 10px 24px;" class="btn btn-outline">Cancel</button>
+                
+                <asp:LinkButton ID="btnConfirmLogout" runat="server" 
+                    CssClass="btn btn-danger" 
+                    OnClick="lbLogout_Click">
+                    Yes, Log Out
+                </asp:LinkButton>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        function showLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'flex';
+        }
+
+        function hideLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+        }
+    </script>
     </form>
 </body>
 </html>
