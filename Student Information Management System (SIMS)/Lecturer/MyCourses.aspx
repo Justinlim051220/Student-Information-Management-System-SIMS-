@@ -64,6 +64,7 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 18px;
+            overflow: visible;
         }
 
         .course-card {
@@ -71,8 +72,9 @@
             border: 1px solid var(--border-light);
             border-radius: var(--radius-md);
             background: var(--white);
-            overflow: hidden;
+            overflow: visible;
             transition: var(--transition);
+            min-height: 190px;
         }
 
         .course-card:hover {
@@ -138,9 +140,9 @@
             background: var(--white);
             border: 1px solid var(--border-light);
             border-radius: 12px;
-            box-shadow: var(--shadow-card);
+            box-shadow: 0 12px 28px rgba(0,0,0,.16);
             padding: 8px;
-            z-index: 999;
+            z-index: 99999;
         }
 
         .course-menu.show {
