@@ -126,8 +126,11 @@
     <Content Include="ForgotPassword.aspx" />
     <Content Include="Global.asax" />
     <Content Include="Lecturer\Announcements.aspx" />
+    <Content Include="Lecturer\Attendance.aspx" />
     <Content Include="Lecturer\Lecturer_Dashboard.aspx" />
+    <Content Include="Lecturer\MyCourses.aspx" />
     <Content Include="Lecturer\Notifications.aspx" />
+    <Content Include="Lecturer\Profile.aspx" />
     <Content Include="Login.aspx" />
     <Content Include="ResetPassword.aspx" />
     <Content Include="Scripts\bootstrap.bundle.js" />
@@ -272,6 +275,13 @@
     <Compile Include="Lecturer\Announcements.aspx.designer.cs">
       <DependentUpon>Announcements.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Lecturer\Attendance.aspx.cs">
+      <DependentUpon>Attendance.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Lecturer\Attendance.aspx.designer.cs">
+      <DependentUpon>Attendance.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Lecturer\Lecturer_Dashboard.aspx.cs">
       <DependentUpon>Lecturer_Dashboard.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -279,12 +289,26 @@
     <Compile Include="Lecturer\Lecturer_Dashboard.aspx.designer.cs">
       <DependentUpon>Lecturer_Dashboard.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Lecturer\MyCourses.aspx.cs">
+      <DependentUpon>MyCourses.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Lecturer\MyCourses.aspx.designer.cs">
+      <DependentUpon>MyCourses.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Lecturer\Notifications.aspx.cs">
       <DependentUpon>Notifications.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Lecturer\Notifications.aspx.designer.cs">
       <DependentUpon>Notifications.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Lecturer\Profile.aspx.cs">
+      <DependentUpon>Profile.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Lecturer\Profile.aspx.designer.cs">
+      <DependentUpon>Profile.aspx</DependentUpon>
     </Compile>
     <Compile Include="Login.aspx.cs">
       <DependentUpon>Login.aspx</DependentUpon>
@@ -333,6 +357,7 @@
   <ItemGroup>
     <Folder Include="App_Code\" />
     <Folder Include="App_Data\" />
+    <Folder Include="ProfilePicture\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />

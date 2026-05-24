@@ -282,6 +282,19 @@
                 grid-template-columns: 1fr 1fr;
             }
         }
+        /* Move name + role upward and separate from logout */
+        .sidebar-user{
+            margin-bottom:18px;
+            align-items:flex-start;
+        }
+
+        .user-info{
+            padding-top:4px;
+        }
+
+        .user-name{
+            margin-bottom:4px;
+        }
     </style>
 </head>
 
