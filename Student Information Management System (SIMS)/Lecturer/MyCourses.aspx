@@ -80,15 +80,8 @@
             transform: translateY(-2px);
         }
 
-        .course-image {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            background: #f5f7fa;
-        }
-
         .course-body {
-            padding: 18px 20px;
+            padding: 26px 20px 20px;
         }
 
         .course-name {
@@ -381,12 +374,6 @@
 
                         <ItemTemplate>
                             <div class="course-card">
-
-                                <asp:Image ID="imgCourse" runat="server"
-                                    CssClass="course-image"
-                                    ImageUrl='<%# string.IsNullOrWhiteSpace(Convert.ToString(Eval("CourseImage"))) 
-                                        ? "~/CoursePicture/default-course.png" 
-                                        : Eval("CourseImage") %>' />
 
                                 <div class="course-menu-wrap">
                                     <button type="button"

@@ -137,8 +137,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     c.CourseCode,
                     c.CourseName,
                     lc.Session,
-                    lc.Semester,
-                    ISNULL(c.CourseImage, '~/Images/default-course.png') AS CourseImage
+                    lc.Semester
                 FROM LecturerCourse lc
                 INNER JOIN Courses c ON lc.CourseId = c.CourseId
                 WHERE lc.LecturerId = @LecturerId
