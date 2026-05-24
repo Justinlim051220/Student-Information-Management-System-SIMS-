@@ -209,6 +209,32 @@
         .user-name{
             margin-bottom:4px;
         }
+        .course-card {
+        cursor: pointer;
+    }
+
+    .course-menu-wrap {
+        cursor: default;
+    }
+
+    .student-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .student-table th {
+        background: #fff8e1;
+        color: var(--text-primary);
+        font-size: 13px;
+        text-align: left;
+        padding: 14px;
+    }
+
+    .student-table td {
+        padding: 14px;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 14px;
+    }
     </style>
 </head>
 
@@ -375,9 +401,9 @@
                         </HeaderTemplate>
 
                         <ItemTemplate>
-                            <div class="course-card">
-
-                                <div class="course-menu-wrap">
+                            <div class="course-card"
+                                     onclick="window.location.href='CourseStudents.aspx?courseId=<%# Eval("CourseId") %>&session=<%# Eval("Session") %>';">
+                                <div class="course-menu-wrap" onclick="event.stopPropagation();">
                                     <button type="button"
                                         class="course-menu-btn"
                                         onclick="toggleCourseMenu(this, event)">
@@ -438,6 +464,59 @@
                         </FooterTemplate>
                     </asp:Repeater>
 
+                    <asp:Panel ID="pnlRegisteredStudents" runat="server" CssClass="card" Visible="false" Style="margin-top:24px;">
+                        <div class="card-header">
+                            <span class="card-title">
+                                Registered Students
+                            </span>
+                            <span class="badge badge-orange">
+                                <asp:Label ID="lblStudentTotal" runat="server" Text="0" /> Students
+                            </span>
+                        </div>
+
+                        <div class="card-body">
+                            <asp:Repeater ID="rptRegisteredStudents" runat="server">
+                                <HeaderTemplate>
+                                    <table class="student-table">
+                                        <thead>
+                                            <tr>
+                                                <th>No.</th>
+                                                <th>Student ID</th>
+                                                <th>Student Name</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                </HeaderTemplate>
+
+                                <ItemTemplate>
+                                    <tr>
+                                        <td><%# Container.ItemIndex + 1 %></td>
+                                        <td><%# Eval("StudentId") %></td>
+                                        <td><%# Eval("StudentName") %></td>
+                                    </tr>
+                                </ItemTemplate>
+
+                                <FooterTemplate>
+                                        </tbody>
+                                    </table>
+                                </FooterTemplate>
+                            </asp:Repeater>
+
+                            <asp:Panel ID="pnlNoStudents" runat="server" CssClass="empty-state" Visible="false">
+                                <i class="fa-solid fa-user-slash"></i>
+                                <h3>No registered students</h3>
+                                <p>No students are registered for this course and session.</p>
+                            </asp:Panel>
+                        </div>
+                    </asp:Panel>
+
+                    <asp:HiddenField ID="hfSelectedCourseId" runat="server" />
+                    <asp:HiddenField ID="hfSelectedSession" runat="server" />
+
+                    <asp:Button ID="btnLoadStudents" runat="server"
+                        OnClick="btnLoadStudents_Click"
+                        Style="display:none;" />
+
                     <asp:Panel ID="pnlEmpty" runat="server" CssClass="empty-state" Visible="false">
                         <i class="fa-solid fa-book-open"></i>
                         <h3>No courses found</h3>
@@ -482,6 +561,12 @@
         });
 
     });
+
+    function showRegisteredStudents(courseId, session) {
+        document.getElementById('<%= hfSelectedCourseId.ClientID %>').value = courseId;
+        document.getElementById('<%= hfSelectedSession.ClientID %>').value = session;
+        document.getElementById('<%= btnLoadStudents.ClientID %>').click();
+    }
 
 </script>
 </form>

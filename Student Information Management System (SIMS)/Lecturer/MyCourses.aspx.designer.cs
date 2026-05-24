@@ -132,6 +132,69 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         protected global::System.Web.UI.WebControls.Repeater rptCourses;
 
         /// <summary>
+        /// pnlRegisteredStudents control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlRegisteredStudents;
+
+        /// <summary>
+        /// lblStudentTotal control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblStudentTotal;
+
+        /// <summary>
+        /// rptRegisteredStudents control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Repeater rptRegisteredStudents;
+
+        /// <summary>
+        /// pnlNoStudents control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlNoStudents;
+
+        /// <summary>
+        /// hfSelectedCourseId control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfSelectedCourseId;
+
+        /// <summary>
+        /// hfSelectedSession control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfSelectedSession;
+
+        /// <summary>
+        /// btnLoadStudents control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnLoadStudents;
+
+        /// <summary>
         /// pnlEmpty control.
         /// </summary>
         /// <remarks>
