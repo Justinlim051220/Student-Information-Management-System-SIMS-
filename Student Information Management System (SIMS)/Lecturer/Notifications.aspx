@@ -205,10 +205,6 @@
                 <i class="fa-solid fa-book-open nav-icon"></i> My Courses
             </a>
 
-            <a href="MyStudents.aspx" class="sidebar-link">
-                <i class="fa-solid fa-user-graduate nav-icon"></i> My Students
-            </a>
-
             <div class="sidebar-section-label" style="margin-top:12px;">Academic</div>
 
             <a href="Attendance.aspx" class="sidebar-link">
