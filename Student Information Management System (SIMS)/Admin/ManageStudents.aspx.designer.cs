@@ -24,22 +24,31 @@ namespace Student_Information_Management_System__SIMS_.Admin
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
         /// <summary>
-        /// lblMessage control.
+        /// lblFormTitle control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblMessage;
+        protected global::System.Web.UI.WebControls.Label lblFormTitle;
 
         /// <summary>
-        /// txtStudentId control.
+        /// hfStudentId control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtStudentId;
+        protected global::System.Web.UI.WebControls.HiddenField hfStudentId;
+
+        /// <summary>
+        /// hfUserId control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfUserId;
 
         /// <summary>
         /// txtFirstName control.
@@ -60,6 +69,15 @@ namespace Student_Information_Management_System__SIMS_.Admin
         protected global::System.Web.UI.WebControls.TextBox txtLastName;
 
         /// <summary>
+        /// txtStudentId control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtStudentId;
+
+        /// <summary>
         /// txtEmail control.
         /// </summary>
         /// <remarks>
@@ -67,15 +85,6 @@ namespace Student_Information_Management_System__SIMS_.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox txtEmail;
-
-        /// <summary>
-        /// txtPassword control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtPassword;
 
         /// <summary>
         /// txtDob control.
@@ -96,15 +105,6 @@ namespace Student_Information_Management_System__SIMS_.Admin
         protected global::System.Web.UI.WebControls.DropDownList ddlGender;
 
         /// <summary>
-        /// ddlProgramme control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.DropDownList ddlProgramme;
-
-        /// <summary>
         /// txtPhone control.
         /// </summary>
         /// <remarks>
@@ -112,6 +112,15 @@ namespace Student_Information_Management_System__SIMS_.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox txtPhone;
+
+        /// <summary>
+        /// ddlProgramme control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.DropDownList ddlProgramme;
 
         /// <summary>
         /// txtAddress control.
@@ -123,13 +132,13 @@ namespace Student_Information_Management_System__SIMS_.Admin
         protected global::System.Web.UI.WebControls.TextBox txtAddress;
 
         /// <summary>
-        /// btnAddStudent control.
+        /// btnSave control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnAddStudent;
+        protected global::System.Web.UI.WebControls.Button btnSave;
 
         /// <summary>
         /// btnCancel control.
@@ -139,5 +148,32 @@ namespace Student_Information_Management_System__SIMS_.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnCancel;
+
+        /// <summary>
+        /// gvStudents control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.GridView gvStudents;
+
+        /// <summary>
+        /// hfDeleteTarget control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfDeleteTarget;
+
+        /// <summary>
+        /// btnDeleteConfirmed control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnDeleteConfirmed;
     }
 }

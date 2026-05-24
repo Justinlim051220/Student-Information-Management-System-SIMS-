@@ -58,17 +58,21 @@ namespace Student_Information_Management_System__SIMS_
 
                 int userId = Convert.ToInt32(newId);
 
-                // Insert into HoPDetails table
-                string insertHoP = @"
-                    INSERT INTO HoPDetails (UserId, FirstName, LastName)
-                    VALUES (@Uid, @First, @Last)";
+                // Create HoP ID based on UserId
+				string hopId = "HOP" + userId.ToString("D3");
 
-                DatabaseHelper.ExecuteNonQuery(insertHoP, new[]
-                {
-                    new SqlParameter("@Uid",   userId),
-                    new SqlParameter("@First", firstName),
-                    new SqlParameter("@Last",  lastName)
-                });
+				// Insert into HoPDetails table
+				string insertHoP = @"
+					INSERT INTO HoPDetails (HoPId, UserId, FirstName, LastName)
+					VALUES (@HoPId, @Uid, @First, @Last)";
+
+				DatabaseHelper.ExecuteNonQuery(insertHoP, new[]
+				{
+					new SqlParameter("@HoPId", hopId),
+					new SqlParameter("@Uid", userId),
+					new SqlParameter("@First", firstName),
+					new SqlParameter("@Last", lastName)
+				});
 
                 pnlSuccess.Visible = true;
                 pnlError.Visible = false;

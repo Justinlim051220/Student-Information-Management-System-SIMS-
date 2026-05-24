@@ -105,13 +105,13 @@ namespace Student_Information_Management_System__SIMS_.Admin
         protected global::System.Web.UI.WebControls.TextBox txtPhone;
 
         /// <summary>
-        /// ddlProgramme control.
+        /// cblProgrammes control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.DropDownList ddlProgramme;
+        protected global::System.Web.UI.WebControls.CheckBoxList cblProgrammes;
 
         /// <summary>
         /// txtSpecialization control.
@@ -148,5 +148,23 @@ namespace Student_Information_Management_System__SIMS_.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.GridView gvLecturers;
+
+        /// <summary>
+        /// hfDeleteTarget control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfDeleteTarget;
+
+        /// <summary>
+        /// btnDeleteConfirmed control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnDeleteConfirmed;
     }
 }

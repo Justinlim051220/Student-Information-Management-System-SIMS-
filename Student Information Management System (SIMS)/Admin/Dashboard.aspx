@@ -82,6 +82,37 @@
       transition    : opacity 0.2s;
     }
     .mini-bar:hover { opacity: 1; }
+
+    /* Move name + role upward and separate from logout */
+    .sidebar-user{
+        margin-bottom:18px;
+        align-items:flex-start;
+    }
+
+    .user-info{
+        padding-top:4px;
+    }
+
+    .user-name{
+        margin-bottom:4px;
+    }
+
+    .user-role{
+        margin-top:2px;
+    }
+    .sidebar{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        height: 100vh;
+
+        overflow-y: auto;      /* ENABLE VERTICAL SCROLL */
+        overflow-x: hidden;
+
+        scrollbar-width: thin; /* Firefox */
+    }
+
   </style>
 </head>
 <body>
@@ -121,7 +152,10 @@
     <a href="ManageCourses.aspx" class="sidebar-link">
       <i class="fa-solid fa-book-open nav-icon"></i> Courses
     </a>
-    <a href="ManageEnrollment.aspx" class="sidebar-link">
+    <a href="AssignLecturerCourse.aspx" class="sidebar-link">
+      <i class="fa-solid fa-user-check nav-icon"></i> Assign Course
+    </a>
+    <a href="Admin_enrolment.aspx" class="sidebar-link">
       <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
     </a>
 

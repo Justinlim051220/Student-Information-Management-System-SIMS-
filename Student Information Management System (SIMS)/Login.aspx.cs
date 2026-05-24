@@ -163,10 +163,10 @@ namespace Student_Information_Management_System__SIMS_ {
                     Response.Redirect("~/Admin/Dashboard.aspx", false);
                     break;
                 case SessionHelper.ROLE_LECTURER:
-                    Response.Redirect("~/Lecturer/Dashboard.aspx", false);
+                    Response.Redirect("~/Lecturer/Lecturer_Dashboard.aspx", false);
                     break;
                 case SessionHelper.ROLE_STUDENT:
-                    Response.Redirect("~/Student/Dashboard.aspx", false);
+                    Response.Redirect("~/Student/Student_Dashboard.aspx", false);
                     break;
                 default:
                     ShowError("Unrecognised user role. Please contact the administrator.");

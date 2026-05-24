@@ -1019,3 +1019,122 @@ img {
     gap: 12px;
     justify-content: center;
 }
+
+/* ====================== CUSTOM MODAL ====================== */
+
+/* ── Custom Modal Overlay ── */
+#customModalOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 30, 40, 0.60);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+    #customModalOverlay.active {
+        display: flex;
+    }
+
+#customModal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    padding: 36px 32px 28px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.28);
+    text-align: center;
+    animation: modalIn .18s ease;
+}
+
+@keyframes modalIn {
+    from {
+        transform: scale(.93);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Icon + title row */
+#customModal .cm-header {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+}
+
+    #customModal .cm-header .cm-icon {
+        font-size: 1.3rem;
+    }
+
+/* Divider */
+#customModal .cm-divider {
+    border: none;
+    border-top: 1px solid #ececec;
+    margin: 0 -32px 18px;
+}
+
+/* Body text */
+#customModal .cm-body {
+    font-size: .97rem;
+    line-height: 1.65;
+    color: #444;
+    margin-bottom: 28px;
+}
+
+/* Footer – centered buttons */
+#customModal .cm-footer {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+/* Base pill button */
+#customModal .cm-btn {
+    padding: 10px 32px;
+    border-radius: 50px;
+    font-size: .95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .18s;
+    min-width: 110px;
+}
+
+/* Yellow theme buttons */
+#customModal .cm-btn-cancel,
+#customModal .cm-btn-ok {
+    background: transparent;
+    border: 2px solid #e8a838;
+    color: #e8a838;
+}
+
+    #customModal .cm-btn-cancel:hover,
+    #customModal .cm-btn-ok:hover {
+        background: #fdf3e0;
+        color: #c8881a;
+    }
+
+/* Confirm delete button */
+#customModal .cm-btn-delete {
+    background: transparent;
+    border: none;
+    color: #e8a838;
+    font-weight: 700;
+    font-size: .97rem;
+    padding: 10px 8px;
+    text-decoration: none;
+}
+
+    #customModal .cm-btn-delete:hover {
+        color: #c8881a;
+        text-decoration: underline;
+    }

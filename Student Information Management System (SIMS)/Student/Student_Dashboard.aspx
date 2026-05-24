@@ -1,0 +1,707 @@
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Student_Dashboard.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student_Dashboard" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIMS – Student Dashboard | ONTI International University</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="../Styles/SIMS.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* ── Student stat cards ──────────────────────────────── */
+    .stu-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .stu-stat-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      padding: 24px 20px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: var(--transition);
+    }
+    .stu-stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-elevated);
+    }
+    .stu-stat-icon {
+      width: 48px; height: 48px;
+      border-radius: var(--radius-sm);
+      background: var(--orange-gradient);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--white);
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+    .stu-stat-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stu-stat-value {
+      font-family: var(--font-accent);
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--orange-dark);
+      line-height: 1;
+    }
+    .stu-stat-value.neutral {
+      color: var(--text-primary);
+    }
+
+    /* ── Enrolled courses badge list ─────────────────────── */
+    .course-badge-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .course-badge {
+      background: var(--orange-gradient);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Charts row ──────────────────────────────────────── */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 340px;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 1100px) {
+      .charts-row { grid-template-columns: 1fr 1fr; }
+      .announcement-card { grid-column: span 2; }
+    }
+    @media (max-width: 700px) {
+      .charts-row { grid-template-columns: 1fr; }
+      .announcement-card { grid-column: span 1; }
+    }
+
+    .chart-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+    }
+    .chart-card-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+    .chart-canvas-wrap {
+      position: relative;
+      height: 200px;
+    }
+
+    /* ── Announcement card ───────────────────────────────── */
+    .announcement-card {
+      background: var(--orange-gradient);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-orange);
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 260px;
+    }
+    .announcement-card .card-title-white {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--white);
+    }
+    .ann-item {
+      background: rgba(255,255,255,0.18);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+    }
+    .ann-item-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+    }
+    .ann-item-date {
+      font-size: 11px;
+      color: rgba(255,255,255,0.75);
+      margin-top: 3px;
+    }
+    .ann-empty {
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      text-align: center;
+      margin: auto 0;
+    }
+
+    /* ── Enrollment section ──────────────────────────────── */
+    .enrollment-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+    .enrollment-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .enrollment-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .enrollment-title i { color: var(--orange-main); }
+    .session-badge {
+      background: var(--orange-gradient);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: var(--radius-pill);
+    }
+    .enroll-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .enroll-table thead tr {
+      background: var(--orange-gradient);
+      color: var(--white);
+    }
+    .enroll-table thead th {
+      padding: 11px 16px;
+      font-weight: 700;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .enroll-table tbody tr {
+      border-bottom: 1px solid var(--border-light);
+      transition: background 0.15s;
+    }
+    .enroll-table tbody tr:last-child { border-bottom: none; }
+    .enroll-table tbody tr:hover { background: var(--off-white); }
+    .enroll-table td {
+      padding: 11px 16px;
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+    .enroll-table td.code { font-weight: 700; color: var(--orange-dark); }
+    .enroll-empty {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 28px;
+      font-size: 13px;
+    }
+    .enroll-add-row td {
+      background: var(--off-white);
+      padding: 10px 16px;
+    }
+    .enroll-add-row .add-row-inner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .enroll-select {
+      flex: 1;
+      min-width: 200px;
+      padding: 8px 12px;
+      border: 1.5px solid var(--border-mid);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-primary);
+      font-size: 13px;
+      color: var(--text-primary);
+      background: var(--white);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .enroll-select:focus { border-color: var(--orange-main); }
+    .btn-enroll-add {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      background: var(--orange-gradient);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius-pill);
+      font-family: var(--font-primary);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .btn-enroll-add:hover {
+      box-shadow: var(--shadow-orange);
+      transform: translateY(-1px);
+    }
+    .btn-drop {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 12px;
+      background: transparent;
+      color: var(--danger);
+      border: 1.5px solid var(--danger);
+      border-radius: var(--radius-pill);
+      font-family: var(--font-primary);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .btn-drop:hover { background: var(--danger); color: var(--white); }
+    .enroll-alert {
+      margin: 0 24px 14px;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .enroll-alert.success {
+      background: rgba(46,204,113,0.12);
+      color: #1a7a40;
+      border: 1px solid rgba(46,204,113,0.35);
+    }
+    .enroll-alert.error {
+      background: rgba(231,76,60,0.10);
+      color: #b03a2e;
+      border: 1px solid rgba(231,76,60,0.30);
+    }
+
+    /* ── Student profile topbar card ─────────────────────── */
+    .student-profile-topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 24px;
+    }
+    .stu-avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--orange-gradient);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--white);
+      font-size: 20px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .stu-profile-info { flex: 1; }
+    .stu-profile-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+    .stu-profile-id {
+      font-size: 12px;
+      color: var(--orange-dark);
+      font-weight: 700;
+    }
+    .stu-profile-prog {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    /* Move name + role upward and separate from logout */
+    .sidebar-user{
+        margin-bottom:18px;
+        align-items:flex-start;
+    }
+
+    .user-info{
+        padding-top:4px;
+    }
+
+    .user-name{
+        margin-bottom:4px;
+    }
+
+    .user-role{
+        margin-top:2px;
+    }
+    .sidebar{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        height: 100vh;
+
+        overflow-y: auto;      /* ENABLE VERTICAL SCROLL */
+        overflow-x: hidden;
+
+        scrollbar-width: thin; /* Firefox */
+    }
+  </style>
+</head>
+<body>
+  <form id="form1" runat="server">
+
+<!-- ================================================================
+     SIDEBAR
+     ================================================================ -->
+<div class="sidebar" id="sidebar">
+
+  <!-- Brand -->
+  <div class="sidebar-brand">
+    <img src="~/Images/Logo_Dashboard.png" runat="server" alt="ONTI SIMS" class="brand-logo" />
+    <div class="brand-text">
+      <div class="brand-name">SIMS</div>
+      <div class="brand-sub">Student Portal</div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Main</div>
+
+    <a href="Dashboard.aspx" class="sidebar-link active">
+      <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
+    </a>
+    <a href="MyCourses.aspx" class="sidebar-link">
+      <i class="fa-solid fa-book-open nav-icon"></i> My Courses
+    </a>
+    <a href="Attendance.aspx" class="sidebar-link">
+      <i class="fa-solid fa-calendar-check nav-icon"></i> Attendance
+    </a>
+      <a href="Student_Enrollment.aspx" class="sidebar-link">
+      <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
+    </a>
+    <a href="Results.aspx" class="sidebar-link">
+      <i class="fa-solid fa-chart-line nav-icon"></i> Results
+    </a>
+    <a href="AcademicHistory.aspx" class="sidebar-link">
+      <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
+
+    <a href="Notifications.aspx" class="sidebar-link">
+      <i class="fa-solid fa-bell nav-icon"></i> Notifications
+      <asp:Panel ID="pnlSidebarNotifBadge" runat="server" CssClass="badge-dot" Visible="false" style="margin-left:auto;" />
+    </a>
+    <a href="Contacts.aspx" class="sidebar-link">
+      <i class="fa-solid fa-address-book nav-icon"></i> Contacts
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
+
+    <a href="MyProfile.aspx" class="sidebar-link">
+      <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
+    </a>
+  </nav>
+
+  <!-- Sidebar user footer -->
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="user-avatar">
+        <asp:Label ID="lblAvatarInitial" runat="server" Text="S" />
+      </div>
+      <div class="user-info">
+        <div class="user-name">
+          <asp:Label ID="lblSidebarName" runat="server" Text="Student" />
+        </div>
+        <div class="user-role">Student</div>
+      </div>
+    </div>
+    <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link"
+      OnClientClick="showLogoutModal(); return false;">
+      <i class="fa-solid fa-right-from-bracket"></i> Log Out
+    </asp:LinkButton>
+  </div>
+
+</div><!-- /sidebar -->
+
+<!-- ================================================================
+     MAIN CONTENT
+     ================================================================ -->
+<div class="main-wrapper">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Dashboard</div>
+      <div class="topbar-date">
+        <asp:Label ID="lblDate" runat="server" Text="" />
+      </div>
+    </div>
+    <div class="topbar-right">
+      <a href="Notifications.aspx" class="topbar-icon-btn" title="Notifications">
+        <i class="fa-solid fa-bell"></i>
+        <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
+      </a>
+      <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile">
+        <i class="fa-solid fa-circle-user"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- Page content -->
+  <div class="page-content">
+
+    <!-- Student profile bar -->
+    <div class="student-profile-topbar">
+      <div class="stu-avatar">
+        <asp:Label ID="lblTopbarInitial" runat="server" Text="S" />
+      </div>
+      <div class="stu-profile-info">
+        <div class="stu-profile-name">
+          <asp:Label ID="lblStudentName" runat="server" Text="" />
+        </div>
+        <div class="stu-profile-id">
+          <asp:Label ID="lblStudentId" runat="server" Text="" />
+        </div>
+        <div class="stu-profile-prog">
+          <asp:Label ID="lblProgramme" runat="server" Text="" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="stu-stats-grid">
+
+      <!-- Current GPA -->
+      <div class="stu-stat-card">
+        <div class="stu-stat-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div class="stu-stat-label">Current GPA</div>
+        <div class="stu-stat-value">
+          <asp:Label ID="lblGPA" runat="server" Text="0.00" />
+        </div>
+      </div>
+
+      <!-- Attendance -->
+      <div class="stu-stat-card">
+        <div class="stu-stat-icon">
+          <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <div class="stu-stat-label">Attendance</div>
+        <div class="stu-stat-value">
+          <asp:Label ID="lblAttendance" runat="server" Text="0.00" />%
+        </div>
+      </div>
+
+      <!-- Enrolled Courses -->
+      <div class="stu-stat-card">
+        <div class="stu-stat-icon">
+          <i class="fa-solid fa-book-open"></i>
+        </div>
+        <div class="stu-stat-label">Enrolled Courses</div>
+        <div class="course-badge-list">
+          <asp:Repeater ID="rptEnrolledCourses" runat="server">
+            <ItemTemplate>
+              <span class="course-badge"><%# Eval("CourseCode") %></span>
+            </ItemTemplate>
+          </asp:Repeater>
+          <asp:Label ID="lblNoCourses" runat="server" Text="None"
+            Style="color:var(--text-muted);font-size:13px;" Visible="false" />
+        </div>
+      </div>
+
+      <!-- Outstanding Fees -->
+      <div class="stu-stat-card">
+        <div class="stu-stat-icon">
+          <i class="fa-solid fa-sack-dollar"></i>
+        </div>
+        <div class="stu-stat-label">Outstanding Fees</div>
+        <div class="stu-stat-value neutral">
+          RM <asp:Label ID="lblFees" runat="server" Text="00.00" />
+        </div>
+      </div>
+
+    </div><!-- /stu-stats-grid -->
+
+    <!-- Charts + Announcements row -->
+    <div class="charts-row">
+
+      <!-- Attendance Trend Chart -->
+      <div class="chart-card">
+        <div class="chart-card-title">
+          <i class="fa-solid fa-chart-column" style="color:var(--orange-main);margin-right:6px;"></i>
+          Attendance Trend Chart
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="attendanceChart"></canvas>
+        </div>
+      </div>
+
+      <!-- GPA Trend Chart -->
+      <div class="chart-card">
+        <div class="chart-card-title">
+          <i class="fa-solid fa-chart-line" style="color:var(--orange-main);margin-right:6px;"></i>
+          GPA Trend Chart
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="gpaChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Announcement -->
+      <div class="announcement-card">
+        <div class="card-title-white">
+          <i class="fa-solid fa-bullhorn" style="margin-right:6px;"></i> Announcements
+        </div>
+        <asp:Repeater ID="rptAnnouncements" runat="server">
+          <ItemTemplate>
+            <div class="ann-item">
+              <div class="ann-item-title"><%# Eval("Title") %></div>
+              <div class="ann-item-date">
+                <i class="fa-regular fa-clock"></i>
+                <%# Eval("CreatedAt", "{0:dd MMM yyyy}") %>
+              </div>
+            </div>
+          </ItemTemplate>
+        </asp:Repeater>
+        <asp:Label ID="lblNoAnnouncements" runat="server"
+          CssClass="ann-empty" Text="No announcements at this time." Visible="false" />
+      </div>
+
+    </div><!-- /charts-row -->
+
+  </div><!-- /page-content -->
+</div><!-- /main-wrapper -->
+
+<!-- ── Hidden data fields for charts ──────────────────────────────── -->
+<asp:HiddenField ID="hdnAttendanceLabels" runat="server" />
+<asp:HiddenField ID="hdnAttendanceData"  runat="server" />
+<asp:HiddenField ID="hdnGpaLabels"       runat="server" />
+<asp:HiddenField ID="hdnGpaData"         runat="server" />
+
+<!-- ================================================================
+     LOGOUT MODAL
+     ================================================================ -->
+<div id="logoutModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(26,26,46,0.85);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:12px;width:100%;max-width:380px;box-shadow:0 15px 35px rgba(0,0,0,0.3);overflow:hidden;">
+    <div style="padding:25px 30px 10px;text-align:center;border-bottom:1px solid #eee;">
+      <h3>🔒 Log Out</h3>
+    </div>
+    <div style="padding:25px 30px;text-align:center;color:#555;">
+      <p>Are you sure you want to log out of SIMS?</p>
+    </div>
+    <div style="padding:20px 30px 25px;display:flex;gap:12px;justify-content:center;border-top:1px solid #eee;">
+      <button type="button" onclick="hideLogoutModal()" style="padding:10px 24px;" class="btn btn-outline">Cancel</button>
+      <asp:LinkButton ID="btnConfirmLogout" runat="server"
+        CssClass="btn btn-danger" OnClick="lbLogout_Click">
+        Yes, Log Out
+      </asp:LinkButton>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Logout modal ─────────────────────────────────────── */
+  function showLogoutModal() { document.getElementById('logoutModal').style.display = 'flex'; }
+  function hideLogoutModal() { document.getElementById('logoutModal').style.display = 'none'; }
+
+  /* ── Charts (run after DOM ready) ────────────────────── */
+  document.addEventListener('DOMContentLoaded', function () {
+    var attLabels = document.getElementById('<%= hdnAttendanceLabels.ClientID %>').value;
+    var attData   = document.getElementById('<%= hdnAttendanceData.ClientID %>').value;
+    var gpaLabels = document.getElementById('<%= hdnGpaLabels.ClientID %>').value;
+    var gpaData   = document.getElementById('<%= hdnGpaData.ClientID %>').value;
+
+      var aLabels = attLabels ? attLabels.split('|') : [];
+      var aData = attData ? attData.split('|').map(Number) : [];
+      var gLabels = gpaLabels ? gpaLabels.split('|') : [];
+      var gData = gpaData ? gpaData.split('|').map(Number) : [];
+
+      /* ── Attendance Chart ──────── */
+      var attCtx = document.getElementById('attendanceChart').getContext('2d');
+      new Chart(attCtx, {
+          type: 'bar',
+          data: {
+              labels: aLabels,
+              datasets: [{
+                  label: 'Attendance %',
+                  data: aData,
+                  backgroundColor: 'rgba(245,166,35,0.75)',
+                  borderColor: '#E8890A',
+                  borderWidth: 2,
+                  borderRadius: 6
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      max: 100,
+                      ticks: { callback: function (v) { return v + '%'; }, font: { size: 11 } },
+                      grid: { color: 'rgba(0,0,0,0.05)' }
+                  },
+                  x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+              }
+          }
+      });
+
+      /* ── GPA Chart ─────────────── */
+      var gpaCtx = document.getElementById('gpaChart').getContext('2d');
+      new Chart(gpaCtx, {
+          type: 'line',
+          data: {
+              labels: gLabels,
+              datasets: [{
+                  label: 'GPA',
+                  data: gData,
+                  borderColor: '#F5A623',
+                  backgroundColor: 'rgba(245,166,35,0.15)',
+                  borderWidth: 2.5,
+                  pointBackgroundColor: '#E8890A',
+                  pointRadius: 5,
+                  fill: true,
+                  tension: 0.4
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                  y: {
+                      beginAtZero: false,
+                      min: 0, max: 4,
+                      ticks: { font: { size: 11 } },
+                      grid: { color: 'rgba(0,0,0,0.05)' }
+                  },
+                  x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+              }
+          }
+      });
+  });
+</script>
+
+  </form>
+</body>
+</html>

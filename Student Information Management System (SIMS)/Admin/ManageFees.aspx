@@ -1,0 +1,199 @@
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="ManageFees.aspx.cs"
+    Inherits="Student_Information_Management_System__SIMS_.Admin_ManageFees" %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head runat="server">
+    <title>Manage Fees - SIMS</title>
+    <link href="../Styles/SIMS.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+    <style>
+        h2.page-title { margin-bottom:25px; }
+        .fee-note { background:#fff8e1; border:1px solid #f0d38a; border-radius:14px; padding:15px 18px; margin-bottom:24px; color:#555; line-height:1.6; }
+        .status-badge { padding:6px 12px; border-radius:50px; font-size:12px; font-weight:700; display:inline-block; }
+        .status-pending { background:#fff8e1; color:#b7791f; border:1px solid #f0d38a; }
+        .status-paid { background:#e7f8ee; color:#16803a; border:1px solid #a9e7bf; }
+        .status-rejected { background:#fdecec; color:#c53030; border:1px solid #f5b5b5; }
+        .action-row { display:flex; gap:8px; flex-wrap:wrap; }
+        .small-btn { padding:7px 13px; border-radius:9px; font-weight:700; font-size:12px; cursor:pointer; text-decoration:none; border:1px solid transparent; }
+        .approve-btn { background:#fff; color:#16803a; border-color:#16803a; }
+        .approve-btn:hover { background:#16803a; color:#fff; }
+        .reject-btn { background:#fff; color:#c53030; border-color:#c53030; }
+        .reject-btn:hover { background:#c53030; color:#fff; }
+        .edit-btn { background:#fff; color:#e8a838; border-color:#e8a838; }
+        .edit-btn:hover { background:#e8a838; color:#fff; }
+        .delete-btn { background:#fff; color:#dc3545; border:1px solid #dc3545; }
+        .delete-btn:hover { background:#dc3545; color:#fff; }
+        #customModalOverlay { display:none; position:fixed; inset:0; background:rgba(30,30,40,.60); z-index:9999; justify-content:center; align-items:center; }
+        #customModalOverlay.active { display:flex; }
+        #customModal { background:#fff; border-radius:16px; width:100%; max-width:400px; padding:36px 32px 28px; box-shadow:0 12px 40px rgba(0,0,0,.28); text-align:center; }
+        #customModal .cm-icon-wrap { width:68px; height:68px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; background:#fff8e1; }
+        #customModal svg { width:32px; height:32px; display:block; }
+        #customModal .cm-title { font-size:1.2rem; font-weight:700; color:#1a1a2e; margin-bottom:14px; }
+        #customModal .cm-divider { border:none; border-top:1px solid #ececec; margin:0 -32px 18px; }
+        #customModal .cm-body { font-size:.97rem; line-height:1.65; color:#555; margin-bottom:28px; }
+        #customModal .cm-btn { padding:10px 32px; border-radius:50px; font-size:.95rem; font-weight:600; cursor:pointer; transition:all .18s; min-width:110px; background:transparent; border:2px solid #e8a838; color:#e8a838; }
+        #customModal .cm-btn:hover { background:#fdf3e0; }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-paid {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-overdue {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-rejected {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+    </style>
+</head>
+<body>
+<form id="form1" runat="server">
+    <asp:ScriptManager ID="ScriptManager1" runat="server" />
+
+    <div class="page-content">
+        <h2 class="page-title"><i class="fa-solid fa-money-bill-wave"></i> Manage Fees</h2>
+
+        <div class="fee-note">
+            <strong>Recommended database design:</strong> use <strong>CourseFees</strong> to store each course price by session, and use <strong>Fees</strong> to store each student's payable invoice and payment status. CourseFees should not have payment status because it is only the price master table.
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div>
+                <div><div class="stat-value">RM <asp:Label ID="lblPendingAmount" runat="server" Text="0.00" /></div><div class="stat-label">Pending Fees</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fa-solid fa-check"></i></div>
+                <div><div class="stat-value">RM <asp:Label ID="lblPaidAmount" runat="server" Text="0.00" /></div><div class="stat-label">Approved / Paid</div></div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom:30px;">
+            <div class="card-header"><span class="card-title"><i class="fa-solid fa-tags"></i> Manage Course Fee</span></div>
+            <div class="card-body">
+                <asp:HiddenField ID="hfCourseFeeId" runat="server" />
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Programme</label>
+                        <asp:DropDownList ID="ddlProgramme" runat="server" CssClass="form-control" AutoPostBack="true" OnSelectedIndexChanged="ddlProgramme_SelectedIndexChanged" />
+                    </div>
+                    <div class="form-group">
+                        <label>Course</label>
+                        <asp:DropDownList ID="ddlCourse" runat="server" CssClass="form-control" />
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Session</label>
+                        <asp:DropDownList ID="ddlFeeSession" runat="server" CssClass="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (RM)</label>
+                        <asp:TextBox ID="txtAmount" runat="server" CssClass="form-control" TextMode="Number" placeholder="e.g. 1200.00" />
+                    </div>
+                </div>
+                <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
+                    <asp:Button ID="btnSaveCourseFee" runat="server" Text="Save Course Fee" CssClass="btn btn-primary" OnClick="btnSaveCourseFee_Click" />
+                    <asp:Button ID="btnClearCourseFee" runat="server" Text="Clear" CssClass="btn btn-outline" OnClick="btnClearCourseFee_Click" CausesValidation="false" />
+                    <asp:Button ID="btnBack" runat="server" Text="Back to Dashboard" CssClass="btn btn-outline" OnClick="btnBack_Click" CausesValidation="false" />
+                </div>
+
+                <div class="table-wrapper" style="margin-top:25px;">
+                    <asp:GridView ID="gvCourseFees" runat="server" CssClass="data-table" AutoGenerateColumns="false" EmptyDataText="No course fee found." OnRowCommand="gvCourseFees_RowCommand">
+                        <Columns>
+                            <asp:BoundField DataField="ProgrammeCode" HeaderText="Programme" />
+                            <asp:BoundField DataField="CourseCode" HeaderText="Code" />
+                            <asp:BoundField DataField="CourseName" HeaderText="Course" />
+                            <asp:BoundField DataField="Session" HeaderText="Session" />
+                            <asp:BoundField DataField="Amount" HeaderText="Amount (RM)" DataFormatString="{0:N2}" />
+                            <asp:TemplateField HeaderText="Action">
+                                <ItemTemplate>
+                                    <div class="action-row">
+                                        <asp:LinkButton ID="btnEditFee" runat="server" CssClass="small-btn edit-btn" Text="Edit" CommandName="EditFee" CommandArgument='<%# Eval("CourseFeeId") %>' />
+                                        <asp:LinkButton ID="btnDeleteFee" runat="server" CssClass="small-btn delete-btn" Text="Delete" CommandName="DeleteFee" CommandArgument='<%# Eval("CourseFeeId") %>' OnClientClick="return confirm('Delete this course fee?');" />
+                                    </div>
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                        </Columns>
+                    </asp:GridView>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fa-solid fa-receipt"></i> Pending Student Payments</span></div>
+            <div class="card-body">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Filter Session</label>
+                        <asp:DropDownList ID="ddlPaymentSession" runat="server" CssClass="form-control" AutoPostBack="true" OnSelectedIndexChanged="ddlPaymentSession_SelectedIndexChanged" />
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <asp:DropDownList ID="ddlStatus" runat="server" CssClass="form-control" AutoPostBack="true" OnSelectedIndexChanged="ddlStatus_SelectedIndexChanged">
+                            <asp:ListItem Text="Pending" Value="Pending" />
+                            <asp:ListItem Text="Paid" Value="Paid" />
+                            <asp:ListItem Text="Rejected" Value="Rejected" />
+                            <asp:ListItem Text="Overdue" Value="Overdue" />
+                            <asp:ListItem Text="All" Value="" />
+                        </asp:DropDownList>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <asp:GridView ID="gvPayments" runat="server" CssClass="data-table" AutoGenerateColumns="false" EmptyDataText="No fee records found." OnRowCommand="gvPayments_RowCommand" OnRowDataBound="gvPayments_RowDataBound">
+                        <Columns>
+                            <asp:BoundField DataField="StudentId" HeaderText="Student ID" />
+                            <asp:BoundField DataField="StudentName" HeaderText="Student" />
+                            <asp:BoundField DataField="ProgrammeCode" HeaderText="Programme" />
+                            <asp:BoundField DataField="Session" HeaderText="Session" />
+                            <asp:BoundField DataField="FeeType" HeaderText="Fee Type" />
+                            <asp:BoundField DataField="Amount" HeaderText="Amount (RM)" DataFormatString="{0:N2}" />
+                            <asp:TemplateField HeaderText="Status">
+                                <ItemTemplate>
+                                    <asp:Label ID="lblStatus" runat="server"
+                                        Text='<%# Eval("Status") %>'
+                                        CssClass='<%# "status-badge " + GetStatusCss(Eval("Status")) %>' />
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                            <asp:BoundField DataField="PaymentDate" HeaderText="Payment Date" DataFormatString="{0:yyyy-MM-dd}" />
+                            <asp:TemplateField HeaderText="Action">
+                                <ItemTemplate>
+                                    <div class="action-row">
+                                        <asp:LinkButton ID="btnApprove" runat="server" CssClass="small-btn approve-btn" Text="Approve" CommandName="ApprovePayment" CommandArgument='<%# Eval("StudentId") + "|" + Eval("Session") + "|" + Eval("FeeType") %>' OnClientClick="return confirm('Approve this payment?');" />
+                                        <asp:LinkButton ID="btnReject" runat="server" CssClass="small-btn reject-btn" Text="Reject" CommandName="RejectPayment" CommandArgument='<%# Eval("StudentId") + "|" + Eval("Session") + "|" + Eval("FeeType") %>' OnClientClick="return confirm('Reject this payment?');" />
+                                    </div>
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                        </Columns>
+                    </asp:GridView>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="customModalOverlay"><div id="customModal"><div class="cm-icon-wrap"><span id="cmIcon"></span></div><div class="cm-title" id="cmTitle">Message</div><hr class="cm-divider" /><div class="cm-body" id="cmBody"></div><button type="button" class="cm-btn" onclick="closeCustomModal()">OK</button></div></div>
+    <script>
+        var SVG_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        var SVG_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+        function showMessageModal(title, message) { document.getElementById('cmIcon').innerHTML = title.indexOf('Warning') >= 0 || title.indexOf('Error') >= 0 ? SVG_WARN : SVG_TICK; document.getElementById('cmTitle').innerHTML = title; document.getElementById('cmBody').innerHTML = message; document.getElementById('customModalOverlay').classList.add('active'); }
+        function closeCustomModal() { document.getElementById('customModalOverlay').classList.remove('active'); }
+    </script>
+</form>
+</body>
+</html>

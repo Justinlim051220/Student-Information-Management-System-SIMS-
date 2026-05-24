@@ -24,10 +24,10 @@ namespace Student_Information_Management_System__SIMS_.Admin
         private void LoadProgrammes()
         {
             string sql = "SELECT ProgrammeId, ProgrammeName FROM Programmes ORDER BY ProgrammeName";
-            ddlProgramme.DataSource = DatabaseHelper.ExecuteQuery(sql);
-            ddlProgramme.DataTextField = "ProgrammeName";
-            ddlProgramme.DataValueField = "ProgrammeId";
-            ddlProgramme.DataBind();
+            cblProgrammes.DataSource = DatabaseHelper.ExecuteQuery(sql);
+            cblProgrammes.DataTextField = "ProgrammeName";
+            cblProgrammes.DataValueField = "ProgrammeId";
+            cblProgrammes.DataBind();
         }
 
         private void GenerateNextLecturerId()
@@ -36,36 +36,36 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 "SELECT TOP 1 LecturerId FROM LecturerDetails ORDER BY LecturerId DESC");
 
             if (result == null)
-            {
                 txtLecturerId.Text = "LEC001";
-            }
             else
             {
                 string lastId = result.ToString();
                 if (lastId.StartsWith("LEC") && int.TryParse(lastId.Substring(3), out int num))
-                {
                     txtLecturerId.Text = $"LEC{(num + 1):D3}";
-                }
                 else
-                {
                     txtLecturerId.Text = "LEC001";
-                }
             }
         }
 
         private void LoadLecturers()
         {
             string sql = @"
-        SELECT ld.LecturerId, 
-               ld.FirstName + ' ' + ld.LastName AS FullName,
-               u.Email, 
-               ld.Phone, 
-               p.ProgrammeName,
-               ld.Specialization
-        FROM LecturerDetails ld
-        INNER JOIN Users u ON ld.UserId = u.UserId
-        LEFT JOIN Programmes p ON ld.ProgrammeId = p.ProgrammeId
-        ORDER BY ld.FirstName, ld.LastName";
+                SELECT ld.LecturerId,
+                       ld.FirstName + ' ' + ld.LastName AS FullName,
+                       u.Email,
+                       ld.Phone,
+                       ISNULL(STUFF((
+                           SELECT ', ' + p2.ProgrammeName
+                           FROM LecturerProgramme lp2
+                           INNER JOIN Programmes p2 ON lp2.ProgrammeId = p2.ProgrammeId
+                           WHERE lp2.LecturerId = ld.LecturerId
+                           ORDER BY p2.ProgrammeName
+                           FOR XML PATH(''), TYPE
+                       ).value('.', 'NVARCHAR(MAX)'), 1, 2, ''), '-') AS ProgrammeNames,
+                       ld.Specialization
+                FROM LecturerDetails ld
+                INNER JOIN Users u ON ld.UserId = u.UserId
+                ORDER BY ld.FirstName, ld.LastName";
 
             gvLecturers.DataSource = DatabaseHelper.ExecuteQuery(sql);
             gvLecturers.DataBind();
@@ -76,7 +76,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
             if (string.IsNullOrWhiteSpace(txtFirstName.Text) ||
                 string.IsNullOrWhiteSpace(txtLastName.Text) ||
                 string.IsNullOrWhiteSpace(txtEmail.Text) ||
-                string.IsNullOrEmpty(ddlProgramme.SelectedValue))
+                !HasSelectedProgramme())
             {
                 ShowMessage("Please fill in all required fields.", "danger");
                 return;
@@ -90,69 +90,77 @@ namespace Student_Information_Management_System__SIMS_.Admin
 
                     // 1. Create User
                     string userSql = @"
-                        INSERT INTO Users (Email, PasswordHash, Role, IsActive)
-                        VALUES (@Email, @Hash, 2, 1);
-                        SELECT SCOPE_IDENTITY();";
+                INSERT INTO Users (Email, PasswordHash, Role, IsActive)
+                VALUES (@Email, @Hash, 2, 1);
+                SELECT SCOPE_IDENTITY();";
 
                     int userId = Convert.ToInt32(DatabaseHelper.ExecuteScalar(userSql, new[]
                     {
-                        new SqlParameter("@Email", txtEmail.Text.Trim().ToLower()),
-                        new SqlParameter("@Hash", passwordHash)
-                    }));
+                new SqlParameter("@Email", txtEmail.Text.Trim().ToLower()),
+                new SqlParameter("@Hash", passwordHash)
+            }));
 
-                    // 2. Create LecturerDetails
+                    // 2. Create Lecturer
                     string lecSql = @"
-                        INSERT INTO LecturerDetails 
-                        (LecturerId, UserId, FirstName, LastName, Phone, 
-                         ProgrammeId, Specialization, JoinDate)
-                        VALUES 
-                        (@LecId, @UserId, @FName, @LName, @Phone, 
-                         @ProgrammeId, @Spec, GETDATE())";
+                INSERT INTO LecturerDetails 
+                (LecturerId, UserId, FirstName, LastName, Phone, 
+                 ProgrammeId, Specialization, JoinDate)
+                VALUES 
+                (@LecId, @UserId, @FName, @LName, @Phone, 
+                 @ProgrammeId, @Spec, GETDATE())";
 
                     DatabaseHelper.ExecuteNonQuery(lecSql, new[]
                     {
-                        new SqlParameter("@LecId", txtLecturerId.Text.Trim()),
-                        new SqlParameter("@UserId", userId),
-                        new SqlParameter("@FName", txtFirstName.Text.Trim()),
-                        new SqlParameter("@LName", txtLastName.Text.Trim()),
-                        new SqlParameter("@Phone", txtPhone.Text.Trim()),
-                        new SqlParameter("@ProgrammeId", ddlProgramme.SelectedValue),
-                        new SqlParameter("@Spec", txtSpecialization.Text.Trim())
-                    });
+                new SqlParameter("@LecId", txtLecturerId.Text.Trim()),
+                new SqlParameter("@UserId", userId),
+                new SqlParameter("@FName", txtFirstName.Text.Trim()),
+                new SqlParameter("@LName", txtLastName.Text.Trim()),
+                new SqlParameter("@Phone", txtPhone.Text.Trim()),
+                new SqlParameter("@ProgrammeId", GetFirstSelectedProgrammeId()),
+                new SqlParameter("@Spec", string.IsNullOrWhiteSpace(txtSpecialization.Text)
+                    ? (object)DBNull.Value : txtSpecialization.Text.Trim())
+            });
 
-                    ShowMessage("✅ Lecturer added successfully!<br><strong>Default Password:</strong> Lecturer@123", "success");
+                    SaveLecturerProgrammes(txtLecturerId.Text.Trim());
+
+                    ShowMessage("✅ Lecturer added successfully!<br><br>" +
+                               "<strong>Default Password:</strong> Lecturer@123<br><br>" +
+                               "The lecturer can use <strong>Forgot Password</strong> to change it.",
+                               "success");
                 }
                 else // === UPDATE ===
                 {
                     string updateSql = @"
-                        UPDATE LecturerDetails 
-                        SET FirstName = @FName,
-                            LastName = @LName,
-                            Phone = @Phone,
-                            ProgrammeId = @ProgrammeId,
-                            Specialization = @Spec
-                        WHERE LecturerId = @LecId";
+                UPDATE LecturerDetails 
+                SET FirstName = @FName,
+                    LastName = @LName,
+                    Phone = @Phone,
+                    ProgrammeId = @ProgrammeId,
+                    Specialization = @Spec
+                WHERE LecturerId = @LecId";
 
                     DatabaseHelper.ExecuteNonQuery(updateSql, new[]
                     {
-                        new SqlParameter("@FName", txtFirstName.Text.Trim()),
-                        new SqlParameter("@LName", txtLastName.Text.Trim()),
-                        new SqlParameter("@Phone", txtPhone.Text.Trim()),
-                        new SqlParameter("@ProgrammeId", ddlProgramme.SelectedValue),
-                        new SqlParameter("@Spec", txtSpecialization.Text.Trim()),
-                        new SqlParameter("@LecId", hfLecturerId.Value)
-                    });
+                new SqlParameter("@FName", txtFirstName.Text.Trim()),
+                new SqlParameter("@LName", txtLastName.Text.Trim()),
+                new SqlParameter("@Phone", txtPhone.Text.Trim()),
+                new SqlParameter("@ProgrammeId", GetFirstSelectedProgrammeId()),
+                new SqlParameter("@Spec", string.IsNullOrWhiteSpace(txtSpecialization.Text)
+                    ? (object)DBNull.Value : txtSpecialization.Text.Trim()),
+                new SqlParameter("@LecId", hfLecturerId.Value)
+            });
 
-                    // Update email
+                    SaveLecturerProgrammes(hfLecturerId.Value);
+
                     DatabaseHelper.ExecuteNonQuery(
                         "UPDATE Users SET Email = @Email WHERE UserId = @UserId",
                         new[]
                         {
-                            new SqlParameter("@Email", txtEmail.Text.Trim().ToLower()),
-                            new SqlParameter("@UserId", hfUserId.Value)
+                    new SqlParameter("@Email", txtEmail.Text.Trim().ToLower()),
+                    new SqlParameter("@UserId", hfUserId.Value)
                         });
 
-                    ShowMessage("✅ Lecturer updated successfully!", "success");
+                    ShowMessage("Lecturer updated successfully!", "success");
                 }
 
                 ClearForm();
@@ -168,13 +176,38 @@ namespace Student_Information_Management_System__SIMS_.Admin
         {
             string lecturerId = e.CommandArgument.ToString();
 
-            if (e.CommandName == "Edit")
+            if (e.CommandName == "EditLecturer")
             {
                 LoadLecturerForEdit(lecturerId);
             }
-            else if (e.CommandName == "Delete")
+            else if (e.CommandName == "DeleteLecturer")
             {
-                DeleteLecturer(lecturerId);
+                ShowMessage(
+                    $"Are you sure you want to delete Lecturer {lecturerId}? This action cannot be undone.",
+                    "warning",
+                    true,
+                    lecturerId);
+            }
+        }
+
+        protected void DeleteLecturerConfirmed(string lecturerId)
+        {
+            try
+            {
+                DatabaseHelper.ExecuteNonQuery(
+                    "DELETE FROM LecturerProgramme WHERE LecturerId = @Id",
+                    new[] { new SqlParameter("@Id", lecturerId) });
+
+                DatabaseHelper.ExecuteNonQuery(
+                    "DELETE FROM LecturerDetails WHERE LecturerId = @Id",
+                    new[] { new SqlParameter("@Id", lecturerId) });
+
+                ShowMessage("✅ Lecturer deleted successfully!", "success");
+                LoadLecturers();
+            }
+            catch (Exception ex)
+            {
+                ShowMessage("Error deleting lecturer: " + ex.Message, "danger");
             }
         }
 
@@ -191,7 +224,6 @@ namespace Student_Information_Management_System__SIMS_.Admin
             if (dt.Rows.Count > 0)
             {
                 DataRow row = dt.Rows[0];
-
                 hfLecturerId.Value = row["LecturerId"].ToString();
                 hfUserId.Value = row["UserId"].ToString();
 
@@ -202,29 +234,67 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 txtPhone.Text = row["Phone"]?.ToString() ?? "";
                 txtSpecialization.Text = row["Specialization"]?.ToString() ?? "";
 
-                if (row["ProgrammeId"] != DBNull.Value)
-                {
-                    ddlProgramme.SelectedValue = row["ProgrammeId"].ToString();
-                }
+                LoadLecturerProgrammeSelections(lecturerId);
 
                 lblFormTitle.Text = "Edit Lecturer";
             }
         }
 
-        private void DeleteLecturer(string lecturerId)
+        private bool HasSelectedProgramme()
         {
-            try
+            foreach (ListItem item in cblProgrammes.Items)
             {
-                DatabaseHelper.ExecuteNonQuery(
-                    "DELETE FROM LecturerDetails WHERE LecturerId = @Id",
-                    new[] { new SqlParameter("@Id", lecturerId) });
-
-                ShowMessage("✅ Lecturer deleted successfully.", "success");
-                LoadLecturers();
+                if (item.Selected)
+                    return true;
             }
-            catch (Exception ex)
+            return false;
+        }
+
+        private object GetFirstSelectedProgrammeId()
+        {
+            foreach (ListItem item in cblProgrammes.Items)
             {
-                ShowMessage("Error deleting lecturer: " + ex.Message, "danger");
+                if (item.Selected)
+                    return item.Value;
+            }
+            return DBNull.Value;
+        }
+
+        private void SaveLecturerProgrammes(string lecturerId)
+        {
+            DatabaseHelper.ExecuteNonQuery(
+                "DELETE FROM LecturerProgramme WHERE LecturerId = @LecturerId",
+                new[] { new SqlParameter("@LecturerId", lecturerId) });
+
+            foreach (ListItem item in cblProgrammes.Items)
+            {
+                if (!item.Selected)
+                    continue;
+
+                DatabaseHelper.ExecuteNonQuery(
+                    @"INSERT INTO LecturerProgramme (LecturerId, ProgrammeId)
+                      VALUES (@LecturerId, @ProgrammeId)",
+                    new[]
+                    {
+                        new SqlParameter("@LecturerId", lecturerId),
+                        new SqlParameter("@ProgrammeId", item.Value)
+                    });
+            }
+        }
+
+        private void LoadLecturerProgrammeSelections(string lecturerId)
+        {
+            cblProgrammes.ClearSelection();
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(
+                "SELECT ProgrammeId FROM LecturerProgramme WHERE LecturerId = @LecturerId",
+                new[] { new SqlParameter("@LecturerId", lecturerId) });
+
+            foreach (DataRow row in dt.Rows)
+            {
+                ListItem item = cblProgrammes.Items.FindByValue(row["ProgrammeId"].ToString());
+                if (item != null)
+                    item.Selected = true;
             }
         }
 
@@ -237,17 +307,36 @@ namespace Student_Information_Management_System__SIMS_.Admin
             txtEmail.Text = "";
             txtPhone.Text = "";
             txtSpecialization.Text = "";
-            ddlProgramme.ClearSelection();
+            cblProgrammes.ClearSelection();
             lblFormTitle.Text = "Add New Lecturer";
 
             GenerateNextLecturerId();
         }
 
-        private void ShowMessage(string text, string type)
+        private void ShowMessage(string message, string type, bool isConfirmDelete = false, string lecturerId = null)
         {
-            lblMessage.Text = text;
-            lblMessage.CssClass = $"alert alert-{type}";
-            lblMessage.Visible = true;
+            string title;
+            if (type == "success") title = "✅ Success";
+            else if (type == "danger") title = "❌ Error";
+            else if (type == "warning") title = "⚠️ Confirmation";
+            else title = "Message";
+
+            // Escape for JS template literal
+            string safeMessage = message.Replace("\\", "\\\\").Replace("`", "\\`");
+            string safeLecturerId = (lecturerId ?? "").Replace("'", "\\'");
+
+            string script = $"showMessageModal('{title}', `{safeMessage}`, {isConfirmDelete.ToString().ToLower()}, '{safeLecturerId}');";
+
+            ScriptManager.RegisterStartupScript(this, this.GetType(),
+                "CustomModal" + Guid.NewGuid().ToString("N"),
+                script, true);
+        }
+
+        protected void btnDeleteConfirmed_Click(object sender, EventArgs e)
+        {
+            string lecturerId = hfDeleteTarget.Value;
+            if (!string.IsNullOrEmpty(lecturerId))
+                DeleteLecturerConfirmed(lecturerId);
         }
 
         protected void btnCancel_Click(object sender, EventArgs e)

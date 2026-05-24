@@ -95,7 +95,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="About.aspx" />
+    <Content Include="Admin\Admin_enrolment.aspx" />
+    <Content Include="Admin\AssignLecturerCourse.aspx" />
     <Content Include="Admin\Dashboard.aspx" />
+    <Content Include="Admin\ManageCourses.aspx" />
+    <Content Include="Admin\ManageFees.aspx" />
     <Content Include="Admin\ManageLecturers.aspx" />
     <Content Include="Admin\ManageProgrammes.aspx" />
     <Content Include="Admin\ManageStudents.aspx" />
@@ -121,6 +125,9 @@
     <Content Include="favicon.ico" />
     <Content Include="ForgotPassword.aspx" />
     <Content Include="Global.asax" />
+    <Content Include="Lecturer\Announcements.aspx" />
+    <Content Include="Lecturer\Lecturer_Dashboard.aspx" />
+    <Content Include="Lecturer\Notifications.aspx" />
     <Content Include="Login.aspx" />
     <Content Include="ResetPassword.aspx" />
     <Content Include="Scripts\bootstrap.bundle.js" />
@@ -158,12 +165,41 @@
     <Content Include="Scripts\WebForms\WebUIValidation.js" />
     <Content Include="SIMS_Patch_PasswordResets.sql" />
     <Content Include="Site.Master" />
+    <Content Include="Student\Student_Dashboard.aspx" />
     <Content Include="Styles\SIMS.css" />
     <Content Include="ViewSwitcher.ascx" />
     <Content Include="Web.config" />
     <Content Include="Bundle.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Admin\Admin_enrolment.aspx.cs">
+      <DependentUpon>Admin_enrolment.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\Admin_enrolment.aspx.designer.cs">
+      <DependentUpon>Admin_enrolment.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\AssignLecturerCourse.aspx.cs">
+      <DependentUpon>AssignLecturerCourse.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\AssignLecturerCourse.aspx.designer.cs">
+      <DependentUpon>AssignLecturerCourse.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\ManageCourses.aspx.cs">
+      <DependentUpon>ManageCourses.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ManageCourses.aspx.designer.cs">
+      <DependentUpon>ManageCourses.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\ManageFees.aspx.cs">
+      <DependentUpon>ManageFees.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ManageFees.aspx.designer.cs">
+      <DependentUpon>ManageFees.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\ManageLecturers.aspx.cs">
       <DependentUpon>ManageLecturers.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -229,6 +265,27 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Lecturer\Announcements.aspx.cs">
+      <DependentUpon>Announcements.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Lecturer\Announcements.aspx.designer.cs">
+      <DependentUpon>Announcements.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Lecturer\Lecturer_Dashboard.aspx.cs">
+      <DependentUpon>Lecturer_Dashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Lecturer\Lecturer_Dashboard.aspx.designer.cs">
+      <DependentUpon>Lecturer_Dashboard.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Lecturer\Notifications.aspx.cs">
+      <DependentUpon>Notifications.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Lecturer\Notifications.aspx.designer.cs">
+      <DependentUpon>Notifications.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Login.aspx.cs">
       <DependentUpon>Login.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -257,6 +314,13 @@
     </Compile>
     <Compile Include="Site.Mobile.Master.designer.cs">
       <DependentUpon>Site.Mobile.Master</DependentUpon>
+    </Compile>
+    <Compile Include="Student\Student_Dashboard.aspx.cs">
+      <DependentUpon>Student_Dashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Student\Student_Dashboard.aspx.designer.cs">
+      <DependentUpon>Student_Dashboard.aspx</DependentUpon>
     </Compile>
     <Compile Include="ViewSwitcher.ascx.cs">
       <DependentUpon>ViewSwitcher.ascx</DependentUpon>

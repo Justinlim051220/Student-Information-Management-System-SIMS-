@@ -12,7 +12,7 @@
     <form id="form1" runat="server">
         <div class="page-content">
 
-            <h2><i class="fa-solid fa-layer-group"></i> Manage Programmes</h2>
+            <h2 style="margin-bottom:25px;"><i class="fa-solid fa-layer-group"></i> Manage Programmes</h2>
 
             <asp:Label ID="lblMessage" runat="server" CssClass="alert" Visible="false"></asp:Label>
 
