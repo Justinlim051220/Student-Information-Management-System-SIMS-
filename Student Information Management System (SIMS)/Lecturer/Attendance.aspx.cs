@@ -284,23 +284,8 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             {
                 HiddenField hfStudentId = (HiddenField)item.FindControl("hfStudentId");
                 CheckBox chkPresent = (CheckBox)item.FindControl("chkPresent");
-                CheckBox chkAbsent = (CheckBox)item.FindControl("chkAbsent");
-                CheckBox chkLate = (CheckBox)item.FindControl("chkLate");
 
-                string status = "Absent";
-
-                if (chkPresent.Checked)
-                {
-                    status = "Present";
-                }
-                else if (chkLate.Checked)
-                {
-                    status = "Late";
-                }
-                else if (chkAbsent.Checked)
-                {
-                    status = "Absent";
-                }
+                string status = chkPresent.Checked ? "Present" : "Absent"; ;
 
                 SaveAttendance(hfStudentId.Value, status);
             }
