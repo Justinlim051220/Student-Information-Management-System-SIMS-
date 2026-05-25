@@ -166,6 +166,130 @@
                 grid-template-columns: 1fr 1fr;
             }
         }
+
+        /* Custom Modal - Same Style as ManageCourses.aspx */
+        #customModalOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 30, 40, 0.60);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #customModalOverlay.active {
+            display: flex;
+        }
+
+        #customModal {
+            background: #fff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            padding: 36px 32px 28px;
+            box-shadow: 0 12px 40px rgba(0,0,0,.28);
+            text-align: center;
+            animation: modalIn .18s ease;
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(.93); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        #customModal .cm-icon-wrap {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+
+        #customModal .cm-icon-wrap.icon-success { background: #fff8e1; }
+        #customModal .cm-icon-wrap.icon-error { background: #fdecea; }
+        #customModal .cm-icon-wrap.icon-warning { background: #fff3e0; }
+        #customModal .cm-icon-wrap.icon-delete { background: #fdecea; }
+
+        #customModal .cm-icon-wrap #cmIcon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+        }
+
+        #customModal .cm-icon-wrap svg {
+            width: 32px;
+            height: 32px;
+            display: block;
+        }
+
+        #customModal .cm-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 14px;
+        }
+
+        #customModal .cm-divider {
+            border: none;
+            border-top: 1px solid #ececec;
+            margin: 0 -32px 18px;
+        }
+
+        #customModal .cm-body {
+            font-size: .97rem;
+            line-height: 1.65;
+            color: #555;
+            margin-bottom: 28px;
+        }
+
+        #customModal .cm-footer {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        #customModal .cm-btn {
+            padding: 10px 32px;
+            border-radius: 50px;
+            font-size: .95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .18s;
+            min-width: 110px;
+        }
+
+        #customModal .cm-btn-cancel,
+        #customModal .cm-btn-ok {
+            background: transparent;
+            border: 2px solid #e8a838;
+            color: #e8a838;
+        }
+
+        #customModal .cm-btn-cancel:hover,
+        #customModal .cm-btn-ok:hover {
+            background: #fdf3e0;
+        }
+
+        #customModal .cm-btn-delete,
+        #customModal .cm-btn-read {
+            background: transparent;
+            border: none;
+            color: #e8a838;
+            font-weight: 700;
+            font-size: .97rem;
+            padding: 10px 8px;
+        }
+
+        #customModal .cm-btn-delete:hover,
+        #customModal .cm-btn-read:hover {
+            color: #c8881a;
+            text-decoration: underline;
+        }
         /* Move name + role upward and separate from logout */
         .sidebar-user{
             margin-bottom:18px;
@@ -361,7 +485,8 @@
                                             CommandName="MarkRead"
                                             CommandArgument='<%# Eval("NotificationId") %>'
                                             Visible='<%# !Convert.ToBoolean(Eval("IsRead")) %>'
-                                            ToolTip="Mark as Read">
+                                            ToolTip="Mark as Read"
+                                            OnClientClick='<%# "return showReadConfirm(" + Eval("NotificationId") + ");" %>'>
                                             <i class="fa-solid fa-check"></i>
                                         </asp:LinkButton>
 
@@ -379,7 +504,7 @@
                                             CommandName="DeleteNotification"
                                             CommandArgument='<%# Eval("NotificationId") %>'
                                             ToolTip="Delete"
-                                            OnClientClick="return confirm('Are you sure you want to delete this notification?');">
+                                            OnClientClick='<%# "return showDeleteConfirm(" + Eval("NotificationId") + ");" %>'>
                                             <i class="fa-solid fa-trash"></i>
                                         </asp:LinkButton>
                                     </div>
@@ -401,6 +526,133 @@
             </div>
         </div>
     </div>
+
+    <div id="customModalOverlay">
+        <div id="customModal">
+            <div class="cm-icon-wrap" id="cmIconWrap">
+                <span id="cmIcon"></span>
+            </div>
+
+            <div class="cm-title" id="cmTitle">Message</div>
+            <hr class="cm-divider" />
+            <div class="cm-body" id="cmBody"></div>
+
+            <div class="cm-footer">
+                <button type="button" class="cm-btn cm-btn-cancel" id="cmBtnCancel" style="display:none;" onclick="closeCustomModal()">Cancel</button>
+                <button type="button" class="cm-btn cm-btn-read" id="cmBtnRead" style="display:none;">Yes, Mark Read</button>
+                <button type="button" class="cm-btn cm-btn-delete" id="cmBtnDelete" style="display:none;">Yes, Delete</button>
+                <button type="button" class="cm-btn cm-btn-ok" id="cmBtnOk" style="display:none;" onclick="closeCustomModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <asp:HiddenField ID="hfReadTarget" runat="server" />
+    <asp:HiddenField ID="hfDeleteTarget" runat="server" />
+
+    <asp:Button ID="btnReadConfirmed" runat="server" Style="display:none;"
+        OnClick="btnReadConfirmed_Click" CausesValidation="false" />
+
+    <asp:Button ID="btnDeleteConfirmed" runat="server" Style="display:none;"
+        OnClick="btnDeleteConfirmed_Click" CausesValidation="false" />
+
+    <script>
+        var SVG_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        var SVG_CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+        var SVG_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+        var SVG_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
+
+        function resetModalButtons() {
+            document.getElementById('cmBtnOk').style.display = 'none';
+            document.getElementById('cmBtnCancel').style.display = 'none';
+            document.getElementById('cmBtnRead').style.display = 'none';
+            document.getElementById('cmBtnDelete').style.display = 'none';
+        }
+
+        function openModal(title, message, iconClass, iconSvg) {
+            var iconWrap = document.getElementById('cmIconWrap');
+            iconWrap.className = 'cm-icon-wrap ' + iconClass;
+
+            document.getElementById('cmIcon').innerHTML = iconSvg;
+            document.getElementById('cmTitle').innerHTML = title;
+            document.getElementById('cmBody').innerHTML = message;
+
+            resetModalButtons();
+            document.getElementById('customModalOverlay').classList.add('active');
+        }
+
+        function showMessageModal(title, message, isConfirmDelete, id) {
+            var displayTitle = title;
+            var iconClass = 'icon-success';
+            var iconSvg = SVG_TICK;
+
+            if (title.indexOf('✅') !== -1) {
+                displayTitle = 'Success';
+                iconClass = 'icon-success';
+                iconSvg = SVG_TICK;
+            }
+            else if (title.indexOf('❌') !== -1) {
+                displayTitle = 'Error';
+                iconClass = 'icon-error';
+                iconSvg = SVG_CROSS;
+            }
+            else if (title.indexOf('⚠') !== -1) {
+                displayTitle = 'Warning';
+                iconClass = 'icon-warning';
+                iconSvg = SVG_WARN;
+            }
+
+            openModal(displayTitle, message, iconClass, iconSvg);
+            document.getElementById('cmBtnOk').style.display = 'inline-block';
+        }
+
+        function showReadConfirm(notificationId) {
+            openModal(
+                'Confirm Read',
+                'Are you sure you want to mark this notification as read?',
+                'icon-warning',
+                SVG_WARN
+            );
+
+            document.getElementById('cmBtnCancel').style.display = 'inline-block';
+            document.getElementById('cmBtnRead').style.display = 'inline-block';
+
+            document.getElementById('cmBtnRead').onclick = function () {
+                document.getElementById('<%= hfReadTarget.ClientID %>').value = notificationId;
+                closeCustomModal();
+                document.getElementById('<%= btnReadConfirmed.ClientID %>').click();
+            };
+
+            return false;
+        }
+
+        function showDeleteConfirm(notificationId) {
+            openModal(
+                'Confirm Delete',
+                'Are you sure you want to delete this notification? This action cannot be undone.',
+                'icon-delete',
+                SVG_TRASH
+            );
+
+            document.getElementById('cmBtnCancel').style.display = 'inline-block';
+            document.getElementById('cmBtnDelete').style.display = 'inline-block';
+
+            document.getElementById('cmBtnDelete').onclick = function () {
+                document.getElementById('<%= hfDeleteTarget.ClientID %>').value = notificationId;
+                closeCustomModal();
+                document.getElementById('<%= btnDeleteConfirmed.ClientID %>').click();
+            };
+
+            return false;
+        }
+
+        function closeCustomModal() {
+            document.getElementById('customModalOverlay').classList.remove('active');
+        }
+
+        document.getElementById('customModalOverlay').addEventListener('click', function (e) {
+            if (e.target === this) closeCustomModal();
+        });
+    </script>
 
 </form>
 </body>
