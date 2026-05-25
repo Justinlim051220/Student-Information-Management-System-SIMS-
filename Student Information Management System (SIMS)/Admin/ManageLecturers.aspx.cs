@@ -24,10 +24,18 @@ namespace Student_Information_Management_System__SIMS_.Admin
         private void LoadProgrammes()
         {
             string sql = "SELECT ProgrammeId, ProgrammeName FROM Programmes ORDER BY ProgrammeName";
-            cblProgrammes.DataSource = DatabaseHelper.ExecuteQuery(sql);
+            DataTable programmes = DatabaseHelper.ExecuteQuery(sql);
+
+            cblProgrammes.DataSource = programmes;
             cblProgrammes.DataTextField = "ProgrammeName";
             cblProgrammes.DataValueField = "ProgrammeId";
             cblProgrammes.DataBind();
+
+            ddlFilterProgramme.DataSource = programmes.Copy();
+            ddlFilterProgramme.DataTextField = "ProgrammeName";
+            ddlFilterProgramme.DataValueField = "ProgrammeId";
+            ddlFilterProgramme.DataBind();
+            ddlFilterProgramme.Items.Insert(0, new ListItem("All Programmes", ""));
         }
 
         private void GenerateNextLecturerId()
@@ -49,6 +57,9 @@ namespace Student_Information_Management_System__SIMS_.Admin
 
         private void LoadLecturers()
         {
+            string keyword = txtSearchLecturer.Text.Trim();
+            string programmeId = ddlFilterProgramme.SelectedValue;
+
             string sql = @"
                 SELECT ld.LecturerId,
                        ld.FirstName + ' ' + ld.LastName AS FullName,
@@ -65,9 +76,34 @@ namespace Student_Information_Management_System__SIMS_.Admin
                        ld.Specialization
                 FROM LecturerDetails ld
                 INNER JOIN Users u ON ld.UserId = u.UserId
+                WHERE (@ProgrammeId = '' OR EXISTS (
+                           SELECT 1
+                           FROM LecturerProgramme lpFilter
+                           WHERE lpFilter.LecturerId = ld.LecturerId
+                           AND lpFilter.ProgrammeId = @ProgrammeId
+                       ))
+                  AND (@Keyword = ''
+                       OR ld.LecturerId LIKE '%' + @Keyword + '%'
+                       OR ld.FirstName LIKE '%' + @Keyword + '%'
+                       OR ld.LastName LIKE '%' + @Keyword + '%'
+                       OR (ld.FirstName + ' ' + ld.LastName) LIKE '%' + @Keyword + '%'
+                       OR u.Email LIKE '%' + @Keyword + '%'
+                       OR ld.Phone LIKE '%' + @Keyword + '%'
+                       OR ld.Specialization LIKE '%' + @Keyword + '%'
+                       OR EXISTS (
+                           SELECT 1
+                           FROM LecturerProgramme lpSearch
+                           INNER JOIN Programmes pSearch ON lpSearch.ProgrammeId = pSearch.ProgrammeId
+                           WHERE lpSearch.LecturerId = ld.LecturerId
+                           AND pSearch.ProgrammeName LIKE '%' + @Keyword + '%'
+                       ))
                 ORDER BY ld.FirstName, ld.LastName";
 
-            gvLecturers.DataSource = DatabaseHelper.ExecuteQuery(sql);
+            gvLecturers.DataSource = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
+                new SqlParameter("@Keyword", keyword),
+                new SqlParameter("@ProgrammeId", programmeId)
+            });
             gvLecturers.DataBind();
         }
 
@@ -78,7 +114,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 string.IsNullOrWhiteSpace(txtEmail.Text) ||
                 !HasSelectedProgramme())
             {
-                ShowMessage("Please fill in all required fields.", "danger");
+                ShowMessage("Please fill in all required fields.", "error", false, null, "Validation Error");
                 return;
             }
 
@@ -123,10 +159,10 @@ namespace Student_Information_Management_System__SIMS_.Admin
 
                     SaveLecturerProgrammes(txtLecturerId.Text.Trim());
 
-                    ShowMessage("✅ Lecturer added successfully!<br><br>" +
+                    ShowMessage("Lecturer added successfully!<br><br>" +
                                "<strong>Default Password:</strong> Lecturer@123<br><br>" +
                                "The lecturer can use <strong>Forgot Password</strong> to change it.",
-                               "success");
+                               "success", false, null, "Lecturer Added");
                 }
                 else // === UPDATE ===
                 {
@@ -160,7 +196,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                     new SqlParameter("@UserId", hfUserId.Value)
                         });
 
-                    ShowMessage("Lecturer updated successfully!", "success");
+                    ShowMessage("Lecturer updated successfully!", "success", false, null, "Lecturer Updated");
                 }
 
                 ClearForm();
@@ -168,7 +204,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
             }
             catch (Exception ex)
             {
-                ShowMessage("Error: " + ex.Message, "danger");
+                ShowMessage("Error: " + ex.Message, "error", false, null, "Error");
             }
         }
 
@@ -183,10 +219,11 @@ namespace Student_Information_Management_System__SIMS_.Admin
             else if (e.CommandName == "DeleteLecturer")
             {
                 ShowMessage(
-                    $"Are you sure you want to delete Lecturer {lecturerId}? This action cannot be undone.",
-                    "warning",
+                    $"Are you sure you want to delete Lecturer <strong>{lecturerId}</strong>?<br><br>This action cannot be undone.",
+                    "delete",
                     true,
-                    lecturerId);
+                    lecturerId,
+                    "Delete Lecturer?");
             }
         }
 
@@ -202,12 +239,12 @@ namespace Student_Information_Management_System__SIMS_.Admin
                     "DELETE FROM LecturerDetails WHERE LecturerId = @Id",
                     new[] { new SqlParameter("@Id", lecturerId) });
 
-                ShowMessage("✅ Lecturer deleted successfully!", "success");
+                ShowMessage("Lecturer deleted successfully!", "success", false, null, "Lecturer Deleted");
                 LoadLecturers();
             }
             catch (Exception ex)
             {
-                ShowMessage("Error deleting lecturer: " + ex.Message, "danger");
+                ShowMessage("Error deleting lecturer: " + ex.Message, "error", false, null, "Delete Error");
             }
         }
 
@@ -237,6 +274,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 LoadLecturerProgrammeSelections(lecturerId);
 
                 lblFormTitle.Text = "Edit Lecturer";
+                ShowMessage("You are now editing the selected lecturer record.", "warning", false, null, "Edit Mode");
             }
         }
 
@@ -312,24 +350,47 @@ namespace Student_Information_Management_System__SIMS_.Admin
 
             GenerateNextLecturerId();
         }
-
-        private void ShowMessage(string message, string type, bool isConfirmDelete = false, string lecturerId = null)
+        private void ShowMessage(string message, string type,
+                                 bool isConfirmDelete = false, string lecturerId = null,
+                                 string modalTitle = null)
         {
-            string title;
-            if (type == "success") title = "✅ Success";
-            else if (type == "danger") title = "❌ Error";
-            else if (type == "warning") title = "⚠️ Confirmation";
-            else title = "Message";
+            string safeType = NormalizeMessageType(type);
+            string safeTitle = (modalTitle ?? GetDefaultModalTitle(safeType, isConfirmDelete))
+                .Replace("\\", "\\\\")
+                .Replace("'", "\\'");
 
-            // Escape for JS template literal
-            string safeMessage = message.Replace("\\", "\\\\").Replace("`", "\\`");
-            string safeLecturerId = (lecturerId ?? "").Replace("'", "\\'");
+            string safeMessage = message
+                .Replace("\\", "\\\\")
+                .Replace("`", "\\`")
+                .Replace("${", "\\${");
 
-            string script = $"showMessageModal('{title}', `{safeMessage}`, {isConfirmDelete.ToString().ToLower()}, '{safeLecturerId}');";
+            string safeLecturerId = (lecturerId ?? "")
+                .Replace("\\", "\\\\")
+                .Replace("'", "\\'");
 
-            ScriptManager.RegisterStartupScript(this, this.GetType(),
-                "CustomModal" + Guid.NewGuid().ToString("N"),
-                script, true);
+            string script = $"showMessageModal('{safeType}', '{safeTitle}', `{safeMessage}`, {isConfirmDelete.ToString().ToLower()}, '{safeLecturerId}');";
+            ScriptManager.RegisterStartupScript(this, GetType(), Guid.NewGuid().ToString(), script, true);
+        }
+
+        private string NormalizeMessageType(string type)
+        {
+            string value = (type ?? "info").ToLower();
+            if (value == "danger") return "error";
+            return value;
+        }
+
+        private string GetDefaultModalTitle(string type, bool isConfirmDelete)
+        {
+            if (isConfirmDelete) return "Confirm Delete";
+
+            switch (type)
+            {
+                case "success": return "Success";
+                case "error": return "Error";
+                case "warning": return "Warning";
+                case "delete": return "Delete";
+                default: return "Message";
+            }
         }
 
         protected void btnDeleteConfirmed_Click(object sender, EventArgs e)
@@ -337,6 +398,27 @@ namespace Student_Information_Management_System__SIMS_.Admin
             string lecturerId = hfDeleteTarget.Value;
             if (!string.IsNullOrEmpty(lecturerId))
                 DeleteLecturerConfirmed(lecturerId);
+        }
+
+
+        protected void btnSearchLecturer_Click(object sender, EventArgs e)
+        {
+            gvLecturers.PageIndex = 0;
+            LoadLecturers();
+        }
+
+        protected void btnClearLecturerSearch_Click(object sender, EventArgs e)
+        {
+            txtSearchLecturer.Text = "";
+            ddlFilterProgramme.SelectedIndex = 0;
+            gvLecturers.PageIndex = 0;
+            LoadLecturers();
+        }
+
+        protected void btnClear_Click(object sender, EventArgs e)
+        {
+            ClearForm();
+            ShowMessage("The lecturer form has been cleared.", "success", false, null, "Form Cleared");
         }
 
         protected void btnCancel_Click(object sender, EventArgs e)

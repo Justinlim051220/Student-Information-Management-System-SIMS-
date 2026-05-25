@@ -30,12 +30,25 @@ namespace Student_Information_Management_System__SIMS_.Admin
 
         private void LoadProgrammes()
         {
+            string keyword = txtSearchProgramme.Text.Trim();
+            string duration = ddlFilterDuration.SelectedValue;
+
             string sql = @"
                 SELECT p.ProgrammeId, p.ProgrammeName, p.ProgrammeCode, p.Duration, p.Description
                 FROM Programmes p
+                WHERE (@Duration = '' OR CAST(p.Duration AS VARCHAR(10)) = @Duration)
+                  AND (@Keyword = ''
+                       OR p.ProgrammeName LIKE '%' + @Keyword + '%'
+                       OR p.ProgrammeCode LIKE '%' + @Keyword + '%'
+                       OR CAST(p.Duration AS VARCHAR(10)) LIKE '%' + @Keyword + '%'
+                       OR p.Description LIKE '%' + @Keyword + '%')
                 ORDER BY p.ProgrammeName";
 
-            gvProgrammes.DataSource = DatabaseHelper.ExecuteQuery(sql);
+            gvProgrammes.DataSource = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
+                new SqlParameter("@Keyword", keyword),
+                new SqlParameter("@Duration", duration)
+            });
             gvProgrammes.DataBind();
         }
 
@@ -52,7 +65,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 string.IsNullOrWhiteSpace(txtProgrammeCode.Text) ||
                 string.IsNullOrWhiteSpace(txtDuration.Text))
             {
-                ShowMessage("Please fill in all required fields.", "danger");
+                ShowMessage("Please fill in all required fields.", "error", false, null, "Validation Error");
                 return;
             }
 
@@ -80,7 +93,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                         new SqlParameter("@HoPId", hopId)
                     });
 
-                    ShowMessage("✅ Programme added successfully!", "success");
+                    ShowMessage("Programme added successfully!", "success", false, null, "Programme Added");
                 }
                 else // UPDATE
                 {
@@ -101,7 +114,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                         new SqlParameter("@Id", int.Parse(hfProgrammeId.Value))
                     });
 
-                    ShowMessage("✅ Programme updated successfully!", "success");
+                    ShowMessage("Programme updated successfully!", "success", false, null, "Programme Updated");
                 }
 
                 ClearForm();
@@ -109,7 +122,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
             }
             catch (Exception ex)
             {
-                ShowMessage("Error: " + ex.Message, "danger");
+                ShowMessage("Error: " + ex.Message, "error", false, null, "Error");
             }
         }
 
@@ -121,9 +134,14 @@ namespace Student_Information_Management_System__SIMS_.Admin
             {
                 LoadProgrammeForEdit(programmeId);
             }
-            else if (e.CommandName == "Delete")
+            else if (e.CommandName == "DeleteProgramme")
             {
-                DeleteProgramme(programmeId);
+                ShowMessage(
+                    $"Are you sure you want to delete Programme <strong>{programmeId}</strong>?<br><br>This action cannot be undone.",
+                    "delete",
+                    true,
+                    programmeId.ToString(),
+                    "Delete Programme?");
             }
         }
 
@@ -142,6 +160,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 txtDescription.Text = row["Description"].ToString();
 
                 lblFormTitle.Text = "Edit Programme";
+                ShowMessage("You are now editing the selected programme record.", "warning", false, null, "Edit Mode");
             }
         }
 
@@ -156,7 +175,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
 
                 if (Convert.ToInt32(count) > 0)
                 {
-                    ShowMessage("Cannot delete: This programme has enrolled students.", "danger");
+                    ShowMessage("Cannot delete this programme because it has enrolled students.", "error", false, null, "Delete Blocked");
                     return;
                 }
 
@@ -164,12 +183,12 @@ namespace Student_Information_Management_System__SIMS_.Admin
                     "DELETE FROM Programmes WHERE ProgrammeId = @Id",
                     new[] { new SqlParameter("@Id", programmeId) });
 
-                ShowMessage("✅ Programme deleted successfully.", "success");
+                ShowMessage("Programme deleted successfully!", "success", false, null, "Programme Deleted");
                 LoadProgrammes();
             }
             catch (Exception ex)
             {
-                ShowMessage("Error deleting programme: " + ex.Message, "danger");
+                ShowMessage("Error deleting programme: " + ex.Message, "error", false, null, "Delete Error");
             }
         }
 
@@ -182,12 +201,76 @@ namespace Student_Information_Management_System__SIMS_.Admin
             txtDescription.Text = "";
             lblFormTitle.Text = "Add New Programme";
         }
-
-        private void ShowMessage(string text, string type)
+        private void ShowMessage(string message, string type,
+                                 bool isConfirmDelete = false, string programmeId = null,
+                                 string modalTitle = null)
         {
-            lblMessage.Text = text;
-            lblMessage.CssClass = $"alert alert-{type}";
-            lblMessage.Visible = true;
+            string safeType = NormalizeMessageType(type);
+            string safeTitle = (modalTitle ?? GetDefaultModalTitle(safeType, isConfirmDelete))
+                .Replace("\\", "\\\\")
+                .Replace("'", "\\'");
+
+            string safeMessage = message
+                .Replace("\\", "\\\\")
+                .Replace("`", "\\`")
+                .Replace("${", "\\${");
+
+            string safeProgrammeId = (programmeId ?? "")
+                .Replace("\\", "\\\\")
+                .Replace("'", "\\'");
+
+            string script = $"showMessageModal('{safeType}', '{safeTitle}', `{safeMessage}`, {isConfirmDelete.ToString().ToLower()}, '{safeProgrammeId}');";
+            ScriptManager.RegisterStartupScript(this, GetType(), Guid.NewGuid().ToString(), script, true);
+        }
+
+        private string NormalizeMessageType(string type)
+        {
+            string value = (type ?? "info").ToLower();
+            if (value == "danger") return "error";
+            return value;
+        }
+
+        private string GetDefaultModalTitle(string type, bool isConfirmDelete)
+        {
+            if (isConfirmDelete) return "Confirm Delete";
+
+            switch (type)
+            {
+                case "success": return "Success";
+                case "error": return "Error";
+                case "warning": return "Warning";
+                case "delete": return "Delete";
+                default: return "Message";
+            }
+        }
+
+        protected void btnDeleteConfirmed_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(hfDeleteTarget.Value, out int programmeId))
+            {
+                DeleteProgramme(programmeId);
+            }
+        }
+
+
+        protected void btnSearchProgramme_Click(object sender, EventArgs e)
+        {
+            gvProgrammes.PageIndex = 0;
+            LoadProgrammes();
+        }
+
+        protected void btnClearProgrammeSearch_Click(object sender, EventArgs e)
+        {
+            txtSearchProgramme.Text = "";
+            ddlFilterDuration.SelectedIndex = 0;
+            gvProgrammes.PageIndex = 0;
+            LoadProgrammes();
+        }
+
+        protected void btnClear_Click(object sender, EventArgs e)
+        {
+            ClearForm();
+            ShowMessage("The programme form has been cleared.", "success", false, null, "Form Cleared");
         }
 
         protected void btnCancel_Click(object sender, EventArgs e)
