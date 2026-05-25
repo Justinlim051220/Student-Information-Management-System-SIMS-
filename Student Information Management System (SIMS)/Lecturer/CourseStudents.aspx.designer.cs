@@ -11,7 +11,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 {
 
 
-    public partial class Notifications
+    public partial class CourseStudents
     {
 
         /// <summary>
@@ -69,49 +69,13 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         protected global::System.Web.UI.WebControls.Panel pnlNotifBadge;
 
         /// <summary>
-        /// lblMessage control.
+        /// lblCourseInfo control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblMessage;
-
-        /// <summary>
-        /// ddlStatusFilter control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.DropDownList ddlStatusFilter;
-
-        /// <summary>
-        /// txtSearch control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtSearch;
-
-        /// <summary>
-        /// btnSearch control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnSearch;
-
-        /// <summary>
-        /// btnMarkAllRead control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnMarkAllRead;
+        protected global::System.Web.UI.WebControls.Label lblCourseInfo;
 
         /// <summary>
         /// lblTotal control.
@@ -123,13 +87,13 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         protected global::System.Web.UI.WebControls.Label lblTotal;
 
         /// <summary>
-        /// rptNotifications control.
+        /// rptStudents control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Repeater rptNotifications;
+        protected global::System.Web.UI.WebControls.Repeater rptStudents;
 
         /// <summary>
         /// pnlEmpty control.
@@ -139,41 +103,5 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Panel pnlEmpty;
-
-        /// <summary>
-        /// hfReadTarget control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField hfReadTarget;
-
-        /// <summary>
-        /// hfDeleteTarget control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField hfDeleteTarget;
-
-        /// <summary>
-        /// btnReadConfirmed control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnReadConfirmed;
-
-        /// <summary>
-        /// btnDeleteConfirmed control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnDeleteConfirmed;
     }
 }

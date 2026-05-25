@@ -56,9 +56,34 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 ? "Lecturer"
                 : fullName;
 
-            lblAvatarInitial.Text = string.IsNullOrWhiteSpace(fullName)
-                ? "L"
-                : fullName.Substring(0, 1).ToUpper();
+            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName)
+                ? "Lecturer"
+                : fullName;
+
+            LoadSidebarProfilePicture();
+        }
+
+        private void LoadSidebarProfilePicture()
+        {
+            object result = DatabaseHelper.ExecuteScalar(
+                "SELECT ProfilePicture FROM LecturerDetails WHERE UserId = @UserId",
+                new[]
+                {
+            new SqlParameter("@UserId", CurrentUserId)
+                });
+
+            string picture = result == null || result == DBNull.Value
+                ? ""
+                : result.ToString();
+
+            if (!string.IsNullOrWhiteSpace(picture))
+            {
+                imgSidebarAvatar.ImageUrl = picture;
+            }
+            else
+            {
+                imgSidebarAvatar.ImageUrl = "~/ProfilePicture/default-profile.png";
+            }
         }
 
         private void LoadCourseFilter()
@@ -137,8 +162,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     c.CourseCode,
                     c.CourseName,
                     lc.Session,
-                    lc.Semester,
-                    ISNULL(c.CourseImage, '~/Images/default-course.png') AS CourseImage
+                    lc.Semester
                 FROM LecturerCourse lc
                 INNER JOIN Courses c ON lc.CourseId = c.CourseId
                 WHERE lc.LecturerId = @LecturerId
@@ -416,6 +440,39 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         {
             SessionHelper.Logout(Session);
             Response.Redirect("~/Login.aspx", false);
+        }
+        protected void btnLoadStudents_Click(object sender, EventArgs e)
+        {
+            LoadRegisteredStudents(
+                hfSelectedCourseId.Value,
+                hfSelectedSession.Value
+            );
+        }
+        private void LoadRegisteredStudents(string courseId, string session)
+        {
+            string sql = @"
+                SELECT 
+                    sd.StudentId,
+                    sd.FirstName + ' ' + sd.LastName AS StudentName
+                FROM Enrollment e
+                INNER JOIN StudentDetails sd ON e.StudentId = sd.StudentId
+                WHERE e.CourseId = @CourseId
+                  AND e.Session = @Session
+                  AND e.Status = 'Active'
+                ORDER BY sd.StudentId";
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
+                new SqlParameter("@CourseId", courseId),
+                new SqlParameter("@Session", session)
+            });
+
+            rptRegisteredStudents.DataSource = dt;
+            rptRegisteredStudents.DataBind();
+
+            lblStudentTotal.Text = dt.Rows.Count.ToString();
+            pnlRegisteredStudents.Visible = true;
+            pnlNoStudents.Visible = dt.Rows.Count == 0;
         }
     }
 }

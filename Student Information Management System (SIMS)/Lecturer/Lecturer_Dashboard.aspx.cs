@@ -31,9 +31,9 @@ namespace Student_Information_Management_System__SIMS_
                 string fullName = SessionHelper.GetFullName(Session);
                 lblWelcomeName.Text = fullName;
                 lblSidebarName.Text = fullName;
-                lblAvatarInitial.Text = fullName.Length > 0
-                                        ? fullName[0].ToString().ToUpper()
-                                        : "L";
+
+                LoadSidebarProfilePicture();
+
 
                 // Today's date
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
@@ -46,6 +46,31 @@ namespace Student_Information_Management_System__SIMS_
                 LoadAtRiskStudents();
                 LoadRecentGrades();
                 CheckUnreadNotifications();
+            }
+        }
+
+        private void LoadSidebarProfilePicture()
+        {
+            int userId = SessionHelper.GetUserId(Session);
+
+            object result = DatabaseHelper.ExecuteScalar(
+                "SELECT ProfilePicture FROM LecturerDetails WHERE UserId = @Uid",
+                new[]
+                {
+            new System.Data.SqlClient.SqlParameter("@Uid", userId)
+                });
+
+            string picture = result == null || result == DBNull.Value
+                ? ""
+                : result.ToString();
+
+            if (!string.IsNullOrWhiteSpace(picture))
+            {
+                imgSidebarAvatar.ImageUrl = picture;
+            }
+            else
+            {
+                imgSidebarAvatar.ImageUrl = "~/ProfilePicture/default-profile.png";
             }
         }
 
