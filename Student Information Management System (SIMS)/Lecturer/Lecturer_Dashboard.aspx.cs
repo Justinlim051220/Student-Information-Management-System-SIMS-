@@ -168,16 +168,22 @@ namespace Student_Information_Management_System__SIMS_
         }
 
         // ---------------------------------------------------------------
-        // Load the 5 most recent announcements visible to this lecturer.
+        // Load the 5 most recent lecturer-created announcements only.
+        // Admin-created announcements are separated from lecturer announcements
+        // because both roles share the same Announcements table.
         // ---------------------------------------------------------------
         private void LoadAnnouncements()
         {
             string sql = @"
                 SELECT TOP 5
-                       Title, TargetRole, CreatedAt
-                FROM   Announcements
-                WHERE  TargetRole IN ('All', 'Lecturer')
-                ORDER BY CreatedAt DESC";
+                       a.Title,
+                       a.TargetRole,
+                       a.CreatedAt
+                FROM   Announcements a
+                INNER JOIN Users u
+                        ON u.UserId = a.PostedByUserId
+                       AND u.Role = 2
+                ORDER BY a.CreatedAt DESC";
 
             DataTable dt = DatabaseHelper.ExecuteQuery(sql);
             rptAnnouncements.DataSource = dt;
