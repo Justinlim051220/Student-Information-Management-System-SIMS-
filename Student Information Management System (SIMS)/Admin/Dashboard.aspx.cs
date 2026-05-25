@@ -14,7 +14,7 @@ using SIMS.Helpers;
 /// 
 
 namespace Student_Information_Management_System__SIMS_
-{ 
+{
     public partial class Admin_Dashboard : Page
     {
         // ---------------------------------------------------------------
@@ -101,11 +101,19 @@ namespace Student_Information_Management_System__SIMS_
         // ---------------------------------------------------------------
         private void LoadAnnouncements()
         {
+            // Admin Dashboard should only show announcements posted by Admin users.
+            // Lecturer announcements use the same Announcements table, but they should
+            // stay on the Lecturer side and must not appear in the Admin dashboard.
             string sql = @"
                 SELECT TOP 5
-                       Title, TargetRole, CreatedAt
-                FROM   Announcements
-                ORDER BY CreatedAt DESC";
+                       a.Title,
+                       a.TargetRole,
+                       a.CreatedAt
+                FROM   Announcements a
+                INNER JOIN Users u
+                        ON u.UserId = a.PostedByUserId
+                       AND u.Role = 1
+                ORDER BY a.CreatedAt DESC";
 
             DataTable dt = DatabaseHelper.ExecuteQuery(sql);
             rptAnnouncements.DataSource = dt;
@@ -171,4 +179,3 @@ namespace Student_Information_Management_System__SIMS_
         }
     }
 }
-    

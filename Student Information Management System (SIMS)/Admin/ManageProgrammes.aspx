@@ -113,6 +113,32 @@
             color: #c8881a;
             text-decoration: underline;
         }
+        .action-btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+
+            padding:10px 18px;
+            border-radius:30px;
+
+            font-weight:600;
+            text-decoration:none;
+
+            white-space:nowrap;
+        }
+
+        .edit-btn{
+            border:2px solid #f59e0b;
+            color:#f59e0b;
+            background:#fff;
+        }
+
+        .delete-btn{
+            border:2px solid #f59e0b;
+            color:#f59e0b;
+            background:#fff;
+        }
     </style>
 </head>
 <body>
@@ -228,17 +254,28 @@
                             <asp:BoundField DataField="Duration" HeaderText="Duration (Years)" />
                             <asp:BoundField DataField="Description" HeaderText="Description" />
                             <asp:TemplateField HeaderText="Actions">
-                                <ItemTemplate>
-                                    <asp:LinkButton runat="server" CommandName="EditProgramme" 
-                                        CommandArgument='<%# Eval("ProgrammeId") %>' 
-                                        CssClass="btn btn-sm btn-outline" style="margin-right:8px;">
-                                        <i class="fa-solid fa-edit"></i> Edit
+                            <ItemTemplate>
+                                <div style="display:flex; gap:10px; align-items:center;">
+
+                                    <asp:LinkButton ID="btnEdit"
+                                        runat="server"
+                                        CommandName="EditProgramme"
+                                        CommandArgument='<%# Eval("ProgrammeId") %>'
+                                        CssClass="action-btn edit-btn">
+
+                                        <i class="fas fa-edit"></i> Edit
                                     </asp:LinkButton>
-                                    <asp:LinkButton runat="server" CommandName="DeleteProgramme" 
-                                        CommandArgument='<%# Eval("ProgrammeId") %>' 
-                                        CssClass="btn btn-sm btn-outline">
-                                        <i class="fa-solid fa-trash"></i> Delete
+
+                                    <asp:LinkButton ID="btnDelete"
+                                        runat="server"
+                                        CommandName="DeleteProgramme"
+                                        CommandArgument='<%# Eval("ProgrammeId") %>'
+                                        CssClass="action-btn delete-btn">
+
+                                        <i class="fas fa-trash"></i> Delete
                                     </asp:LinkButton>
+
+                                    </div>
                                 </ItemTemplate>
                             </asp:TemplateField>
                         </Columns>
