@@ -31,14 +31,12 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             string sql = @"
                 SELECT 
                     LecturerId,
-                    UserId,
                     FirstName,
                     LastName,
                     Gender,
                     Phone,
                     Specialization,
                     JoinDate,
-                    ProgrammeId,
                     ProfilePicture
                 FROM LecturerDetails
                 WHERE UserId = @UserId";
@@ -59,9 +57,8 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             DataRow row = dt.Rows[0];
 
-            txtUserId.Text = row["UserId"].ToString();
             txtLecturerId.Text = row["LecturerId"].ToString();
-            txtProgrammeId.Text = row["ProgrammeId"] == DBNull.Value ? "-" : row["ProgrammeId"].ToString();
+
             txtJoinDate.Text = row["JoinDate"] == DBNull.Value
                 ? "-"
                 : Convert.ToDateTime(row["JoinDate"]).ToString("dd MMM yyyy");
@@ -82,7 +79,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             if (!string.IsNullOrWhiteSpace(picture))
                 imgProfile.ImageUrl = picture;
             else
-                imgProfile.ImageUrl = "~/ProfilePicture/default-user.png";
+                imgProfile.ImageUrl = "~/ProfilePicture/default-profile.png";
         }
 
         protected void btnSaveProfile_Click(object sender, EventArgs e)
@@ -146,6 +143,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             });
 
             LoadProfile();
+
             ShowMessage(
                 "Success",
                 "Profile updated successfully.",
@@ -184,6 +182,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 extension;
 
             string fullPath = Path.Combine(folderPath, fileName);
+
             fuProfilePicture.SaveAs(fullPath);
 
             return "~/ProfilePicture/" + fileName;
@@ -191,8 +190,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
         private void ShowMessage(string title, string message, bool isSuccess)
         {
-            lblMessage.Visible = false;
-
             string safeTitle = HttpUtility.JavaScriptStringEncode(title);
 
             string safeMessage = HttpUtility.JavaScriptStringEncode(message)

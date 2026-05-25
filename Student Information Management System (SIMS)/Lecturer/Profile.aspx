@@ -90,7 +90,6 @@
                 grid-template-columns: 1fr;
             }
         }
-        /* ───────── CUSTOM MODAL ───────── */
 
         #customModalOverlay {
             display: none;
@@ -125,6 +124,7 @@
             justify-content: center;
             margin: 0 auto 16px;
         }
+
         .cm-icon-wrap #cmIcon {
             display: flex;
             align-items: center;
@@ -266,18 +266,15 @@
 
         <div class="page-content">
 
-            <asp:Label ID="lblMessage" runat="server" Visible="false"></asp:Label>
-
             <div class="profile-container">
 
-                <!-- LEFT PROFILE -->
                 <div class="card">
                     <div class="profile-card">
 
                         <div class="profile-image-wrapper">
                             <asp:Image ID="imgProfile" runat="server"
                                 CssClass="profile-image"
-                                ImageUrl="~/ProfilePicture/default-user.png" />
+                                ImageUrl="~/ProfilePicture/default-profile.png" />
                         </div>
 
                         <asp:FileUpload ID="fuProfilePicture"
@@ -295,7 +292,6 @@
                     </div>
                 </div>
 
-                <!-- RIGHT FORM -->
                 <div class="card">
 
                     <div class="card-header">
@@ -307,22 +303,8 @@
                         <div class="form-grid">
 
                             <div class="form-group">
-                                <label class="form-label">User ID</label>
-                                <asp:TextBox ID="txtUserId" runat="server"
-                                    CssClass="form-control readonly-box"
-                                    ReadOnly="true" />
-                            </div>
-
-                            <div class="form-group">
                                 <label class="form-label">Lecturer ID</label>
                                 <asp:TextBox ID="txtLecturerId" runat="server"
-                                    CssClass="form-control readonly-box"
-                                    ReadOnly="true" />
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Programme ID</label>
-                                <asp:TextBox ID="txtProgrammeId" runat="server"
                                     CssClass="form-control readonly-box"
                                     ReadOnly="true" />
                             </div>
@@ -396,31 +378,32 @@
         </div>
 
     </div>
-                <!-- ====================== CUSTOM MODAL ====================== -->
-                <div id="customModalOverlay">
-                    <div id="customModal">
 
-                        <div class="cm-icon-wrap" id="cmIconWrap">
-                            <span id="cmIcon"></span>
-                        </div>
+    <div id="customModalOverlay">
+        <div id="customModal">
 
-                        <div class="cm-title" id="cmTitle">Message</div>
+            <div class="cm-icon-wrap" id="cmIconWrap">
+                <span id="cmIcon"></span>
+            </div>
 
-                        <hr class="cm-divider" />
+            <div class="cm-title" id="cmTitle">Message</div>
 
-                        <div class="cm-body" id="cmBody"></div>
+            <hr class="cm-divider" />
 
-                        <div class="cm-footer">
-                            <button type="button"
-                                class="cm-btn cm-btn-ok"
-                                id="cmBtnOk"
-                                onclick="closeCustomModal()">
-                                OK
-                            </button>
-                        </div>
+            <div class="cm-body" id="cmBody"></div>
 
-                    </div>
-                </div>
+            <div class="cm-footer">
+                <button type="button"
+                    class="cm-btn cm-btn-ok"
+                    id="cmBtnOk"
+                    onclick="closeCustomModal()">
+                    OK
+                </button>
+            </div>
+
+        </div>
+    </div>
+
     <script>
 
         var SVG_TICK =
@@ -461,6 +444,7 @@
         }
 
     </script>
+
 </form>
 </body>
 </html>

@@ -42,15 +42,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         protected global::System.Web.UI.WebControls.Label lblDate;
 
         /// <summary>
-        /// lblMessage control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblMessage;
-
-        /// <summary>
         /// imgProfile control.
         /// </summary>
         /// <remarks>
@@ -78,15 +69,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         protected global::System.Web.UI.WebControls.Label lblFullName;
 
         /// <summary>
-        /// txtUserId control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtUserId;
-
-        /// <summary>
         /// txtLecturerId control.
         /// </summary>
         /// <remarks>
@@ -94,15 +76,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox txtLecturerId;
-
-        /// <summary>
-        /// txtProgrammeId control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtProgrammeId;
 
         /// <summary>
         /// txtJoinDate control.
