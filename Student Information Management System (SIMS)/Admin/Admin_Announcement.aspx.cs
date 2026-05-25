@@ -7,7 +7,7 @@ using SIMS.Helpers;
 
 namespace Student_Information_Management_System__SIMS_.Admin
 {
-    public partial class Admin_Annoucement : Page
+    public partial class Admin_Announcement : Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -58,6 +58,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                        ISNULL(c.CourseCode + ' - ' + c.CourseName, 'General / All Courses') AS CourseDisplay,
                        ISNULL(a.Session, 'General') AS SessionDisplay
                 FROM Announcements a
+                INNER JOIN Users u ON u.UserId = a.PostedByUserId AND u.Role = 1
                 LEFT JOIN Programmes p ON p.ProgrammeId = a.ProgrammeId
                 LEFT JOIN Courses c ON c.CourseId = a.CourseId
                 WHERE (@Search = '' OR a.Title LIKE '%' + @Search + '%' OR CONVERT(VARCHAR(MAX), a.Content) LIKE '%' + @Search + '%')
@@ -116,7 +117,12 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 }
                 else
                 {
-                    string sql = @"UPDATE Announcements SET Title=@Title, Content=@Content, TargetRole=@TargetRole, ProgrammeId=@ProgrammeId, CourseId=@CourseId, Session=@Session WHERE AnnouncementId=@AnnouncementId";
+                    string sql = @"
+                        UPDATE a
+                        SET Title=@Title, Content=@Content, TargetRole=@TargetRole, ProgrammeId=@ProgrammeId, CourseId=@CourseId, Session=@Session
+                        FROM Announcements a
+                        INNER JOIN Users u ON u.UserId = a.PostedByUserId AND u.Role = 1
+                        WHERE a.AnnouncementId=@AnnouncementId";
                     DatabaseHelper.ExecuteNonQuery(sql, new[] { new SqlParameter("@Title", txtTitle.Text.Trim()), new SqlParameter("@Content", txtContent.Text.Trim()), new SqlParameter("@TargetRole", ddlTargetRole.SelectedValue), programme, course, session, new SqlParameter("@AnnouncementId", hfAnnouncementId.Value) });
                     ShowMessage("Announcement updated successfully.", "success", false, "Announcement Updated");
                 }
@@ -133,7 +139,11 @@ namespace Student_Information_Management_System__SIMS_.Admin
 
         private void LoadForEdit(string id)
         {
-            DataTable dt = DatabaseHelper.ExecuteQuery("SELECT * FROM Announcements WHERE AnnouncementId=@Id", new[] { new SqlParameter("@Id", id) });
+            DataTable dt = DatabaseHelper.ExecuteQuery(@"
+                SELECT a.*
+                FROM Announcements a
+                INNER JOIN Users u ON u.UserId = a.PostedByUserId AND u.Role = 1
+                WHERE a.AnnouncementId=@Id", new[] { new SqlParameter("@Id", id) });
             if (dt.Rows.Count == 0) return;
             DataRow r = dt.Rows[0]; hfAnnouncementId.Value = id; txtTitle.Text = r["Title"].ToString(); txtContent.Text = r["Content"].ToString(); ddlTargetRole.SelectedValue = r["TargetRole"].ToString();
             ddlProgramme.SelectedValue = r["ProgrammeId"] == DBNull.Value ? "" : r["ProgrammeId"].ToString(); LoadCourses(ddlProgramme, ddlCourse); ddlCourse.SelectedValue = r["CourseId"] == DBNull.Value ? "" : r["CourseId"].ToString(); ddlSession.SelectedValue = r["Session"] == DBNull.Value ? "" : r["Session"].ToString();
@@ -143,7 +153,11 @@ namespace Student_Information_Management_System__SIMS_.Admin
         protected void btnDeleteConfirmed_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(hfDeleteTarget.Value)) return;
-            DatabaseHelper.ExecuteNonQuery("DELETE FROM Announcements WHERE AnnouncementId=@Id", new[] { new SqlParameter("@Id", hfDeleteTarget.Value) });
+            DatabaseHelper.ExecuteNonQuery(@"
+                DELETE a
+                FROM Announcements a
+                INNER JOIN Users u ON u.UserId = a.PostedByUserId AND u.Role = 1
+                WHERE a.AnnouncementId=@Id", new[] { new SqlParameter("@Id", hfDeleteTarget.Value) });
             hfDeleteTarget.Value = ""; LoadAnnouncements(); ShowMessage("Announcement deleted successfully.", "success", false, "Deleted");
         }
 

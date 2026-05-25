@@ -360,7 +360,7 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">Recent Announcements</span>
-          <a href="Announcements.aspx" class="btn btn-outline btn-sm">View All</a>
+          <a href="Admin_Announcement.aspx" class="btn btn-outline btn-sm">View All</a>
         </div>
         <div class="card-body">
           <ul class="activity-list">
