@@ -11,7 +11,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
 {
 
 
-    public partial class Admin_Annoucement
+    public partial class Admin_Announcement
     {
 
         /// <summary>

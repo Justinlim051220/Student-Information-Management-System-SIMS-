@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Admin_Annoucement.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Admin.Admin_Annoucement" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Admin_Announcement.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Admin.Admin_Announcement" %>
 <!DOCTYPE html>
 <html lang="en">
 <head runat="server">
