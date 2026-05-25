@@ -170,11 +170,8 @@
 
     <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
 
-    <a href="Announcements.aspx" class="sidebar-link">
+    <a href="Admin_Announcement.aspx" class="sidebar-link">
       <i class="fa-solid fa-bullhorn nav-icon"></i> Announcements
-    </a>
-    <a href="Notifications.aspx" class="sidebar-link">
-      <i class="fa-solid fa-bell nav-icon"></i> Notifications
     </a>
 
     <div class="sidebar-section-label" style="margin-top:12px;">Account</div>

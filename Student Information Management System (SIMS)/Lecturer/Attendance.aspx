@@ -442,13 +442,6 @@
                                                 Enabled='<%# Convert.ToString(Eval("CanEdit")) == "1" %>' />
                                             Absent
                                         </label>
-
-                                        <label>
-                                            <asp:CheckBox ID="chkLate" runat="server"
-                                                Checked='<%# Eval("Status").ToString() == "Late" %>'
-                                                Enabled='<%# Convert.ToString(Eval("CanEdit")) == "1" %>' />
-                                            Late
-                                        </label>
                                     </div>
                                 </td>
                             </tr>

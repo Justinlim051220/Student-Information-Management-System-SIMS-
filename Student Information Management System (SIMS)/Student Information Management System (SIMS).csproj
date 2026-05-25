@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="About.aspx" />
+    <Content Include="Admin\Admin_Announcement.aspx" />
     <Content Include="Admin\Admin_enrolment.aspx" />
     <Content Include="Admin\AssignLecturerCourse.aspx" />
     <Content Include="Admin\Dashboard.aspx" />
@@ -126,6 +127,7 @@
     <Content Include="ForgotPassword.aspx" />
     <Content Include="Global.asax" />
     <Content Include="Lecturer\Announcements.aspx" />
+    <Content Include="Lecturer\AtRiskStudents.aspx" />
     <Content Include="Lecturer\Attendance.aspx" />
     <Content Include="Lecturer\CourseStudents.aspx" />
     <Content Include="Lecturer\Lecturer_Dashboard.aspx" />
@@ -176,6 +178,13 @@
     <Content Include="Bundle.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Admin\Admin_Announcement.aspx.cs">
+      <DependentUpon>Admin_Announcement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\Admin_Announcement.aspx.designer.cs">
+      <DependentUpon>Admin_Announcement.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\Admin_enrolment.aspx.cs">
       <DependentUpon>Admin_enrolment.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -275,6 +284,13 @@
     </Compile>
     <Compile Include="Lecturer\Announcements.aspx.designer.cs">
       <DependentUpon>Announcements.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Lecturer\AtRiskStudents.aspx.cs">
+      <DependentUpon>AtRiskStudents.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Lecturer\AtRiskStudents.aspx.designer.cs">
+      <DependentUpon>AtRiskStudents.aspx</DependentUpon>
     </Compile>
     <Compile Include="Lecturer\Attendance.aspx.cs">
       <DependentUpon>Attendance.aspx</DependentUpon>
