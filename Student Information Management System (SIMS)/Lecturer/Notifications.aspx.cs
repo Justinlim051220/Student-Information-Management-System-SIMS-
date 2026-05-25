@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using SIMS.Helpers;
@@ -109,13 +110,13 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 CheckUnreadNotifications();
 
                 if (rows > 0)
-                    ShowMessage("All notifications marked as read.", "success");
+                    ShowMessage("✅ Success", "All notifications marked as read.");
                 else
-                    ShowMessage("No unread notifications found.", "warning");
+                    ShowMessage("⚠ Warning", "No unread notifications found.");
             }
             catch (Exception ex)
             {
-                ShowMessage("Error marking all notifications as read: " + ex.Message, "danger");
+                ShowMessage("❌ Error", "Error marking all notifications as read: " + ex.Message);
             }
         }
 
@@ -125,13 +126,14 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             if (!int.TryParse(e.CommandArgument.ToString(), out notificationId))
             {
-                ShowMessage("Invalid notification selected.", "danger");
+                ShowMessage("❌ Error", "Invalid notification selected.");
                 return;
             }
 
             if (e.CommandName == "MarkRead")
             {
-                MarkNotificationReadStatus(notificationId, true);
+                ShowReadConfirmation(notificationId);
+                return;
             }
             else if (e.CommandName == "MarkUnread")
             {
@@ -139,8 +141,69 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             }
             else if (e.CommandName == "DeleteNotification")
             {
-                DeleteNotification(notificationId);
+                ShowDeleteConfirmation(notificationId);
+                return;
             }
+
+            LoadNotifications();
+            CheckUnreadNotifications();
+        }
+
+        private void ShowReadConfirmation(int notificationId)
+        {
+            string script = "showReadConfirm(" + notificationId + ");";
+
+            ScriptManager.RegisterStartupScript(
+                this,
+                GetType(),
+                "confirmReadNotification" + notificationId,
+                script,
+                true
+            );
+        }
+
+        private void ShowDeleteConfirmation(int notificationId)
+        {
+            string script = "showDeleteConfirm(" + notificationId + ");";
+
+            ScriptManager.RegisterStartupScript(
+                this,
+                GetType(),
+                "confirmDeleteNotification" + notificationId,
+                script,
+                true
+            );
+        }
+
+        protected void btnReadConfirmed_Click(object sender, EventArgs e)
+        {
+            int notificationId;
+
+            if (!int.TryParse(hfReadTarget.Value, out notificationId))
+            {
+                ShowMessage("❌ Error", "Invalid notification selected.");
+                return;
+            }
+
+            MarkNotificationReadStatus(notificationId, true);
+            hfReadTarget.Value = "";
+
+            LoadNotifications();
+            CheckUnreadNotifications();
+        }
+
+        protected void btnDeleteConfirmed_Click(object sender, EventArgs e)
+        {
+            int notificationId;
+
+            if (!int.TryParse(hfDeleteTarget.Value, out notificationId))
+            {
+                ShowMessage("❌ Error", "Invalid notification selected for deletion.");
+                return;
+            }
+
+            DeleteNotification(notificationId);
+            hfDeleteTarget.Value = "";
 
             LoadNotifications();
             CheckUnreadNotifications();
@@ -166,18 +229,18 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 if (rows > 0)
                 {
                     ShowMessage(
-                        isRead ? "Notification marked as read." : "Notification marked as unread.",
-                        "success"
+                        "✅ Success",
+                        isRead ? "Notification marked as read." : "Notification marked as unread."
                     );
                 }
                 else
                 {
-                    ShowMessage("Notification not found or you do not have permission.", "danger");
+                    ShowMessage("❌ Error", "Notification not found or you do not have permission.");
                 }
             }
             catch (Exception ex)
             {
-                ShowMessage("Error updating notification: " + ex.Message, "danger");
+                ShowMessage("❌ Error", "Error updating notification: " + ex.Message);
             }
         }
 
@@ -197,13 +260,13 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 });
 
                 if (rows > 0)
-                    ShowMessage("Notification deleted successfully.", "success");
+                    ShowMessage("✅ Success", "Notification deleted successfully.");
                 else
-                    ShowMessage("Notification not found or you do not have permission.", "danger");
+                    ShowMessage("❌ Error", "Notification not found or you do not have permission.");
             }
             catch (Exception ex)
             {
-                ShowMessage("Error deleting notification: " + ex.Message, "danger");
+                ShowMessage("❌ Error", "Error deleting notification: " + ex.Message);
             }
         }
 
@@ -219,29 +282,28 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             pnlNotifBadge.Visible = count != null && Convert.ToInt32(count) > 0;
         }
 
-        private void ShowMessage(string message, string type)
+        private void ShowMessage(string title, string message)
         {
-            lblMessage.Visible = true;
-            lblMessage.Text = message;
+            lblMessage.Visible = false;
 
-            switch (type.ToLower())
-            {
-                case "success":
-                    lblMessage.CssClass = "alert alert-success";
-                    break;
+            string safeTitle = HttpUtility.JavaScriptStringEncode(title);
+            string safeMessage = HttpUtility.JavaScriptStringEncode(message)
+                .Replace("\r\n", "<br/>")
+                .Replace("\n", "<br/>");
 
-                case "warning":
-                    lblMessage.CssClass = "alert alert-warning";
-                    break;
+            string script = string.Format(
+                "showMessageModal('{0}', '{1}', false, 0);",
+                safeTitle,
+                safeMessage
+            );
 
-                case "danger":
-                    lblMessage.CssClass = "alert alert-danger";
-                    break;
-
-                default:
-                    lblMessage.CssClass = "alert";
-                    break;
-            }
+            ScriptManager.RegisterStartupScript(
+                this,
+                GetType(),
+                Guid.NewGuid().ToString("N"),
+                script,
+                true
+            );
         }
 
         protected void lbLogout_Click(object sender, EventArgs e)
