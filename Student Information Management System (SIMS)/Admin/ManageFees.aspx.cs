@@ -225,10 +225,8 @@ namespace Student_Information_Management_System__SIMS_
             }
             else if (e.CommandName == "DeleteFee")
             {
-                SqlParameter[] p = { new SqlParameter("@CourseFeeId", courseFeeId) };
-                DatabaseHelper.ExecuteNonQuery("DELETE FROM CourseFees WHERE CourseFeeId = @CourseFeeId", p);
-                LoadCourseFees();
-                ShowMessage("Success", "Course fee deleted successfully.");
+                hfDeleteCourseFeeId.Value = courseFeeId.ToString();
+                ShowMessage("Confirm Delete", "Please confirm delete from the popup.");
             }
         }
 
@@ -251,11 +249,37 @@ namespace Student_Information_Management_System__SIMS_
             ddlCourse.SelectedValue = row["CourseId"].ToString();
             ddlFeeSession.SelectedValue = row["Session"].ToString();
             txtAmount.Text = Convert.ToDecimal(row["Amount"]).ToString("0.00");
+            ShowMessage("Edit Mode", "Course fee loaded. You may now update the amount, course, or session.");
+        }
+
+        protected void btnConfirmDeleteCourseFee_Click(object sender, EventArgs e)
+        {
+            int courseFeeId;
+            if (!int.TryParse(hfDeleteCourseFeeId.Value, out courseFeeId))
+            {
+                ShowMessage("Error", "Invalid course fee selected for delete.");
+                return;
+            }
+
+            try
+            {
+                SqlParameter[] p = { new SqlParameter("@CourseFeeId", courseFeeId) };
+                DatabaseHelper.ExecuteNonQuery("DELETE FROM CourseFees WHERE CourseFeeId = @CourseFeeId", p);
+                hfDeleteCourseFeeId.Value = "";
+                ClearCourseFeeForm();
+                LoadCourseFees();
+                ShowMessage("Success", "Course fee deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                ShowMessage("Error", "Error: " + ex.Message);
+            }
         }
 
         protected void btnClearCourseFee_Click(object sender, EventArgs e)
         {
             ClearCourseFeeForm();
+            ShowMessage("Cleared", "Course fee form has been cleared.");
         }
 
         private void ClearCourseFeeForm()

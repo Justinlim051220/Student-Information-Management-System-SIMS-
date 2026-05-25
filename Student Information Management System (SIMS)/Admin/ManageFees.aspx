@@ -14,16 +14,16 @@
         .status-pending { background:#fff8e1; color:#b7791f; border:1px solid #f0d38a; }
         .status-paid { background:#e7f8ee; color:#16803a; border:1px solid #a9e7bf; }
         .status-rejected { background:#fdecec; color:#c53030; border:1px solid #f5b5b5; }
-        .action-row { display:flex; gap:8px; flex-wrap:wrap; }
-        .small-btn { padding:7px 13px; border-radius:9px; font-weight:700; font-size:12px; cursor:pointer; text-decoration:none; border:1px solid transparent; }
-        .approve-btn { background:#fff; color:#16803a; border-color:#16803a; }
+        .action-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+        .action-btn { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-width:86px; padding:8px 14px; border-radius:50px; font-weight:700; font-size:12px; cursor:pointer; text-decoration:none; border:2px solid transparent; transition:all .18s ease; background:#fff; }
+        .approve-btn { color:#16803a; border-color:#16803a; }
         .approve-btn:hover { background:#16803a; color:#fff; }
-        .reject-btn { background:#fff; color:#c53030; border-color:#c53030; }
+        .reject-btn { color:#c53030; border-color:#c53030; }
         .reject-btn:hover { background:#c53030; color:#fff; }
-        .edit-btn { background:#fff; color:#e8a838; border-color:#e8a838; }
+        .edit-btn { color:#e8a838; border-color:#e8a838; }
         .edit-btn:hover { background:#e8a838; color:#fff; }
-        .delete-btn { background:#fff; color:#dc3545; border:1px solid #dc3545; }
-        .delete-btn:hover { background:#dc3545; color:#fff; }
+        .delete-btn { color:#e8a838; border-color:#e8a838; }
+        .delete-btn:hover { background:#e8a838; color:#fff; }
         #customModalOverlay { display:none; position:fixed; inset:0; background:rgba(30,30,40,.60); z-index:9999; justify-content:center; align-items:center; }
         #customModalOverlay.active { display:flex; }
         #customModal { background:#fff; border-radius:16px; width:100%; max-width:400px; padding:36px 32px 28px; box-shadow:0 12px 40px rgba(0,0,0,.28); text-align:center; }
@@ -32,8 +32,13 @@
         #customModal .cm-title { font-size:1.2rem; font-weight:700; color:#1a1a2e; margin-bottom:14px; }
         #customModal .cm-divider { border:none; border-top:1px solid #ececec; margin:0 -32px 18px; }
         #customModal .cm-body { font-size:.97rem; line-height:1.65; color:#555; margin-bottom:28px; }
+        #customModal .cm-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
         #customModal .cm-btn { padding:10px 32px; border-radius:50px; font-size:.95rem; font-weight:600; cursor:pointer; transition:all .18s; min-width:110px; background:transparent; border:2px solid #e8a838; color:#e8a838; }
         #customModal .cm-btn:hover { background:#fdf3e0; }
+        #customModal .cm-btn-danger { border-color:#dc3545; color:#dc3545; }
+        #customModal .cm-btn-danger:hover { background:#dc3545; color:#fff; }
+        #customModal .cm-btn-muted { border-color:#9ca3af; color:#4b5563; }
+        #customModal .cm-btn-muted:hover { background:#f3f4f6; }
         .status-badge {
             padding: 6px 12px;
             border-radius: 20px;
@@ -69,9 +74,6 @@
     <div class="page-content">
         <h2 class="page-title"><i class="fa-solid fa-money-bill-wave"></i> Manage Fees</h2>
 
-        <div class="fee-note">
-            <strong>Recommended database design:</strong> use <strong>CourseFees</strong> to store each course price by session, and use <strong>Fees</strong> to store each student's payable invoice and payment status. CourseFees should not have payment status because it is only the price master table.
-        </div>
 
         <div class="stats-grid">
             <div class="stat-card">
@@ -88,6 +90,7 @@
             <div class="card-header"><span class="card-title"><i class="fa-solid fa-tags"></i> Manage Course Fee</span></div>
             <div class="card-body">
                 <asp:HiddenField ID="hfCourseFeeId" runat="server" />
+                <asp:HiddenField ID="hfDeleteCourseFeeId" runat="server" />
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Programme</label>
@@ -112,6 +115,7 @@
                     <asp:Button ID="btnSaveCourseFee" runat="server" Text="Save Course Fee" CssClass="btn btn-primary" OnClick="btnSaveCourseFee_Click" />
                     <asp:Button ID="btnClearCourseFee" runat="server" Text="Clear" CssClass="btn btn-outline" OnClick="btnClearCourseFee_Click" CausesValidation="false" />
                     <asp:Button ID="btnBack" runat="server" Text="Back to Dashboard" CssClass="btn btn-outline" OnClick="btnBack_Click" CausesValidation="false" />
+                    <asp:Button ID="btnConfirmDeleteCourseFee" runat="server" Text="Confirm Delete" OnClick="btnConfirmDeleteCourseFee_Click" CausesValidation="false" Style="display:none;" />
                 </div>
 
                 <div class="table-wrapper" style="margin-top:25px;">
@@ -125,8 +129,8 @@
                             <asp:TemplateField HeaderText="Action">
                                 <ItemTemplate>
                                     <div class="action-row">
-                                        <asp:LinkButton ID="btnEditFee" runat="server" CssClass="small-btn edit-btn" Text="Edit" CommandName="EditFee" CommandArgument='<%# Eval("CourseFeeId") %>' />
-                                        <asp:LinkButton ID="btnDeleteFee" runat="server" CssClass="small-btn delete-btn" Text="Delete" CommandName="DeleteFee" CommandArgument='<%# Eval("CourseFeeId") %>' OnClientClick="return confirm('Delete this course fee?');" />
+                                        <asp:LinkButton ID="btnEditFee" runat="server" CssClass="action-btn edit-btn" CommandName="EditFee" CommandArgument='<%# Eval("CourseFeeId") %>'><i class="fa-solid fa-pen-to-square"></i> Edit</asp:LinkButton>
+                                        <asp:LinkButton ID="btnDeleteFee" runat="server" CssClass="action-btn delete-btn" CommandName="DeleteFee" CommandArgument='<%# Eval("CourseFeeId") %>' OnClientClick='<%# "showDeleteConfirm(\"" + Eval("CourseFeeId") + "\"); return false;" %>'><i class="fa-solid fa-trash"></i> Delete</asp:LinkButton>
                                     </div>
                                 </ItemTemplate>
                             </asp:TemplateField>
@@ -175,8 +179,8 @@
                             <asp:TemplateField HeaderText="Action">
                                 <ItemTemplate>
                                     <div class="action-row">
-                                        <asp:LinkButton ID="btnApprove" runat="server" CssClass="small-btn approve-btn" Text="Approve" CommandName="ApprovePayment" CommandArgument='<%# Eval("StudentId") + "|" + Eval("Session") + "|" + Eval("FeeType") %>' OnClientClick="return confirm('Approve this payment?');" />
-                                        <asp:LinkButton ID="btnReject" runat="server" CssClass="small-btn reject-btn" Text="Reject" CommandName="RejectPayment" CommandArgument='<%# Eval("StudentId") + "|" + Eval("Session") + "|" + Eval("FeeType") %>' OnClientClick="return confirm('Reject this payment?');" />
+                                        <asp:LinkButton ID="btnApprove" runat="server" CssClass="action-btn approve-btn" CommandName="ApprovePayment" CommandArgument='<%# Eval("StudentId") + "|" + Eval("Session") + "|" + Eval("FeeType") %>'><i class="fa-solid fa-check"></i> Approve</asp:LinkButton>
+                                        <asp:LinkButton ID="btnReject" runat="server" CssClass="action-btn reject-btn" CommandName="RejectPayment" CommandArgument='<%# Eval("StudentId") + "|" + Eval("Session") + "|" + Eval("FeeType") %>'><i class="fa-solid fa-xmark"></i> Reject</asp:LinkButton>
                                     </div>
                                 </ItemTemplate>
                             </asp:TemplateField>
@@ -187,11 +191,29 @@
         </div>
     </div>
 
-    <div id="customModalOverlay"><div id="customModal"><div class="cm-icon-wrap"><span id="cmIcon"></span></div><div class="cm-title" id="cmTitle">Message</div><hr class="cm-divider" /><div class="cm-body" id="cmBody"></div><button type="button" class="cm-btn" onclick="closeCustomModal()">OK</button></div></div>
+    <div id="customModalOverlay"><div id="customModal"><div class="cm-icon-wrap"><span id="cmIcon"></span></div><div class="cm-title" id="cmTitle">Message</div><hr class="cm-divider" /><div class="cm-body" id="cmBody"></div><div class="cm-actions" id="cmActions"><button type="button" class="cm-btn" onclick="closeCustomModal()">OK</button></div></div></div>
     <script>
         var SVG_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
         var SVG_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
-        function showMessageModal(title, message) { document.getElementById('cmIcon').innerHTML = title.indexOf('Warning') >= 0 || title.indexOf('Error') >= 0 ? SVG_WARN : SVG_TICK; document.getElementById('cmTitle').innerHTML = title; document.getElementById('cmBody').innerHTML = message; document.getElementById('customModalOverlay').classList.add('active'); }
+        function showMessageModal(title, message) {
+            document.getElementById('cmIcon').innerHTML = title.indexOf('Warning') >= 0 || title.indexOf('Error') >= 0 ? SVG_WARN : SVG_TICK;
+            document.getElementById('cmTitle').innerHTML = title;
+            document.getElementById('cmBody').innerHTML = message;
+            document.getElementById('cmActions').innerHTML = '<button type="button" class="cm-btn" onclick="closeCustomModal()">OK</button>';
+            document.getElementById('customModalOverlay').classList.add('active');
+        }
+        function showDeleteConfirm(courseFeeId) {
+            document.getElementById('<%= hfDeleteCourseFeeId.ClientID %>').value = courseFeeId;
+            document.getElementById('cmIcon').innerHTML = SVG_WARN;
+            document.getElementById('cmTitle').innerHTML = 'Confirm Delete';
+            document.getElementById('cmBody').innerHTML = 'Are you sure you want to delete this course fee?';
+            document.getElementById('cmActions').innerHTML = '<button type="button" class="cm-btn cm-btn-muted" onclick="closeCustomModal()">Cancel</button><button type="button" class="cm-btn cm-btn-danger" onclick="confirmDeleteCourseFee()">Delete</button>';
+            document.getElementById('customModalOverlay').classList.add('active');
+        }
+        function confirmDeleteCourseFee() {
+            closeCustomModal();
+            document.getElementById('<%= btnConfirmDeleteCourseFee.ClientID %>').click();
+        }
         function closeCustomModal() { document.getElementById('customModalOverlay').classList.remove('active'); }
     </script>
 </form>

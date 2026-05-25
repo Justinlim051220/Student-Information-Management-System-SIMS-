@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="About.aspx" />
+    <Content Include="Admin\Admin_Announcement.aspx" />
     <Content Include="Admin\Admin_enrolment.aspx" />
     <Content Include="Admin\AssignLecturerCourse.aspx" />
     <Content Include="Admin\Dashboard.aspx" />
@@ -177,6 +178,13 @@
     <Content Include="Bundle.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Admin\Admin_Announcement.aspx.cs">
+      <DependentUpon>Admin_Announcement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\Admin_Announcement.aspx.designer.cs">
+      <DependentUpon>Admin_Announcement.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\Admin_enrolment.aspx.cs">
       <DependentUpon>Admin_enrolment.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
