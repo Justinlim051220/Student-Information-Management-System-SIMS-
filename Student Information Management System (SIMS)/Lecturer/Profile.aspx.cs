@@ -52,6 +52,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     "Validation Error",
                     "Profile not found.",
                     false);
+
                 return;
             }
 
@@ -69,17 +70,25 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             txtSpecialization.Text = row["Specialization"].ToString();
 
             string gender = row["Gender"].ToString();
+
             if (ddlGender.Items.FindByValue(gender) != null)
                 ddlGender.SelectedValue = gender;
 
             lblFullName.Text = txtFirstName.Text + " " + txtLastName.Text;
+            lblSidebarName.Text = lblFullName.Text;
 
             string picture = row["ProfilePicture"].ToString();
 
             if (!string.IsNullOrWhiteSpace(picture))
+            {
                 imgProfile.ImageUrl = picture;
+                imgSidebarAvatar.ImageUrl = picture;
+            }
             else
+            {
                 imgProfile.ImageUrl = "~/ProfilePicture/default-profile.png";
+                imgSidebarAvatar.ImageUrl = "~/ProfilePicture/default-profile.png";
+            }
         }
 
         protected void btnSaveProfile_Click(object sender, EventArgs e)
@@ -90,6 +99,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     "Validation Error",
                     "First name is required.",
                     false);
+
                 return;
             }
 
@@ -99,6 +109,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     "Validation Error",
                     "Last name is required.",
                     false);
+
                 return;
             }
 
@@ -114,6 +125,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                         "Upload Error",
                         uploadResult.Replace("ERROR:", ""),
                         false);
+
                     return;
                 }
 
@@ -154,9 +166,14 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         {
             object result = DatabaseHelper.ExecuteScalar(
                 "SELECT ProfilePicture FROM LecturerDetails WHERE UserId = @UserId",
-                new[] { new SqlParameter("@UserId", CurrentUserId) });
+                new[]
+                {
+                    new SqlParameter("@UserId", CurrentUserId)
+                });
 
-            return result == null || result == DBNull.Value ? "" : result.ToString();
+            return result == null || result == DBNull.Value
+                ? ""
+                : result.ToString();
         }
 
         private string SaveProfilePicture()

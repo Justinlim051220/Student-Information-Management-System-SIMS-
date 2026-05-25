@@ -92,6 +92,24 @@
     .user-name  { margin-bottom: 4px; }
     .user-role  { margin-top: 2px; }
 
+    .sidebar-photo-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        overflow: hidden;
+        padding: 0 !important;
+        flex-shrink: 0;
+    }
+
+    .sidebar-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        display: block;
+    }
+
+
     /* At-risk badge */
     .badge-warning {
       background : #fff3cd;
@@ -219,16 +237,31 @@
   <!-- Sidebar user footer -->
   <div class="sidebar-footer">
     <div class="sidebar-user">
-      <div class="user-avatar">
-        <asp:Label ID="lblAvatarInitial" runat="server" Text="L" />
-      </div>
-      <div class="user-info">
-        <div class="user-name">
-          <asp:Label ID="lblSidebarName" runat="server" Text="Lecturer" />
-        </div>
-        <div class="user-role">Lecturer</div>
-      </div>
+
+    <div class="user-avatar sidebar-photo-avatar">
+
+        <asp:Image ID="imgSidebarAvatar"
+            runat="server"
+            ImageUrl="~/ProfilePicture/default-profile.png"
+            CssClass="sidebar-avatar-img" />
+
     </div>
+
+    <div class="user-info">
+
+        <div class="user-name">
+            <asp:Label ID="lblSidebarName"
+                runat="server"
+                Text="Lecturer" />
+        </div>
+
+        <div class="user-role">
+            Lecturer
+        </div>
+
+    </div>
+
+</div>
     <!-- Log Out -->
     <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link"
         OnClientClick="showLogoutModal(); return false;">

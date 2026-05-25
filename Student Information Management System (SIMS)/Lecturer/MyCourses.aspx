@@ -209,6 +209,23 @@
         .user-name{
             margin-bottom:4px;
         }
+
+        .sidebar-photo-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        overflow: hidden;
+        padding: 0 !important;
+        flex-shrink: 0;
+    }
+
+    .sidebar-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        display: block;
+    }
         .course-card {
         cursor: pointer;
     }
@@ -294,8 +311,13 @@
 
         <div class="sidebar-footer">
             <div class="sidebar-user">
-                <div class="user-avatar">
-                    <asp:Label ID="lblAvatarInitial" runat="server" Text="L" />
+                <div class="user-avatar sidebar-photo-avatar">
+
+                    <asp:Image ID="imgSidebarAvatar"
+                        runat="server"
+                        ImageUrl="~/ProfilePicture/default-profile.png"
+                        CssClass="sidebar-avatar-img" />
+
                 </div>
 
                 <div class="user-info">
