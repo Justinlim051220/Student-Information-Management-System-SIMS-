@@ -7,11 +7,11 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Student_Information_Management_System__SIMS_
+namespace Student_Information_Management_System__SIMS_.Lecturer
 {
 
 
-    public partial class Admin_ManageFees
+    public partial class AtRiskStudents
     {
 
         /// <summary>
@@ -24,49 +24,58 @@ namespace Student_Information_Management_System__SIMS_
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
         /// <summary>
-        /// ScriptManager1 control.
+        /// lblAvatarInitial control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.ScriptManager ScriptManager1;
+        protected global::System.Web.UI.WebControls.Label lblAvatarInitial;
 
         /// <summary>
-        /// lblPendingAmount control.
+        /// lblSidebarName control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblPendingAmount;
+        protected global::System.Web.UI.WebControls.Label lblSidebarName;
 
         /// <summary>
-        /// lblPaidAmount control.
+        /// lbLogout control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblPaidAmount;
+        protected global::System.Web.UI.WebControls.LinkButton lbLogout;
 
         /// <summary>
-        /// hfCourseFeeId control.
+        /// lblDate control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField hfCourseFeeId;
+        protected global::System.Web.UI.WebControls.Label lblDate;
 
         /// <summary>
-        /// hfDeleteCourseFeeId control.
+        /// pnlNotifBadge control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField hfDeleteCourseFeeId;
+        protected global::System.Web.UI.WebControls.Panel pnlNotifBadge;
+
+        /// <summary>
+        /// lblMessage control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblMessage;
 
         /// <summary>
         /// ddlProgramme control.
@@ -87,93 +96,93 @@ namespace Student_Information_Management_System__SIMS_
         protected global::System.Web.UI.WebControls.DropDownList ddlCourse;
 
         /// <summary>
-        /// ddlFeeSession control.
+        /// ddlSession control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.DropDownList ddlFeeSession;
+        protected global::System.Web.UI.WebControls.DropDownList ddlSession;
 
         /// <summary>
-        /// txtAmount control.
+        /// ddlRiskType control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtAmount;
+        protected global::System.Web.UI.WebControls.DropDownList ddlRiskType;
 
         /// <summary>
-        /// btnSaveCourseFee control.
+        /// txtSearch control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnSaveCourseFee;
+        protected global::System.Web.UI.WebControls.TextBox txtSearch;
 
         /// <summary>
-        /// btnClearCourseFee control.
+        /// btnSearch control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnClearCourseFee;
+        protected global::System.Web.UI.WebControls.Button btnSearch;
 
         /// <summary>
-        /// btnBack control.
+        /// lblTotalRisk control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnBack;
+        protected global::System.Web.UI.WebControls.Label lblTotalRisk;
 
         /// <summary>
-        /// btnConfirmDeleteCourseFee control.
+        /// lblAttendanceRisk control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnConfirmDeleteCourseFee;
+        protected global::System.Web.UI.WebControls.Label lblAttendanceRisk;
 
         /// <summary>
-        /// gvCourseFees control.
+        /// lblAcademicRisk control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.GridView gvCourseFees;
+        protected global::System.Web.UI.WebControls.Label lblAcademicRisk;
 
         /// <summary>
-        /// ddlPaymentSession control.
+        /// lblTotal control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.DropDownList ddlPaymentSession;
+        protected global::System.Web.UI.WebControls.Label lblTotal;
 
         /// <summary>
-        /// ddlStatus control.
+        /// rptRiskStudents control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.DropDownList ddlStatus;
+        protected global::System.Web.UI.WebControls.Repeater rptRiskStudents;
 
         /// <summary>
-        /// gvPayments control.
+        /// pnlEmpty control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.GridView gvPayments;
+        protected global::System.Web.UI.WebControls.Panel pnlEmpty;
     }
 }

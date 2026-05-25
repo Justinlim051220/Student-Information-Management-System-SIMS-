@@ -208,8 +208,43 @@
                     <div style="margin-top: 25px; display: flex; gap: 12px;">
                         <asp:Button ID="btnSave" runat="server" Text="Save Student"
                                     CssClass="btn btn-primary" OnClick="btnSave_Click" />
-                        <asp:Button ID="btnCancel" runat="server" Text="Cancel"
+
+                        <asp:Button ID="btnClear" runat="server" Text="Clear Form"
+                                    CssClass="btn btn-outline" OnClick="btnClear_Click"
+                                    CausesValidation="false" />
+
+                        <asp:Button ID="btnCancel" runat="server" Text="Back to Dashboard"
                                     CssClass="btn btn-outline" OnClick="btnCancel_Click"
+                                    CausesValidation="false" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search / Filter Students -->
+            <div class="card" style="margin-bottom: 30px;">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-magnifying-glass"></i> Search / Filter Students</span>
+                </div>
+                <div class="card-body">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Search Student ID / Name / Email / Phone</label>
+                            <asp:TextBox ID="txtSearchStudent" runat="server" CssClass="form-control"
+                                         placeholder="e.g. M1000001, Ali Tan, student@email.com" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Programme</label>
+                            <asp:DropDownList ID="ddlFilterProgramme" runat="server" CssClass="form-control" />
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                        <asp:Button ID="btnSearchStudent" runat="server" Text="Search"
+                                    CssClass="btn btn-primary" OnClick="btnSearchStudent_Click"
+                                    CausesValidation="false" />
+                        <asp:Button ID="btnClearStudentSearch" runat="server" Text="Reset"
+                                    CssClass="btn btn-outline" OnClick="btnClearStudentSearch_Click"
                                     CausesValidation="false" />
                     </div>
                 </div>
@@ -281,7 +316,7 @@
             var SVG_WARN  = '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
             var SVG_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
 
-            function showMessageModal(title, message, isConfirmDelete, studentId) {
+            function showMessageModal(type, title, message, isConfirmDelete, studentId) {
                 var iconWrap  = document.getElementById('cmIconWrap');
                 var iconEl    = document.getElementById('cmIcon');
                 var titleEl   = document.getElementById('cmTitle');
@@ -295,23 +330,23 @@
                 if (isConfirmDelete) {
                     iconWrap.classList.add('icon-delete');
                     iconEl.innerHTML  = SVG_TRASH;
-                    titleEl.innerHTML = 'Confirm Delete';
-                } else if (title.indexOf('success') !== -1) {
+                } else if (type === 'success') {
                     iconWrap.classList.add('icon-success');
                     iconEl.innerHTML  = SVG_TICK;
-                    titleEl.innerHTML = 'Success';
-                } else if (title.indexOf('error') !== -1) {
+                } else if (type === 'error') {
                     iconWrap.classList.add('icon-error');
                     iconEl.innerHTML  = SVG_CROSS;
-                    titleEl.innerHTML = 'Error';
-                } else if (title.indexOf('warning') !== -1) {
+                } else if (type === 'warning') {
                     iconWrap.classList.add('icon-warning');
                     iconEl.innerHTML  = SVG_WARN;
-                    titleEl.innerHTML = 'Warning';
+                } else if (type === 'delete') {
+                    iconWrap.classList.add('icon-delete');
+                    iconEl.innerHTML  = SVG_TRASH;
                 } else {
                     iconEl.innerHTML  = '';
-                    titleEl.innerHTML = title;
                 }
+
+                titleEl.innerHTML = title;
 
                 body.innerHTML = message;
 

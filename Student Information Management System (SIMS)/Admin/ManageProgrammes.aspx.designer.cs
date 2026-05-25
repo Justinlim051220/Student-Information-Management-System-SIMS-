@@ -24,15 +24,6 @@ namespace Student_Information_Management_System__SIMS_.Admin
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
         /// <summary>
-        /// lblMessage control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblMessage;
-
-        /// <summary>
         /// lblFormTitle control.
         /// </summary>
         /// <remarks>
@@ -105,6 +96,15 @@ namespace Student_Information_Management_System__SIMS_.Admin
         protected global::System.Web.UI.WebControls.Button btnSave;
 
         /// <summary>
+        /// btnClear control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnClear;
+
+        /// <summary>
         /// btnCancel control.
         /// </summary>
         /// <remarks>
@@ -114,6 +114,42 @@ namespace Student_Information_Management_System__SIMS_.Admin
         protected global::System.Web.UI.WebControls.Button btnCancel;
 
         /// <summary>
+        /// txtSearchProgramme control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtSearchProgramme;
+
+        /// <summary>
+        /// ddlFilterDuration control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.DropDownList ddlFilterDuration;
+
+        /// <summary>
+        /// btnSearchProgramme control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnSearchProgramme;
+
+        /// <summary>
+        /// btnClearProgrammeSearch control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnClearProgrammeSearch;
+
+        /// <summary>
         /// gvProgrammes control.
         /// </summary>
         /// <remarks>
@@ -121,5 +157,23 @@ namespace Student_Information_Management_System__SIMS_.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.GridView gvProgrammes;
+
+        /// <summary>
+        /// hfDeleteTarget control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfDeleteTarget;
+
+        /// <summary>
+        /// btnDeleteConfirmed control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnDeleteConfirmed;
     }
 }

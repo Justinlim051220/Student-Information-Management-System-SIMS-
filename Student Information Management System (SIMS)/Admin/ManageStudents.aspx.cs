@@ -33,16 +33,27 @@ namespace Student_Information_Management_System__SIMS_.Admin
                     FROM Programmes
                     ORDER BY ProgrammeName";
 
-                ddlProgramme.DataSource = DatabaseHelper.ExecuteQuery(sql);
+                DataTable programmes = DatabaseHelper.ExecuteQuery(sql);
+
+                ddlProgramme.DataSource = programmes;
                 ddlProgramme.DataTextField = "Display";
                 ddlProgramme.DataValueField = "ProgrammeId";
                 ddlProgramme.DataBind();
                 ddlProgramme.Items.Insert(0, new ListItem("-- Select Programme --", ""));
+
+                ddlFilterProgramme.DataSource = programmes.Copy();
+                ddlFilterProgramme.DataTextField = "Display";
+                ddlFilterProgramme.DataValueField = "ProgrammeId";
+                ddlFilterProgramme.DataBind();
+                ddlFilterProgramme.Items.Insert(0, new ListItem("All Programmes", ""));
             }
             catch
             {
                 ddlProgramme.Items.Clear();
                 ddlProgramme.Items.Insert(0, new ListItem("No programmes found", ""));
+
+                ddlFilterProgramme.Items.Clear();
+                ddlFilterProgramme.Items.Insert(0, new ListItem("All Programmes", ""));
             }
         }
 
@@ -70,6 +81,9 @@ namespace Student_Information_Management_System__SIMS_.Admin
 
         private void LoadStudents()
         {
+            string keyword = txtSearchStudent.Text.Trim();
+            string programmeId = ddlFilterProgramme.SelectedValue;
+
             string sql = @"
                 SELECT sd.StudentId,
                        sd.FirstName + ' ' + sd.LastName AS FullName,
@@ -78,11 +92,25 @@ namespace Student_Information_Management_System__SIMS_.Admin
                        p.ProgrammeName,
                        sd.Gender
                 FROM StudentDetails sd
-                INNER JOIN Users u  ON sd.UserId    = u.UserId
+                INNER JOIN Users u  ON sd.UserId = u.UserId
                 LEFT  JOIN Programmes p ON sd.ProgrammeId = p.ProgrammeId
+                WHERE (@ProgrammeId = '' OR sd.ProgrammeId = @ProgrammeId)
+                  AND (@Keyword = ''
+                       OR sd.StudentId LIKE '%' + @Keyword + '%'
+                       OR sd.FirstName LIKE '%' + @Keyword + '%'
+                       OR sd.LastName LIKE '%' + @Keyword + '%'
+                       OR (sd.FirstName + ' ' + sd.LastName) LIKE '%' + @Keyword + '%'
+                       OR u.Email LIKE '%' + @Keyword + '%'
+                       OR sd.Phone LIKE '%' + @Keyword + '%'
+                       OR p.ProgrammeName LIKE '%' + @Keyword + '%'
+                       OR sd.Gender LIKE '%' + @Keyword + '%')
                 ORDER BY sd.FirstName, sd.LastName";
 
-            gvStudents.DataSource = DatabaseHelper.ExecuteQuery(sql);
+            gvStudents.DataSource = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
+                new SqlParameter("@Keyword", keyword),
+                new SqlParameter("@ProgrammeId", programmeId)
+            });
             gvStudents.DataBind();
         }
 
@@ -95,7 +123,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 string.IsNullOrWhiteSpace(txtEmail.Text) ||
                 string.IsNullOrEmpty(ddlProgramme.SelectedValue))
             {
-                ShowMessage("Please fill in all required fields.", "error");
+                ShowMessage("Please fill in all required fields.", "error", false, null, "Validation Error");
                 return;
             }
 
@@ -144,7 +172,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                     ShowMessage("Student added successfully!<br><br>" +
                                 "<strong>Default Password:</strong> Student@123<br><br>" +
                                 "The student can use <strong>Forgot Password</strong> to change it.",
-                                "success");
+                                "success", false, null, "Student Added");
                 }
                 else   // ── UPDATE ──
                 {
@@ -181,7 +209,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                             new SqlParameter("@UserId", hfUserId.Value)
                         });
 
-                    ShowMessage("Student updated successfully!", "success");
+                    ShowMessage("Student updated successfully!", "success", false, null, "Student Updated");
                 }
 
                 ClearForm();
@@ -189,7 +217,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
             }
             catch (Exception ex)
             {
-                ShowMessage("Error: " + ex.Message, "error");
+                ShowMessage("Error: " + ex.Message, "error", false, null, "Error");
             }
         }
 
@@ -207,9 +235,10 @@ namespace Student_Information_Management_System__SIMS_.Admin
             {
                 ShowMessage(
                     $"Are you sure you want to delete Student {studentId}? This action cannot be undone.",
-                    "warning",
+                    "delete",
                     true,
-                    studentId);
+                    studentId,
+                    "Delete Student?");
             }
         }
 
@@ -244,12 +273,12 @@ namespace Student_Information_Management_System__SIMS_.Admin
                         "DELETE FROM Users WHERE UserId = @UserId",
                         new[] { new SqlParameter("@UserId", userId) });
 
-                ShowMessage("Student deleted successfully!", "success");
+                ShowMessage("Student deleted successfully!", "success", false, null, "Student Deleted");
                 LoadStudents();
             }
             catch (Exception ex)
             {
-                ShowMessage("Error deleting student: " + ex.Message, "error");
+                ShowMessage("Error deleting student: " + ex.Message, "error", false, null, "Delete Error");
             }
         }
 
@@ -291,6 +320,8 @@ namespace Student_Information_Management_System__SIMS_.Admin
                     ddlProgramme.SelectedValue = row["ProgrammeId"].ToString();
 
                 lblFormTitle.Text = "Edit Student";
+
+                ShowMessage("You are now editing the selected student record.", "warning", false, null, "Edit Mode");
             }
         }
 
@@ -316,15 +347,59 @@ namespace Student_Information_Management_System__SIMS_.Admin
         }
 
         private void ShowMessage(string message, string type,
-                                 bool isConfirmDelete = false, string studentId = null)
+                                 bool isConfirmDelete = false, string studentId = null,
+                                 string modalTitle = null)
         {
+            string safeType = (type ?? "").Replace("\\", "\\\\").Replace("'", "\\'");
+            string safeTitle = (modalTitle ?? GetDefaultModalTitle(type, isConfirmDelete))
+                .Replace("\\", "\\\\")
+                .Replace("'", "\\'");
             string safeMessage = message.Replace("\\", "\\\\").Replace("`", "\\`");
             string safeStudentId = (studentId ?? "").Replace("'", "\\'");
 
-            string script = $"showMessageModal('{type}', `{safeMessage}`, {isConfirmDelete.ToString().ToLower()}, '{safeStudentId}');";
+            string script = $"showMessageModal('{safeType}', '{safeTitle}', `{safeMessage}`, {isConfirmDelete.ToString().ToLower()}, '{safeStudentId}');";
 
             ScriptManager.RegisterStartupScript(this, this.GetType(),
                 "CustomModal" + Guid.NewGuid().ToString("N"), script, true);
+        }
+
+        private string GetDefaultModalTitle(string type, bool isConfirmDelete)
+        {
+            if (isConfirmDelete) return "Confirm Delete";
+
+            switch ((type ?? "").ToLower())
+            {
+                case "success":
+                    return "Success";
+                case "error":
+                    return "Error";
+                case "warning":
+                    return "Warning";
+                case "delete":
+                    return "Delete";
+                default:
+                    return "Message";
+            }
+        }
+
+
+        protected void btnSearchStudent_Click(object sender, EventArgs e)
+        {
+            gvStudents.PageIndex = 0;
+            LoadStudents();
+        }
+
+        protected void btnClearStudentSearch_Click(object sender, EventArgs e)
+        {
+            txtSearchStudent.Text = "";
+            ddlFilterProgramme.SelectedIndex = 0;
+            gvStudents.PageIndex = 0;
+            LoadStudents();
+        }
+
+        protected void btnClear_Click(object sender, EventArgs e)
+        {
+            ClearForm();
         }
 
         protected void btnCancel_Click(object sender, EventArgs e)
