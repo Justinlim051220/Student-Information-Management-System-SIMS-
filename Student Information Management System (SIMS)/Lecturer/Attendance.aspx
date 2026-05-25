@@ -411,21 +411,14 @@
                                             <asp:CheckBox ID="chkPresent" runat="server"
                                                 Checked='<%# Eval("Status").ToString() == "Present" %>'
                                                 Enabled='<%# Convert.ToString(Eval("CanEdit")) == "1" %>' />
-                                            Attend
+                                            Present
                                         </label>
 
                                         <label>
                                             <asp:CheckBox ID="chkAbsent" runat="server"
                                                 Checked='<%# Eval("Status").ToString() == "Absent" %>'
                                                 Enabled='<%# Convert.ToString(Eval("CanEdit")) == "1" %>' />
-                                            Unattend
-                                        </label>
-
-                                        <label>
-                                            <asp:CheckBox ID="chkLate" runat="server"
-                                                Checked='<%# Eval("Status").ToString() == "Late" %>'
-                                                Enabled='<%# Convert.ToString(Eval("CanEdit")) == "1" %>' />
-                                            Late
+                                            Absent
                                         </label>
                                     </div>
                                 </td>
