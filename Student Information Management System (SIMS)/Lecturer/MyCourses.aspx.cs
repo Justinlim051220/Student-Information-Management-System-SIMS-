@@ -56,34 +56,9 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 ? "Lecturer"
                 : fullName;
 
-            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName)
-                ? "Lecturer"
-                : fullName;
-
-            LoadSidebarProfilePicture();
-        }
-
-        private void LoadSidebarProfilePicture()
-        {
-            object result = DatabaseHelper.ExecuteScalar(
-                "SELECT ProfilePicture FROM LecturerDetails WHERE UserId = @UserId",
-                new[]
-                {
-            new SqlParameter("@UserId", CurrentUserId)
-                });
-
-            string picture = result == null || result == DBNull.Value
-                ? ""
-                : result.ToString();
-
-            if (!string.IsNullOrWhiteSpace(picture))
-            {
-                imgSidebarAvatar.ImageUrl = picture;
-            }
-            else
-            {
-                imgSidebarAvatar.ImageUrl = "~/ProfilePicture/default-profile.png";
-            }
+            lblAvatarInitial.Text = string.IsNullOrWhiteSpace(fullName)
+                ? "L"
+                : fullName.Substring(0, 1).ToUpper();
         }
 
         private void LoadCourseFilter()
@@ -461,18 +436,18 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                   AND e.Status = 'Active'
                 ORDER BY sd.StudentId";
 
-            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
-            {
+                    DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
+                    {
                 new SqlParameter("@CourseId", courseId),
                 new SqlParameter("@Session", session)
             });
 
-            rptRegisteredStudents.DataSource = dt;
-            rptRegisteredStudents.DataBind();
+                    rptRegisteredStudents.DataSource = dt;
+                    rptRegisteredStudents.DataBind();
 
-            lblStudentTotal.Text = dt.Rows.Count.ToString();
-            pnlRegisteredStudents.Visible = true;
-            pnlNoStudents.Visible = dt.Rows.Count == 0;
-        }
+                    lblStudentTotal.Text = dt.Rows.Count.ToString();
+                    pnlRegisteredStudents.Visible = true;
+                    pnlNoStudents.Visible = dt.Rows.Count == 0;
+                }
     }
 }
