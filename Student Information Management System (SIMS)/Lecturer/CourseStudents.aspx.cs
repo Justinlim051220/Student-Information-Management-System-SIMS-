@@ -124,10 +124,24 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             if (infoDt.Rows.Count > 0)
             {
-                lblCourseInfo.Text =
+                lblCourseTitle.Text =
                     infoDt.Rows[0]["CourseCode"] + " - " +
-                    infoDt.Rows[0]["CourseName"] +
-                    " | Session: " + session;
+                    infoDt.Rows[0]["CourseName"];
+
+                lblCourseInfo.Text = "Session: " + session;
+
+                hlPostMaterial.NavigateUrl =
+                    "CourseMaterials.aspx?courseId=" + courseId +
+                    "&session=" + Server.UrlEncode(session);
+
+                hlGrades.NavigateUrl =
+                    "CourseGrades.aspx?courseId=" + courseId +
+                    "&session=" + Server.UrlEncode(session);
+            }
+            else
+            {
+                Response.Redirect("MyCourses.aspx");
+                return;
             }
 
             string sql = @"

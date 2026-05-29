@@ -90,6 +90,38 @@
             border-radius: 50%;
             display: block;
         }
+        .course-action-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .course-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: var(--radius-pill);
+            border: 2px solid var(--orange-main);
+            background: var(--white);
+            color: var(--orange-dark);
+            font-family: var(--font-primary);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .course-action-btn:hover,
+        .course-action-btn.active {
+            background: var(--orange-gradient);
+            color: var(--white);
+            border-color: transparent;
+            box-shadow: var(--shadow-orange);
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 
@@ -203,11 +235,30 @@
                 </a>
             </div>
 
-            <div class="page-header">
-                <h1>Registered Students</h1>
+           <div class="page-header">
+                <h1>
+                    <asp:Label ID="lblCourseTitle" runat="server" Text="Course Title" />
+                </h1>
                 <p>
                     <asp:Label ID="lblCourseInfo" runat="server" />
                 </p>
+            </div>
+
+            <div class="course-action-bar">
+                <a href="#" class="course-action-btn active">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    Registered Students
+                </a>
+
+                <asp:HyperLink ID="hlPostMaterial" runat="server" CssClass="course-action-btn">
+                    <i class="fa-solid fa-file-arrow-up"></i>
+                    Post Material
+                </asp:HyperLink>
+
+                <asp:HyperLink ID="hlGrades" runat="server" CssClass="course-action-btn">
+                    <i class="fa-solid fa-star-half-stroke"></i>
+                    Grades
+                </asp:HyperLink>
             </div>
 
             <div class="card">
