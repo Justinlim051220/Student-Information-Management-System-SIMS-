@@ -97,7 +97,9 @@
     <Content Include="About.aspx" />
     <Content Include="Admin\Admin_Announcement.aspx" />
     <Content Include="Admin\Admin_enrolment.aspx" />
+    <Content Include="Admin\Admin_Profile.aspx" />
     <Content Include="Admin\AssignLecturerCourse.aspx" />
+    <Content Include="Admin\CourseOffering.aspx" />
     <Content Include="Admin\Dashboard.aspx" />
     <Content Include="Admin\ManageCourses.aspx" />
     <Content Include="Admin\ManageFees.aspx" />
@@ -173,6 +175,7 @@
     <Content Include="SIMS_Patch_PasswordResets.sql" />
     <Content Include="Site.Master" />
     <Content Include="Student\Student_Dashboard.aspx" />
+    <Content Include="Student\Student_Enrollment.aspx" />
     <Content Include="Styles\SIMS.css" />
     <Content Include="ViewSwitcher.ascx" />
     <Content Include="Web.config" />
@@ -193,12 +196,26 @@
     <Compile Include="Admin\Admin_enrolment.aspx.designer.cs">
       <DependentUpon>Admin_enrolment.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\Admin_Profile.aspx.cs">
+      <DependentUpon>Admin_Profile.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\Admin_Profile.aspx.designer.cs">
+      <DependentUpon>Admin_Profile.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\AssignLecturerCourse.aspx.cs">
       <DependentUpon>AssignLecturerCourse.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Admin\AssignLecturerCourse.aspx.designer.cs">
       <DependentUpon>AssignLecturerCourse.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\CourseOffering.aspx.cs">
+      <DependentUpon>CourseOffering.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\CourseOffering.aspx.designer.cs">
+      <DependentUpon>CourseOffering.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\ManageCourses.aspx.cs">
       <DependentUpon>ManageCourses.aspx</DependentUpon>
@@ -378,6 +395,13 @@
     <Compile Include="Student\Student_Dashboard.aspx.designer.cs">
       <DependentUpon>Student_Dashboard.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Student\Student_Enrollment.aspx.cs">
+      <DependentUpon>Student_Enrollment.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Student\Student_Enrollment.aspx.designer.cs">
+      <DependentUpon>Student_Enrollment.aspx</DependentUpon>
+    </Compile>
     <Compile Include="ViewSwitcher.ascx.cs">
       <DependentUpon>ViewSwitcher.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -387,6 +411,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="AdminProfilePic\" />
     <Folder Include="App_Code\" />
     <Folder Include="App_Data\" />
     <Folder Include="ProfilePicture\" />
