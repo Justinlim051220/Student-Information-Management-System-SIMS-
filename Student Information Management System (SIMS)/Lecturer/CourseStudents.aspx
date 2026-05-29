@@ -205,6 +205,62 @@
             margin-top: 6px;
         }
 
+        .posted-files-box {
+            margin-top: 18px;
+            padding: 14px;
+            border: 1px solid var(--border-light);
+            border-radius: 14px;
+            background: #fffaf0;
+        }
+
+        .posted-files-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .material-file-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-top: 8px;
+            background: var(--white);
+        }
+
+        .material-file-row a {
+            color: var(--orange-dark);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .material-file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .material-file-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--orange-dark);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .material-file-link:hover {
+            text-decoration: underline;
+        }
+
         #customModalOverlay {
             display: none;
             position: fixed;
@@ -329,6 +385,10 @@
             .material-top {
                 flex-direction: column;
             }
+
+            .material-file-row {
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
@@ -338,10 +398,15 @@
 
     <asp:HiddenField ID="hfEditMaterialId" runat="server" Value="0" />
     <asp:HiddenField ID="hfDeleteMaterialId" runat="server" Value="0" />
+    <asp:HiddenField ID="hfDeleteFileId" runat="server" Value="0" />
 
     <asp:Button ID="btnDeleteMaterialConfirmed" runat="server"
         Style="display:none;"
         OnClick="btnDeleteMaterialConfirmed_Click" />
+
+    <asp:Button ID="btnDeleteFileConfirmed" runat="server"
+        Style="display:none;"
+        OnClick="btnDeleteFileConfirmed_Click" />
 
     <div class="sidebar" id="sidebar">
         <div class="sidebar-brand">
@@ -553,9 +618,9 @@
 
                             <div class="form-group">
                                 <label>Attachment *</label>
-                                <asp:FileUpload ID="fuMaterial" runat="server" CssClass="form-control" />
+                                <asp:FileUpload ID="fuMaterial" runat="server" CssClass="form-control" AllowMultiple="true" />
                                 <div class="edit-note">
-                                    During edit, choose a new file only if you want to replace the old attachment.
+                                    You can select multiple files. During edit, upload new files only if you want to add more attachments.
                                 </div>
                             </div>
                         </div>
@@ -567,6 +632,32 @@
                                 TextMode="MultiLine"
                                 Rows="4" />
                         </div>
+
+                        <asp:Panel ID="pnlExistingFiles" runat="server" CssClass="posted-files-box" Visible="false">
+                            <div class="posted-files-title">
+                                Recently Posted Files
+                            </div>
+
+                            <asp:Repeater ID="rptExistingFiles" runat="server">
+                                <ItemTemplate>
+                                    <div class="material-file-row">
+                                        <a href='<%# ResolveUrl(Eval("FilePath").ToString()) %>' target="_blank">
+                                            <i class="fa-solid fa-paperclip"></i>
+                                            <%# Eval("FileName") %>
+                                        </a>
+
+                                        <asp:LinkButton ID="btnDeleteFile" runat="server"
+                                            CssClass="icon-btn danger"
+                                            CommandName="DeleteFile"
+                                            CommandArgument='<%# Eval("FileId") %>'
+                                            ToolTip="Delete File"
+                                            OnClientClick='<%# "showDeleteFileModal(" + Eval("FileId") + "); return false;" %>'>
+                                            <i class="fa-solid fa-trash"></i>
+                                        </asp:LinkButton>
+                                    </div>
+                                </ItemTemplate>
+                            </asp:Repeater>
+                        </asp:Panel>
 
                         <div style="text-align:right; margin-top:18px;">
                             <asp:Button ID="btnCancelEditMaterial" runat="server"
@@ -594,7 +685,10 @@
                     </div>
 
                     <div class="card-body">
-                        <asp:Repeater ID="rptMaterials" runat="server" OnItemCommand="rptMaterials_ItemCommand">
+                        <asp:Repeater ID="rptMaterials" runat="server"
+                            OnItemCommand="rptMaterials_ItemCommand"
+                            OnItemDataBound="rptMaterials_ItemDataBound">
+
                             <ItemTemplate>
                                 <div class="material-item">
                                     <div class="material-top">
@@ -636,12 +730,18 @@
 
                                     <p><%# Eval("Description") %></p>
 
-                                    <a href='<%# ResolveUrl(Eval("FilePath").ToString()) %>'
-                                        target="_blank"
-                                        class="btn btn-outline btn-sm">
-                                        <i class="fa-solid fa-paperclip"></i>
-                                        <%# Eval("FileName") %>
-                                    </a>
+                                    <div class="material-file-list">
+                                        <asp:Repeater ID="rptMaterialFiles" runat="server">
+                                            <ItemTemplate>
+                                                <a href='<%# ResolveUrl(Eval("FilePath").ToString()) %>'
+                                                    target="_blank"
+                                                    class="material-file-link">
+                                                    <i class="fa-solid fa-paperclip"></i>
+                                                    <%# Eval("FileName") %>
+                                                </a>
+                                            </ItemTemplate>
+                                        </asp:Repeater>
+                                    </div>
                                 </div>
                             </ItemTemplate>
                         </asp:Repeater>
@@ -714,7 +814,7 @@
             document.getElementById('cmIconWrap').className = 'cm-icon-wrap icon-delete';
             document.getElementById('cmIcon').innerHTML = '<i class="fa-solid fa-trash" style="color:#e74c3c;"></i>';
             document.getElementById('cmTitle').innerHTML = 'Confirm Delete';
-            document.getElementById('cmBody').innerHTML = 'Are you sure you want to delete this course material?';
+            document.getElementById('cmBody').innerHTML = 'Are you sure you want to delete this course material and all attached files?';
 
             document.getElementById('cmBtnOk').style.display = 'none';
             document.getElementById('cmBtnCancel').style.display = 'inline-block';
@@ -724,6 +824,25 @@
                 document.getElementById('<%= hfDeleteMaterialId.ClientID %>').value = materialId;
                 closeCustomModal();
                 document.getElementById('<%= btnDeleteMaterialConfirmed.ClientID %>').click();
+            };
+
+            document.getElementById('customModalOverlay').classList.add('active');
+        }
+
+        function showDeleteFileModal(fileId) {
+            document.getElementById('cmIconWrap').className = 'cm-icon-wrap icon-delete';
+            document.getElementById('cmIcon').innerHTML = '<i class="fa-solid fa-trash" style="color:#e74c3c;"></i>';
+            document.getElementById('cmTitle').innerHTML = 'Confirm Delete';
+            document.getElementById('cmBody').innerHTML = 'Are you sure you want to delete this file only?';
+
+            document.getElementById('cmBtnOk').style.display = 'none';
+            document.getElementById('cmBtnCancel').style.display = 'inline-block';
+            document.getElementById('cmBtnDelete').style.display = 'inline-block';
+
+            document.getElementById('cmBtnDelete').onclick = function () {
+                document.getElementById('<%= hfDeleteFileId.ClientID %>').value = fileId;
+                closeCustomModal();
+                document.getElementById('<%= btnDeleteFileConfirmed.ClientID %>').click();
             };
 
             document.getElementById('customModalOverlay').classList.add('active');

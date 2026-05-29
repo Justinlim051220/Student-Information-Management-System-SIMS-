@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using SIMS.Helpers;
@@ -176,8 +177,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     Title,
                     Description,
                     MaterialType,
-                    FileName,
-                    FilePath,
                     CreatedAt
                 FROM CourseMaterials
                 WHERE CourseId = @CourseId
@@ -197,6 +196,39 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             lblMaterialTotal.Text = dt.Rows.Count.ToString();
             pnlNoMaterials.Visible = dt.Rows.Count == 0;
+        }
+
+        protected void rptMaterials_ItemDataBound(object sender, RepeaterItemEventArgs e)
+        {
+            if (e.Item.ItemType != ListItemType.Item &&
+                e.Item.ItemType != ListItemType.AlternatingItem)
+            {
+                return;
+            }
+
+            DataRowView row = e.Item.DataItem as DataRowView;
+            if (row == null)
+                return;
+
+            int materialId = Convert.ToInt32(row["MaterialId"]);
+
+            Repeater rptMaterialFiles = e.Item.FindControl("rptMaterialFiles") as Repeater;
+            if (rptMaterialFiles == null)
+                return;
+
+            string sql = @"
+                SELECT FileId, FileName, FilePath, UploadedAt
+                FROM CourseMaterialFiles
+                WHERE MaterialId = @MaterialId
+                ORDER BY UploadedAt DESC";
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
+                new SqlParameter("@MaterialId", materialId)
+            });
+
+            rptMaterialFiles.DataSource = dt;
+            rptMaterialFiles.DataBind();
         }
 
         protected void lbShowStudents_Click(object sender, EventArgs e)
@@ -249,44 +281,16 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 return;
             }
 
-            if (editId == 0 && !fuMaterial.HasFile)
+            if (editId == 0 && !fuMaterial.HasFiles)
             {
-                ShowMessage("Please select a file to upload.", "danger");
+                ShowMessage("Please select at least one file to upload.", "danger");
                 ShowMaterialsSection();
                 return;
             }
 
-            string dbFilePath = "";
-            string originalFileName = "";
-            string fileType = "";
-            int fileSizeKB = 0;
-
-            if (fuMaterial.HasFile)
-            {
-                string rootFolder = Server.MapPath("~/CourseMaterials/");
-                string safeSession = session.Replace(" ", "_").Replace("/", "_").Replace("\\", "_");
-                string courseFolder = Path.Combine(rootFolder, courseId + "_" + safeSession);
-
-                if (!Directory.Exists(courseFolder))
-                {
-                    Directory.CreateDirectory(courseFolder);
-                }
-
-                originalFileName = Path.GetFileName(fuMaterial.FileName);
-                string extension = Path.GetExtension(originalFileName);
-                string savedFileName = Guid.NewGuid().ToString("N") + extension;
-                string fullPath = Path.Combine(courseFolder, savedFileName);
-
-                fuMaterial.SaveAs(fullPath);
-
-                dbFilePath = "~/CourseMaterials/" + courseId + "_" + safeSession + "/" + savedFileName;
-                fileType = fuMaterial.PostedFile.ContentType;
-                fileSizeKB = fuMaterial.PostedFile.ContentLength / 1024;
-            }
-
             if (editId == 0)
             {
-                string sql = @"
+                string insertSql = @"
                     INSERT INTO CourseMaterials
                     (
                         CourseId,
@@ -294,12 +298,9 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                         LecturerId,
                         Title,
                         Description,
-                        MaterialType,
-                        FileName,
-                        FilePath,
-                        FileType,
-                        FileSizeKB
+                        MaterialType
                     )
+                    OUTPUT INSERTED.MaterialId
                     VALUES
                     (
                         @CourseId,
@@ -307,78 +308,45 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                         @LecturerId,
                         @Title,
                         @Description,
-                        @MaterialType,
-                        @FileName,
-                        @FilePath,
-                        @FileType,
-                        @FileSizeKB
+                        @MaterialType
                     )";
 
-                DatabaseHelper.ExecuteNonQuery(sql, new[]
+                int materialId = Convert.ToInt32(DatabaseHelper.ExecuteScalar(insertSql, new[]
                 {
                     new SqlParameter("@CourseId", courseId),
                     new SqlParameter("@Session", session),
                     new SqlParameter("@LecturerId", CurrentLecturerId),
                     new SqlParameter("@Title", txtMaterialTitle.Text.Trim()),
                     new SqlParameter("@Description", txtMaterialDescription.Text.Trim()),
-                    new SqlParameter("@MaterialType", ddlMaterialType.SelectedValue),
-                    new SqlParameter("@FileName", originalFileName),
-                    new SqlParameter("@FilePath", dbFilePath),
-                    new SqlParameter("@FileType", fileType),
-                    new SqlParameter("@FileSizeKB", fileSizeKB)
-                });
+                    new SqlParameter("@MaterialType", ddlMaterialType.SelectedValue)
+                }));
+
+                SaveMaterialFiles(materialId, courseId, session);
 
                 ShowMessage("Course material posted successfully.", "success");
             }
             else
             {
-                if (fuMaterial.HasFile)
+                string updateSql = @"
+                    UPDATE CourseMaterials
+                    SET Title = @Title,
+                        Description = @Description,
+                        MaterialType = @MaterialType
+                    WHERE MaterialId = @MaterialId
+                      AND LecturerId = @LecturerId";
+
+                DatabaseHelper.ExecuteNonQuery(updateSql, new[]
                 {
-                    DeleteOldMaterialFile(editId);
+                    new SqlParameter("@Title", txtMaterialTitle.Text.Trim()),
+                    new SqlParameter("@Description", txtMaterialDescription.Text.Trim()),
+                    new SqlParameter("@MaterialType", ddlMaterialType.SelectedValue),
+                    new SqlParameter("@MaterialId", editId),
+                    new SqlParameter("@LecturerId", CurrentLecturerId)
+                });
 
-                    string sql = @"
-                        UPDATE CourseMaterials
-                        SET Title = @Title,
-                            Description = @Description,
-                            MaterialType = @MaterialType,
-                            FileName = @FileName,
-                            FilePath = @FilePath,
-                            FileType = @FileType,
-                            FileSizeKB = @FileSizeKB
-                        WHERE MaterialId = @MaterialId
-                          AND LecturerId = @LecturerId";
-
-                    DatabaseHelper.ExecuteNonQuery(sql, new[]
-                    {
-                        new SqlParameter("@Title", txtMaterialTitle.Text.Trim()),
-                        new SqlParameter("@Description", txtMaterialDescription.Text.Trim()),
-                        new SqlParameter("@MaterialType", ddlMaterialType.SelectedValue),
-                        new SqlParameter("@FileName", originalFileName),
-                        new SqlParameter("@FilePath", dbFilePath),
-                        new SqlParameter("@FileType", fileType),
-                        new SqlParameter("@FileSizeKB", fileSizeKB),
-                        new SqlParameter("@MaterialId", editId),
-                        new SqlParameter("@LecturerId", CurrentLecturerId)
-                    });
-                }
-                else
+                if (fuMaterial.HasFiles)
                 {
-                    string sql = @"
-                        UPDATE CourseMaterials
-                        SET Title = @Title,
-                            Description = @Description,
-                            MaterialType = @MaterialType
-                        WHERE MaterialId = @MaterialId
-                          AND LecturerId = @LecturerId";
-
-                    DatabaseHelper.ExecuteNonQuery(sql, new[]
-                    {
-                        new SqlParameter("@Title", txtMaterialTitle.Text.Trim()),
-                        new SqlParameter("@Description", txtMaterialDescription.Text.Trim()),
-                        new SqlParameter("@MaterialType", ddlMaterialType.SelectedValue),
-                        new SqlParameter("@MaterialId", editId),
-                        new SqlParameter("@LecturerId", CurrentLecturerId)
-                    });
+                    SaveMaterialFiles(editId, courseId, session);
                 }
 
                 ShowMessage("Course material updated successfully.", "success");
@@ -386,6 +354,63 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             ClearMaterialForm();
             ShowMaterialsSection();
+        }
+
+        private void SaveMaterialFiles(int materialId, string courseId, string session)
+        {
+            if (!fuMaterial.HasFiles)
+                return;
+
+            string rootFolder = Server.MapPath("~/CourseMaterials/");
+            string safeSession = session.Replace(" ", "_").Replace("/", "_").Replace("\\", "_");
+            string courseFolder = Path.Combine(rootFolder, courseId + "_" + safeSession);
+
+            if (!Directory.Exists(courseFolder))
+            {
+                Directory.CreateDirectory(courseFolder);
+            }
+
+            foreach (HttpPostedFile file in fuMaterial.PostedFiles)
+            {
+                if (file == null || file.ContentLength <= 0)
+                    continue;
+
+                string originalFileName = Path.GetFileName(file.FileName);
+                string extension = Path.GetExtension(originalFileName);
+                string savedFileName = Guid.NewGuid().ToString("N") + extension;
+                string fullPath = Path.Combine(courseFolder, savedFileName);
+
+                file.SaveAs(fullPath);
+
+                string dbFilePath = "~/CourseMaterials/" + courseId + "_" + safeSession + "/" + savedFileName;
+
+                string insertFileSql = @"
+                    INSERT INTO CourseMaterialFiles
+                    (
+                        MaterialId,
+                        FileName,
+                        FilePath,
+                        FileType,
+                        FileSizeKB
+                    )
+                    VALUES
+                    (
+                        @MaterialId,
+                        @FileName,
+                        @FilePath,
+                        @FileType,
+                        @FileSizeKB
+                    )";
+
+                DatabaseHelper.ExecuteNonQuery(insertFileSql, new[]
+                {
+                    new SqlParameter("@MaterialId", materialId),
+                    new SqlParameter("@FileName", originalFileName),
+                    new SqlParameter("@FilePath", dbFilePath),
+                    new SqlParameter("@FileType", file.ContentType),
+                    new SqlParameter("@FileSizeKB", file.ContentLength / 1024)
+                });
+            }
         }
 
         protected void rptMaterials_ItemCommand(object source, RepeaterCommandEventArgs e)
@@ -432,10 +457,34 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 btnUploadMaterial.Text = "Update Material";
                 btnCancelEditMaterial.Visible = true;
 
-                ShowMessage("You are now editing this course material.", "warning");
+                LoadExistingMaterialFiles(materialId);
+                pnlExistingFiles.Visible = true;
+
+                ShowMessage("You are now editing this course material. You can keep existing files, delete selected files, or upload more files.", "warning");
             }
 
             ShowMaterialsSection();
+            LoadExistingMaterialFiles(materialId);
+            pnlExistingFiles.Visible = true;
+        }
+
+        private void LoadExistingMaterialFiles(int materialId)
+        {
+            string sql = @"
+                SELECT FileId, FileName, FilePath, UploadedAt
+                FROM CourseMaterialFiles
+                WHERE MaterialId = @MaterialId
+                ORDER BY UploadedAt DESC";
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
+                new SqlParameter("@MaterialId", materialId)
+            });
+
+            rptExistingFiles.DataSource = dt;
+            rptExistingFiles.DataBind();
+
+            pnlExistingFiles.Visible = dt.Rows.Count > 0;
         }
 
         protected void btnDeleteMaterialConfirmed_Click(object sender, EventArgs e)
@@ -454,7 +503,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
         private void DeleteMaterial(int materialId)
         {
-            DeleteOldMaterialFile(materialId);
+            DeleteAllMaterialFiles(materialId);
 
             string deleteSql = @"
                 DELETE FROM CourseMaterials
@@ -472,18 +521,83 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             ShowMaterialsSection();
         }
 
-        private void DeleteOldMaterialFile(int materialId)
+        private void DeleteAllMaterialFiles(int materialId)
+        {
+            string getFilesSql = @"
+                SELECT FilePath
+                FROM CourseMaterialFiles
+                WHERE MaterialId = @MaterialId";
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(getFilesSql, new[]
+            {
+                new SqlParameter("@MaterialId", materialId)
+            });
+
+            foreach (DataRow row in dt.Rows)
+            {
+                string filePath = row["FilePath"].ToString();
+
+                if (!string.IsNullOrWhiteSpace(filePath))
+                {
+                    string physicalPath = Server.MapPath(filePath);
+
+                    if (File.Exists(physicalPath))
+                    {
+                        File.Delete(physicalPath);
+                    }
+                }
+            }
+
+            string deleteFilesSql = @"
+                DELETE FROM CourseMaterialFiles
+                WHERE MaterialId = @MaterialId";
+
+            DatabaseHelper.ExecuteNonQuery(deleteFilesSql, new[]
+            {
+                new SqlParameter("@MaterialId", materialId)
+            });
+        }
+
+        protected void btnDeleteFileConfirmed_Click(object sender, EventArgs e)
+        {
+            int fileId;
+
+            if (int.TryParse(hfDeleteFileId.Value, out fileId))
+            {
+                DeleteMaterialFile(fileId);
+
+                int materialId;
+                if (int.TryParse(hfEditMaterialId.Value, out materialId) && materialId > 0)
+                {
+                    LoadExistingMaterialFiles(materialId);
+                    pnlExistingFiles.Visible = true;
+                }
+
+                ShowMessage("File deleted successfully.", "success");
+                ShowMaterialsSection();
+
+                if (materialId > 0)
+                {
+                    LoadExistingMaterialFiles(materialId);
+                    pnlExistingFiles.Visible = true;
+                }
+            }
+            else
+            {
+                ShowMessage("Invalid file selected.", "danger");
+            }
+        }
+
+        private void DeleteMaterialFile(int fileId)
         {
             string getSql = @"
                 SELECT FilePath
-                FROM CourseMaterials
-                WHERE MaterialId = @MaterialId
-                  AND LecturerId = @LecturerId";
+                FROM CourseMaterialFiles
+                WHERE FileId = @FileId";
 
             object filePathObj = DatabaseHelper.ExecuteScalar(getSql, new[]
             {
-                new SqlParameter("@MaterialId", materialId),
-                new SqlParameter("@LecturerId", CurrentLecturerId)
+                new SqlParameter("@FileId", fileId)
             });
 
             if (filePathObj != null && filePathObj != DBNull.Value)
@@ -500,6 +614,15 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     }
                 }
             }
+
+            string deleteSql = @"
+                DELETE FROM CourseMaterialFiles
+                WHERE FileId = @FileId";
+
+            DatabaseHelper.ExecuteNonQuery(deleteSql, new[]
+            {
+                new SqlParameter("@FileId", fileId)
+            });
         }
 
         protected void btnCancelEditMaterial_Click(object sender, EventArgs e)
@@ -512,6 +635,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         {
             hfEditMaterialId.Value = "0";
             hfDeleteMaterialId.Value = "0";
+            hfDeleteFileId.Value = "0";
 
             txtMaterialTitle.Text = "";
             txtMaterialDescription.Text = "";
@@ -523,6 +647,10 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             btnUploadMaterial.Text = "Post Material";
             btnCancelEditMaterial.Visible = false;
+
+            pnlExistingFiles.Visible = false;
+            rptExistingFiles.DataSource = null;
+            rptExistingFiles.DataBind();
         }
 
         private void ShowMessage(string message, string type)
