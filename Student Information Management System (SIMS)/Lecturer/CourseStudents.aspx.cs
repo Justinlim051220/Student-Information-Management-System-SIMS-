@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 using SIMS.Helpers;
 
 namespace Student_Information_Management_System__SIMS_.Lecturer
@@ -19,6 +21,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
                 LoadStudents();
                 CheckUnreadNotifications();
+                ShowStudentsSection();
             }
         }
 
@@ -52,10 +55,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 ? "Lecturer"
                 : fullName;
 
-            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName)
-                ? "Lecturer"
-                : fullName;
-
             LoadSidebarProfilePicture();
         }
 
@@ -65,7 +64,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 "SELECT ProfilePicture FROM LecturerDetails WHERE UserId = @UserId",
                 new[]
                 {
-            new SqlParameter("@UserId", CurrentUserId)
+                    new SqlParameter("@UserId", CurrentUserId)
                 });
 
             string picture = result == null || result == DBNull.Value
@@ -81,6 +80,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 imgSidebarAvatar.ImageUrl = "~/ProfilePicture/default-profile.png";
             }
         }
+
         private void LoadStudents()
         {
             string courseId = Request.QueryString["courseId"];
@@ -124,10 +124,20 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             if (infoDt.Rows.Count > 0)
             {
-                lblCourseInfo.Text =
+                lblCourseTitle.Text =
                     infoDt.Rows[0]["CourseCode"] + " - " +
-                    infoDt.Rows[0]["CourseName"] +
-                    " | Session: " + session;
+                    infoDt.Rows[0]["CourseName"];
+
+                lblCourseInfo.Text = "Session: " + session;
+
+                hlGrades.NavigateUrl =
+                    "CourseGrades.aspx?courseId=" + courseId +
+                    "&session=" + Server.UrlEncode(session);
+            }
+            else
+            {
+                Response.Redirect("MyCourses.aspx", false);
+                return;
             }
 
             string sql = @"
@@ -153,6 +163,380 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             lblTotal.Text = dt.Rows.Count.ToString();
             pnlEmpty.Visible = dt.Rows.Count == 0;
+        }
+
+        private void LoadMaterials()
+        {
+            string courseId = Request.QueryString["courseId"];
+            string session = Request.QueryString["session"];
+
+            string sql = @"
+                SELECT 
+                    MaterialId,
+                    Title,
+                    Description,
+                    MaterialType,
+                    FileName,
+                    FilePath,
+                    CreatedAt
+                FROM CourseMaterials
+                WHERE CourseId = @CourseId
+                  AND Session = @Session
+                  AND LecturerId = @LecturerId
+                ORDER BY CreatedAt DESC";
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
+                new SqlParameter("@CourseId", courseId),
+                new SqlParameter("@Session", session),
+                new SqlParameter("@LecturerId", CurrentLecturerId)
+            });
+
+            rptMaterials.DataSource = dt;
+            rptMaterials.DataBind();
+
+            lblMaterialTotal.Text = dt.Rows.Count.ToString();
+            pnlNoMaterials.Visible = dt.Rows.Count == 0;
+        }
+
+        protected void lbShowStudents_Click(object sender, EventArgs e)
+        {
+            ShowStudentsSection();
+        }
+
+        protected void lbPostMaterial_Click(object sender, EventArgs e)
+        {
+            ShowMaterialsSection();
+        }
+
+        private void ShowStudentsSection()
+        {
+            pnlStudentsSection.Visible = true;
+            pnlMaterialsSection.Visible = false;
+
+            lbShowStudents.CssClass = "course-action-btn active";
+            lbPostMaterial.CssClass = "course-action-btn";
+        }
+
+        private void ShowMaterialsSection()
+        {
+            pnlStudentsSection.Visible = false;
+            pnlMaterialsSection.Visible = true;
+
+            lbShowStudents.CssClass = "course-action-btn";
+            lbPostMaterial.CssClass = "course-action-btn active";
+
+            LoadMaterials();
+        }
+
+        protected void btnUploadMaterial_Click(object sender, EventArgs e)
+        {
+            string courseId = Request.QueryString["courseId"];
+            string session = Request.QueryString["session"];
+            int editId = Convert.ToInt32(hfEditMaterialId.Value);
+
+            if (string.IsNullOrWhiteSpace(txtMaterialTitle.Text))
+            {
+                ShowMessage("Please enter material title.", "danger");
+                ShowMaterialsSection();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(ddlMaterialType.SelectedValue))
+            {
+                ShowMessage("Please select material type.", "danger");
+                ShowMaterialsSection();
+                return;
+            }
+
+            if (editId == 0 && !fuMaterial.HasFile)
+            {
+                ShowMessage("Please select a file to upload.", "danger");
+                ShowMaterialsSection();
+                return;
+            }
+
+            string dbFilePath = "";
+            string originalFileName = "";
+            string fileType = "";
+            int fileSizeKB = 0;
+
+            if (fuMaterial.HasFile)
+            {
+                string rootFolder = Server.MapPath("~/CourseMaterials/");
+                string safeSession = session.Replace(" ", "_").Replace("/", "_").Replace("\\", "_");
+                string courseFolder = Path.Combine(rootFolder, courseId + "_" + safeSession);
+
+                if (!Directory.Exists(courseFolder))
+                {
+                    Directory.CreateDirectory(courseFolder);
+                }
+
+                originalFileName = Path.GetFileName(fuMaterial.FileName);
+                string extension = Path.GetExtension(originalFileName);
+                string savedFileName = Guid.NewGuid().ToString("N") + extension;
+                string fullPath = Path.Combine(courseFolder, savedFileName);
+
+                fuMaterial.SaveAs(fullPath);
+
+                dbFilePath = "~/CourseMaterials/" + courseId + "_" + safeSession + "/" + savedFileName;
+                fileType = fuMaterial.PostedFile.ContentType;
+                fileSizeKB = fuMaterial.PostedFile.ContentLength / 1024;
+            }
+
+            if (editId == 0)
+            {
+                string sql = @"
+                    INSERT INTO CourseMaterials
+                    (
+                        CourseId,
+                        Session,
+                        LecturerId,
+                        Title,
+                        Description,
+                        MaterialType,
+                        FileName,
+                        FilePath,
+                        FileType,
+                        FileSizeKB
+                    )
+                    VALUES
+                    (
+                        @CourseId,
+                        @Session,
+                        @LecturerId,
+                        @Title,
+                        @Description,
+                        @MaterialType,
+                        @FileName,
+                        @FilePath,
+                        @FileType,
+                        @FileSizeKB
+                    )";
+
+                DatabaseHelper.ExecuteNonQuery(sql, new[]
+                {
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session),
+                    new SqlParameter("@LecturerId", CurrentLecturerId),
+                    new SqlParameter("@Title", txtMaterialTitle.Text.Trim()),
+                    new SqlParameter("@Description", txtMaterialDescription.Text.Trim()),
+                    new SqlParameter("@MaterialType", ddlMaterialType.SelectedValue),
+                    new SqlParameter("@FileName", originalFileName),
+                    new SqlParameter("@FilePath", dbFilePath),
+                    new SqlParameter("@FileType", fileType),
+                    new SqlParameter("@FileSizeKB", fileSizeKB)
+                });
+
+                ShowMessage("Course material posted successfully.", "success");
+            }
+            else
+            {
+                if (fuMaterial.HasFile)
+                {
+                    DeleteOldMaterialFile(editId);
+
+                    string sql = @"
+                        UPDATE CourseMaterials
+                        SET Title = @Title,
+                            Description = @Description,
+                            MaterialType = @MaterialType,
+                            FileName = @FileName,
+                            FilePath = @FilePath,
+                            FileType = @FileType,
+                            FileSizeKB = @FileSizeKB
+                        WHERE MaterialId = @MaterialId
+                          AND LecturerId = @LecturerId";
+
+                    DatabaseHelper.ExecuteNonQuery(sql, new[]
+                    {
+                        new SqlParameter("@Title", txtMaterialTitle.Text.Trim()),
+                        new SqlParameter("@Description", txtMaterialDescription.Text.Trim()),
+                        new SqlParameter("@MaterialType", ddlMaterialType.SelectedValue),
+                        new SqlParameter("@FileName", originalFileName),
+                        new SqlParameter("@FilePath", dbFilePath),
+                        new SqlParameter("@FileType", fileType),
+                        new SqlParameter("@FileSizeKB", fileSizeKB),
+                        new SqlParameter("@MaterialId", editId),
+                        new SqlParameter("@LecturerId", CurrentLecturerId)
+                    });
+                }
+                else
+                {
+                    string sql = @"
+                        UPDATE CourseMaterials
+                        SET Title = @Title,
+                            Description = @Description,
+                            MaterialType = @MaterialType
+                        WHERE MaterialId = @MaterialId
+                          AND LecturerId = @LecturerId";
+
+                    DatabaseHelper.ExecuteNonQuery(sql, new[]
+                    {
+                        new SqlParameter("@Title", txtMaterialTitle.Text.Trim()),
+                        new SqlParameter("@Description", txtMaterialDescription.Text.Trim()),
+                        new SqlParameter("@MaterialType", ddlMaterialType.SelectedValue),
+                        new SqlParameter("@MaterialId", editId),
+                        new SqlParameter("@LecturerId", CurrentLecturerId)
+                    });
+                }
+
+                ShowMessage("Course material updated successfully.", "success");
+            }
+
+            ClearMaterialForm();
+            ShowMaterialsSection();
+        }
+
+        protected void rptMaterials_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            int materialId = Convert.ToInt32(e.CommandArgument);
+
+            if (e.CommandName == "EditMaterial")
+            {
+                LoadMaterialForEdit(materialId);
+            }
+        }
+
+        private void LoadMaterialForEdit(int materialId)
+        {
+            string sql = @"
+                SELECT MaterialId, Title, Description, MaterialType
+                FROM CourseMaterials
+                WHERE MaterialId = @MaterialId
+                  AND LecturerId = @LecturerId";
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
+                new SqlParameter("@MaterialId", materialId),
+                new SqlParameter("@LecturerId", CurrentLecturerId)
+            });
+
+            if (dt.Rows.Count > 0)
+            {
+                hfEditMaterialId.Value = dt.Rows[0]["MaterialId"].ToString();
+                txtMaterialTitle.Text = dt.Rows[0]["Title"].ToString();
+                txtMaterialDescription.Text = dt.Rows[0]["Description"].ToString();
+
+                string materialType = dt.Rows[0]["MaterialType"].ToString();
+
+                if (ddlMaterialType.Items.FindByValue(materialType) != null)
+                {
+                    ddlMaterialType.SelectedValue = materialType;
+                }
+                else
+                {
+                    ddlMaterialType.SelectedIndex = 0;
+                }
+
+                btnUploadMaterial.Text = "Update Material";
+                btnCancelEditMaterial.Visible = true;
+
+                ShowMessage("You are now editing this course material.", "warning");
+            }
+
+            ShowMaterialsSection();
+        }
+
+        protected void btnDeleteMaterialConfirmed_Click(object sender, EventArgs e)
+        {
+            int materialId;
+
+            if (int.TryParse(hfDeleteMaterialId.Value, out materialId))
+            {
+                DeleteMaterial(materialId);
+            }
+            else
+            {
+                ShowMessage("Invalid material selected.", "danger");
+            }
+        }
+
+        private void DeleteMaterial(int materialId)
+        {
+            DeleteOldMaterialFile(materialId);
+
+            string deleteSql = @"
+                DELETE FROM CourseMaterials
+                WHERE MaterialId = @MaterialId
+                  AND LecturerId = @LecturerId";
+
+            DatabaseHelper.ExecuteNonQuery(deleteSql, new[]
+            {
+                new SqlParameter("@MaterialId", materialId),
+                new SqlParameter("@LecturerId", CurrentLecturerId)
+            });
+
+            ClearMaterialForm();
+            ShowMessage("Course material deleted successfully.", "success");
+            ShowMaterialsSection();
+        }
+
+        private void DeleteOldMaterialFile(int materialId)
+        {
+            string getSql = @"
+                SELECT FilePath
+                FROM CourseMaterials
+                WHERE MaterialId = @MaterialId
+                  AND LecturerId = @LecturerId";
+
+            object filePathObj = DatabaseHelper.ExecuteScalar(getSql, new[]
+            {
+                new SqlParameter("@MaterialId", materialId),
+                new SqlParameter("@LecturerId", CurrentLecturerId)
+            });
+
+            if (filePathObj != null && filePathObj != DBNull.Value)
+            {
+                string filePath = filePathObj.ToString();
+
+                if (!string.IsNullOrWhiteSpace(filePath))
+                {
+                    string physicalPath = Server.MapPath(filePath);
+
+                    if (File.Exists(physicalPath))
+                    {
+                        File.Delete(physicalPath);
+                    }
+                }
+            }
+        }
+
+        protected void btnCancelEditMaterial_Click(object sender, EventArgs e)
+        {
+            ClearMaterialForm();
+            ShowMaterialsSection();
+        }
+
+        private void ClearMaterialForm()
+        {
+            hfEditMaterialId.Value = "0";
+            hfDeleteMaterialId.Value = "0";
+
+            txtMaterialTitle.Text = "";
+            txtMaterialDescription.Text = "";
+
+            if (ddlMaterialType.Items.Count > 0)
+            {
+                ddlMaterialType.SelectedIndex = 0;
+            }
+
+            btnUploadMaterial.Text = "Post Material";
+            btnCancelEditMaterial.Visible = false;
+        }
+
+        private void ShowMessage(string message, string type)
+        {
+            string safeMessage = message.Replace("'", "\\'")
+                                        .Replace(Environment.NewLine, "<br/>");
+
+            ScriptManager.RegisterStartupScript(
+                this,
+                GetType(),
+                Guid.NewGuid().ToString(),
+                $"showMessageModal('', '{safeMessage}', '{type}');",
+                true
+            );
         }
 
         private void CheckUnreadNotifications()
