@@ -34,13 +34,14 @@ namespace Student_Information_Management_System__SIMS_.Admin
             string duration = ddlFilterDuration.SelectedValue;
 
             string sql = @"
-                SELECT p.ProgrammeId, p.ProgrammeName, p.ProgrammeCode, p.Duration, p.Description
+                SELECT p.ProgrammeId, p.ProgrammeName, p.ProgrammeCode, p.Duration, p.CreditHour, p.Description
                 FROM Programmes p
                 WHERE (@Duration = '' OR CAST(p.Duration AS VARCHAR(10)) = @Duration)
                   AND (@Keyword = ''
                        OR p.ProgrammeName LIKE '%' + @Keyword + '%'
                        OR p.ProgrammeCode LIKE '%' + @Keyword + '%'
                        OR CAST(p.Duration AS VARCHAR(10)) LIKE '%' + @Keyword + '%'
+                       OR CAST(p.CreditHour AS VARCHAR(10)) LIKE '%' + @Keyword + '%'
                        OR p.Description LIKE '%' + @Keyword + '%')
                 ORDER BY p.ProgrammeName";
 
@@ -63,9 +64,22 @@ namespace Student_Information_Management_System__SIMS_.Admin
         {
             if (string.IsNullOrWhiteSpace(txtProgrammeName.Text) ||
                 string.IsNullOrWhiteSpace(txtProgrammeCode.Text) ||
-                string.IsNullOrWhiteSpace(txtDuration.Text))
+                string.IsNullOrWhiteSpace(txtDuration.Text) ||
+                string.IsNullOrWhiteSpace(txtCreditHour.Text))
             {
                 ShowMessage("Please fill in all required fields.", "error", false, null, "Validation Error");
+                return;
+            }
+
+            if (!int.TryParse(txtDuration.Text.Trim(), out int duration) || duration <= 0)
+            {
+                ShowMessage("Duration must be a valid positive number.", "error", false, null, "Validation Error");
+                return;
+            }
+
+            if (!int.TryParse(txtCreditHour.Text.Trim(), out int creditHour) || creditHour <= 0)
+            {
+                ShowMessage("Credit hour must be a valid positive number.", "error", false, null, "Validation Error");
                 return;
             }
 
@@ -81,14 +95,15 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 if (string.IsNullOrEmpty(hfProgrammeId.Value)) // ADD NEW
                 {
                     string sql = @"
-                        INSERT INTO Programmes (ProgrammeName, ProgrammeCode, Duration, Description, HoPId)
-                        VALUES (@Name, @Code, @Duration, @Desc, @HoPId)";
+                        INSERT INTO Programmes (ProgrammeName, ProgrammeCode, Duration, CreditHour, Description, HoPId)
+                        VALUES (@Name, @Code, @Duration, @CreditHour, @Desc, @HoPId)";
 
                     DatabaseHelper.ExecuteNonQuery(sql, new[]
                     {
                         new SqlParameter("@Name", txtProgrammeName.Text.Trim()),
                         new SqlParameter("@Code", txtProgrammeCode.Text.Trim().ToUpper()),
-                        new SqlParameter("@Duration", int.Parse(txtDuration.Text)),
+                        new SqlParameter("@Duration", duration),
+                        new SqlParameter("@CreditHour", creditHour),
                         new SqlParameter("@Desc", txtDescription.Text.Trim()),
                         new SqlParameter("@HoPId", hopId)
                     });
@@ -102,6 +117,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                         SET ProgrammeName = @Name,
                             ProgrammeCode = @Code,
                             Duration = @Duration,
+                            CreditHour = @CreditHour,
                             Description = @Desc
                         WHERE ProgrammeId = @Id";
 
@@ -109,7 +125,8 @@ namespace Student_Information_Management_System__SIMS_.Admin
                     {
                         new SqlParameter("@Name", txtProgrammeName.Text.Trim()),
                         new SqlParameter("@Code", txtProgrammeCode.Text.Trim().ToUpper()),
-                        new SqlParameter("@Duration", int.Parse(txtDuration.Text)),
+                        new SqlParameter("@Duration", duration),
+                        new SqlParameter("@CreditHour", creditHour),
                         new SqlParameter("@Desc", txtDescription.Text.Trim()),
                         new SqlParameter("@Id", int.Parse(hfProgrammeId.Value))
                     });
@@ -157,6 +174,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 txtProgrammeName.Text = row["ProgrammeName"].ToString();
                 txtProgrammeCode.Text = row["ProgrammeCode"].ToString();
                 txtDuration.Text = row["Duration"].ToString();
+                txtCreditHour.Text = row["CreditHour"].ToString();
                 txtDescription.Text = row["Description"].ToString();
 
                 lblFormTitle.Text = "Edit Programme";
@@ -198,6 +216,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
             txtProgrammeName.Text = "";
             txtProgrammeCode.Text = "";
             txtDuration.Text = "";
+            txtCreditHour.Text = "";
             txtDescription.Text = "";
             lblFormTitle.Text = "Add New Programme";
         }
