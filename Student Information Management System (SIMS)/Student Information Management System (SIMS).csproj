@@ -130,6 +130,7 @@
     <Content Include="Lecturer\AtRiskStudents.aspx" />
     <Content Include="Lecturer\Attendance.aspx" />
     <Content Include="Lecturer\CourseStudents.aspx" />
+    <Content Include="Lecturer\Grades.aspx" />
     <Content Include="Lecturer\Lecturer_Dashboard.aspx" />
     <Content Include="Lecturer\MyCourses.aspx" />
     <Content Include="Lecturer\Notifications.aspx" />
@@ -305,6 +306,13 @@
     </Compile>
     <Compile Include="Lecturer\CourseStudents.aspx.designer.cs">
       <DependentUpon>CourseStudents.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Lecturer\Grades.aspx.cs">
+      <DependentUpon>Grades.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Lecturer\Grades.aspx.designer.cs">
+      <DependentUpon>Grades.aspx</DependentUpon>
     </Compile>
     <Compile Include="Lecturer\Lecturer_Dashboard.aspx.cs">
       <DependentUpon>Lecturer_Dashboard.aspx</DependentUpon>
