@@ -45,7 +45,13 @@ CREATE TABLE HoPDetails (
     CONSTRAINT FK_HoPDetails_Users FOREIGN KEY (UserId) REFERENCES Users(UserId)
 );
 
-select * from HopDetails;
+-- New Aded for Credit Hour, 29/5, Justin
+
+IF COL_LENGTH('HoPDetails', 'ProfilePicture') IS NULL
+BEGIN
+    ALTER TABLE HoPDetails
+    ADD ProfilePicture VARCHAR(255) NULL;
+END;
 
 -- =============================================
 -- TABLE 3: Programmes
@@ -65,6 +71,15 @@ CREATE TABLE Programmes (
 );
 
 select * from Programmes;
+
+
+-- New Aded for Credit Hour, 29/5, Justin
+
+IF COL_LENGTH('Programmes', 'CreditHour') IS NULL
+BEGIN
+    ALTER TABLE Programmes
+    ADD CreditHour INT NOT NULL CONSTRAINT DF_Programmes_CreditHour DEFAULT (0);
+END;
 
 
 -- =============================================
@@ -115,6 +130,23 @@ CREATE TABLE StudentDetails (
     CONSTRAINT FK_StudentDetails_Programme FOREIGN KEY (ProgrammeId) REFERENCES Programmes(ProgrammeId)
 );
 
+--New added 29/5 - For Student Portal Enrollment side
+IF COL_LENGTH('StudentDetails', 'CurrentSemester') IS NULL
+BEGIN
+    ALTER TABLE StudentDetails
+    ADD CurrentSemester INT NOT NULL CONSTRAINT DF_StudentDetails_CurrentSemester DEFAULT 1;
+END;
+GO
+
+/* 2. Safety check for semester value. */
+IF NOT EXISTS (
+    SELECT 1 FROM sys.check_constraints
+    WHERE name = 'CK_StudentDetails_CurrentSemester'
+)
+BEGIN
+    ALTER TABLE StudentDetails
+    ADD CONSTRAINT CK_StudentDetails_CurrentSemester CHECK (CurrentSemester >= 1);
+END;
 
 -- =============================================
 -- TABLE 6: Courses
@@ -132,6 +164,48 @@ CREATE TABLE Courses (
     CONSTRAINT UQ_Courses_Code UNIQUE (CourseCode),
     CONSTRAINT FK_Courses_Programme FOREIGN KEY (ProgrammeId) REFERENCES Programmes(ProgrammeId)
 );
+
+-- New Added Table for Course Materails, By Jason 30/5 
+
+CREATE TABLE CourseMaterials (
+    MaterialId INT IDENTITY(1,1) NOT NULL,
+    CourseId INT NOT NULL,
+    Session VARCHAR(15) NOT NULL,
+    LecturerId VARCHAR(20) NOT NULL,
+    Title VARCHAR(200) NOT NULL,
+    MaterialType VARCHAR(50) NULL, 
+    Description VARCHAR(MAX) NULL,
+    FileName VARCHAR(255) NOT NULL,
+    FilePath VARCHAR(500) NOT NULL,
+    FileType VARCHAR(100) NULL,
+    FileSizeKB INT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_CourseMaterials PRIMARY KEY (MaterialId),
+    CONSTRAINT FK_CourseMaterials_Course FOREIGN KEY (CourseId) REFERENCES Courses(CourseId),
+    CONSTRAINT FK_CourseMaterials_Lecturer FOREIGN KEY (LecturerId) REFERENCES LecturerDetails(LecturerId)
+);
+
+ALTER TABLE CourseMaterials ALTER COLUMN FileName VARCHAR(255) NULL;
+ALTER TABLE CourseMaterials ALTER COLUMN FilePath VARCHAR(500) NULL;
+ALTER TABLE CourseMaterials ALTER COLUMN FileType VARCHAR(100) NULL;
+ALTER TABLE CourseMaterials ALTER COLUMN FileSizeKB INT NULL;
+
+CREATE TABLE CourseMaterialFiles (
+    FileId INT IDENTITY(1,1) NOT NULL,
+    MaterialId INT NOT NULL,
+    FileName VARCHAR(255) NOT NULL,
+    FilePath VARCHAR(500) NOT NULL,
+    FileType VARCHAR(100) NULL,
+    FileSizeKB INT NULL,
+    UploadedAt DATETIME NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_CourseMaterialFiles PRIMARY KEY (FileId),
+    CONSTRAINT FK_CourseMaterialFiles_Material 
+        FOREIGN KEY (MaterialId) REFERENCES CourseMaterials(MaterialId)
+        ON DELETE CASCADE
+);
+---
 
 -- =============================================
 -- TABLE 7: Enrollment
@@ -153,6 +227,7 @@ CREATE TABLE Enrollment (
     CONSTRAINT CK_Enrollment_Semester CHECK (Semester >= 1)
 );
 
+select * from Enrollment;
 
 -- =============================================
 -- TABLE 8: LecturerCourse
@@ -257,6 +332,7 @@ CREATE TABLE Announcements (
     CONSTRAINT CK_Announcements_TargetRole CHECK (TargetRole IN ('All', 'Student', 'Lecturer'))
 );
 
+select * from Announcements;
 
 -- =============================================
 -- TABLE 13: Notifications
@@ -363,3 +439,29 @@ Select * from Users;
 select * from HopDetails;
 select * from Programmes;
 
+--New Added in 29/5 for Session Enrollment
+-- =========================================================
+-- SIMS SQL Patch: Course Offering
+-- Purpose: Admin controls which course is open for which
+--          session, programme and semester.
+-- =========================================================
+
+IF OBJECT_ID('dbo.CourseOffering', 'U') IS NULL
+BEGIN
+    CREATE TABLE CourseOffering (
+        OfferingId   INT IDENTITY(1,1) NOT NULL,
+        Session      VARCHAR(15)       NOT NULL,
+        ProgrammeId  INT               NOT NULL,
+        CourseId     INT               NOT NULL,
+        Semester     INT               NOT NULL,
+        Status       VARCHAR(20)       NOT NULL DEFAULT 'Closed',
+        CreatedDate  DATE              NOT NULL DEFAULT GETDATE(),
+
+        CONSTRAINT PK_CourseOffering PRIMARY KEY (OfferingId),
+        CONSTRAINT FK_CourseOffering_Programme FOREIGN KEY (ProgrammeId) REFERENCES Programmes(ProgrammeId),
+        CONSTRAINT FK_CourseOffering_Course FOREIGN KEY (CourseId) REFERENCES Courses(CourseId),
+        CONSTRAINT CK_CourseOffering_Status CHECK (Status IN ('Open', 'Closed')),
+        CONSTRAINT CK_CourseOffering_Semester CHECK (Semester >= 1),
+        CONSTRAINT UQ_CourseOffering UNIQUE (Session, ProgrammeId, CourseId, Semester)
+    );
+END;
