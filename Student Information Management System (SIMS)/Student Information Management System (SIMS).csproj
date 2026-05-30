@@ -106,6 +106,7 @@
     <Content Include="Admin\ManageLecturers.aspx" />
     <Content Include="Admin\ManageProgrammes.aspx" />
     <Content Include="Admin\ManageStudents.aspx" />
+    <Content Include="Admin\Reports.aspx" />
     <Content Include="Contact.aspx" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
@@ -251,6 +252,13 @@
     <Compile Include="Admin\ManageStudents.aspx.designer.cs">
       <DependentUpon>ManageStudents.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\Reports.aspx.cs">
+      <DependentUpon>Reports.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\Reports.aspx.designer.cs">
+      <DependentUpon>Reports.aspx</DependentUpon>
+    </Compile>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Helpers\DatabaseHelper.cs" />
     <Compile Include="Helpers\PasswordHelper.cs" />
@@ -295,6 +303,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\SimplePdfHelper.cs" />
     <Compile Include="Lecturer\Announcements.aspx.cs">
       <DependentUpon>Announcements.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
