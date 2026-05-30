@@ -96,6 +96,15 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         protected global::System.Web.UI.WebControls.LinkButton lbLogout;
 
         /// <summary>
+        /// lblTopbarTitle control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblTopbarTitle;
+
+        /// <summary>
         /// lblDate control.
         /// </summary>
         /// <remarks>
@@ -150,13 +159,22 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         protected global::System.Web.UI.WebControls.LinkButton lbPostMaterial;
 
         /// <summary>
-        /// hlGrades control.
+        /// lbGrades control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HyperLink hlGrades;
+        protected global::System.Web.UI.WebControls.LinkButton lbGrades;
+
+        /// <summary>
+        /// lbBackToCourses control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LinkButton lbBackToCourses;
 
         /// <summary>
         /// pnlStudentsSection control.
@@ -258,15 +276,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         protected global::System.Web.UI.WebControls.Repeater rptExistingFiles;
 
         /// <summary>
-        /// btnCancelEditMaterial control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnCancelEditMaterial;
-
-        /// <summary>
         /// btnUploadMaterial control.
         /// </summary>
         /// <remarks>
@@ -274,6 +283,15 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnUploadMaterial;
+
+        /// <summary>
+        /// btnCancelEditMaterial control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnCancelEditMaterial;
 
         /// <summary>
         /// lblMaterialTotal control.
@@ -301,5 +319,77 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Panel pnlNoMaterials;
+
+        /// <summary>
+        /// pnlGradesSection control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlGradesSection;
+
+        /// <summary>
+        /// lblGradeTotal control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblGradeTotal;
+
+        /// <summary>
+        /// lblGradePublishStatus control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblGradePublishStatus;
+
+        /// <summary>
+        /// gvGrades control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.GridView gvGrades;
+
+        /// <summary>
+        /// pnlNoGrades control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlNoGrades;
+
+        /// <summary>
+        /// btnSaveGrades control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnSaveGrades;
+
+        /// <summary>
+        /// btnEditGrades control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnEditGrades;
+
+        /// <summary>
+        /// btnPublishGrades control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnPublishGrades;
     }
 }
