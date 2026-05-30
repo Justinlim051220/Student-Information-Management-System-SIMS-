@@ -17,7 +17,7 @@ using System.Web.UI;
 /// </summary>
 /// 
 namespace Student_Information_Management_System__SIMS_
-{ 
+{
     public partial class ResetPassword : Page
     {
         // ---------------------------------------------------------------
@@ -153,4 +153,3 @@ namespace Student_Information_Management_System__SIMS_
         }
     }
 }
-    

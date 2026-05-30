@@ -33,7 +33,7 @@
             <p><strong>ONTI International University Malaysia</strong></p>
             
             <p style="margin:20px 0;">
-              <i class="fa-solid fa-location-dot"></i> Bukit Mertajam, Penang, Malaysia
+              <i class="fa-solid fa-location-dot"></i> 3, Jalan SS 15/8, Ss 15, 47500 Subang Jaya, Selangor
             </p>
             
             <p style="margin:15px 0;">

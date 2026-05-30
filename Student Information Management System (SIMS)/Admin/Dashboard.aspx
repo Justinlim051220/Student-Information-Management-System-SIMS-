@@ -242,7 +242,7 @@
       </div>
     </div>
     <div class="topbar-right">
-      <a href="Notifications.aspx" class="topbar-icon-btn" title="Notifications">
+      <a href="Admin_Announcement.aspx" class="topbar-icon-btn" title="Notifications">
         <i class="fa-solid fa-bell"></i>
         <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
       </a>
