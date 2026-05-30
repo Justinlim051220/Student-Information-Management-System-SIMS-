@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
@@ -218,12 +218,12 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             bool showDraftMarks = IsGradeEditMode || hasUnpublishedChanges;
 
             string assignmentSql = @"
-        SELECT MaterialId, Title
+        SELECT MaterialId, Title, MaterialType
         FROM CourseMaterials
         WHERE CourseId = @CourseId
           AND Session = @Session
           AND LecturerId = @LecturerId
-          AND MaterialType = 'Assignment'
+          AND MaterialType IN ('Assignment', 'Final Exam')
         ORDER BY CreatedAt ASC";
 
             DataTable assignments = DatabaseHelper.ExecuteQuery(assignmentSql, new[]
@@ -234,28 +234,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
     });
 
             AssignmentMaterials = assignments;
-
-            DataTable examInfo = DatabaseHelper.ExecuteQuery(@"
-        SELECT TOP 1 Title
-        FROM Grades g
-        INNER JOIN Enrollment e
-            ON e.StudentId = g.StudentId
-           AND e.CourseId = g.CourseId
-        WHERE g.CourseId = @CourseId
-          AND e.Session = @Session
-          AND e.Status = 'Active'
-          AND g.Type = 'Exam'
-          AND g.MaterialId = 0
-        ORDER BY g.Title", new[]
-            {
-        new SqlParameter("@CourseId", courseId),
-        new SqlParameter("@Session", session)
-    });
-
-            HasExamGradeColumn = examInfo.Rows.Count > 0;
-            ExamGradeTitle = HasExamGradeColumn
-                ? examInfo.Rows[0]["Title"].ToString()
-                : "Final Exam";
 
             string studentSql = @"
         SELECT 
@@ -284,11 +262,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 table.Columns.Add(a["Title"].ToString());
             }
 
-            if (HasExamGradeColumn)
-            {
-                table.Columns.Add(ExamGradeTitle);
-            }
-
             table.Columns.Add("GPA");
 
             int no = 1;
@@ -304,39 +277,23 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
                 foreach (DataRow a in assignments.Rows)
                 {
+                    string gradeType = GetGradeTypeForMaterial(a["MaterialType"].ToString());
                     object mark = DatabaseHelper.ExecuteScalar(@"
                 SELECT " + (showDraftMarks ? "COALESCE(DraftMarksObtained, MarksObtained)" : "MarksObtained") + @"
                 FROM Grades
                 WHERE StudentId = @StudentId
                   AND CourseId = @CourseId
-                  AND Type = 'Assignment'
+                  AND Type = @Type
                   AND MaterialId = @MaterialId",
                         new[]
                         {
                     new SqlParameter("@StudentId", studentId),
                     new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Type", gradeType),
                     new SqlParameter("@MaterialId", a["MaterialId"])
                         });
 
                     row[a["Title"].ToString()] = mark == null || mark == DBNull.Value ? "" : mark.ToString();
-                }
-
-                if (HasExamGradeColumn)
-                {
-                    object examMark = DatabaseHelper.ExecuteScalar(@"
-            SELECT " + (showDraftMarks ? "COALESCE(DraftMarksObtained, MarksObtained)" : "MarksObtained") + @"
-            FROM Grades
-            WHERE StudentId = @StudentId
-              AND CourseId = @CourseId
-              AND Type = 'Exam'
-              AND MaterialId = 0",
-                    new[]
-                    {
-                new SqlParameter("@StudentId", studentId),
-                new SqlParameter("@CourseId", courseId)
-                    });
-
-                    row[ExamGradeTitle] = examMark == null || examMark == DBNull.Value ? "" : examMark.ToString();
                 }
 
                 row["GPA"] = CalculateStudentGpa(studentId, courseId, showDraftMarks);
@@ -357,7 +314,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             btnSaveGrades.Text = GradesHaveDraftMarks() || GradesHavePublishedMarks() ? "Update Marks" : "Save Marks";
             btnPublishGrades.Visible = (!published || editMode || hasUnpublishedChanges) && students.Rows.Count > 0;
         }
-
         private void SetGradePublishStatus(bool published, bool editMode, bool hasUnpublishedChanges)
         {
             if (published && !editMode && !hasUnpublishedChanges)
@@ -423,9 +379,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             string courseId = Request.QueryString["courseId"];
             string session = Request.QueryString["session"];
 
-            EnsureDefaultAssignmentColumn(courseId, session);
-
-            // Create grade records for all assignments
+            // Create grade records for posted Assignment and Final Exam materials
             string assignmentSql = @"
                 INSERT INTO Grades
                 (
@@ -444,7 +398,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     e.StudentId,
                     e.CourseId,
                     cm.MaterialId,
-                    'Assignment',
+                    CASE WHEN cm.MaterialType = 'Final Exam' THEN 'Exam' ELSE 'Assignment' END,
                     cm.Title,
                     100,
                     NULL,
@@ -458,7 +412,8 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                   AND e.Status = 'Active'
                   AND cm.CourseId = @CourseId
                   AND cm.Session = @Session
-                  AND cm.MaterialType = 'Assignment'
+                  AND cm.LecturerId = @LecturerId
+                  AND cm.MaterialType IN ('Assignment', 'Final Exam')
                   AND NOT EXISTS
                   (
                       SELECT 1
@@ -466,7 +421,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                       WHERE g.StudentId = e.StudentId
                         AND g.CourseId = e.CourseId
                         AND g.MaterialId = cm.MaterialId
-                        AND g.Type = 'Assignment'
+                        AND g.Type = CASE WHEN cm.MaterialType = 'Final Exam' THEN 'Exam' ELSE 'Assignment' END
                   )";
 
             DatabaseHelper.ExecuteNonQuery(
@@ -474,7 +429,8 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 new[]
                 {
                     new SqlParameter("@CourseId", courseId),
-                    new SqlParameter("@Session", session)
+                    new SqlParameter("@Session", session),
+                    new SqlParameter("@LecturerId", CurrentLecturerId)
                 });
         }
 
@@ -679,14 +635,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 ShowMaterialsSection();
                 return;
             }
-
-            if (editId == 0 && !fuMaterial.HasFiles)
-            {
-                ShowMessage("Please select at least one file to upload.", "danger");
-                ShowMaterialsSection();
-                return;
-            }
-
             if (editId == 0)
             {
                 string insertSql = @"
@@ -1142,7 +1090,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
                         if (postedValue == null)
                         {
-                            ShowMessage("Cannot find assignment mark input.", "danger");
+                            ShowMessage("Cannot find grade mark input.", "danger");
                             ShowGradesSection(true);
                             return;
                         }
@@ -1165,7 +1113,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                         SaveDraftGrade(
                             studentId,
                             Convert.ToInt32(a["MaterialId"]),
-                            "Assignment",
+                            GetGradeTypeForMaterial(a["MaterialType"].ToString()),
                             a["Title"].ToString(),
                             mark);
 
@@ -1173,41 +1121,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                         cellIndex++;
                     }
                 }
-
-                if (!HasExamGradeColumn)
-                {
-                    continue;
-                }
-
-                string examInputName = "txt_" + studentId + "_" + cellIndex;
-                string examPostedValue = Request.Form.AllKeys
-                    .Where(k => k != null && k.EndsWith(examInputName))
-                    .Select(k => Request.Form[k])
-                    .FirstOrDefault();
-
-                if (examPostedValue == null)
-                {
-                    ShowMessage("Cannot find final exam mark input.", "danger");
-                    ShowGradesSection(true);
-                    return;
-                }
-
-                examPostedValue = examPostedValue.Trim();
-                if (string.IsNullOrWhiteSpace(examPostedValue))
-                {
-                    continue;
-                }
-
-                decimal examMark;
-                if (!decimal.TryParse(examPostedValue, out examMark) || examMark < 0 || examMark > 100)
-                {
-                    ShowMessage("Final exam mark must be between 0 and 100.", "danger");
-                    ShowGradesSection(true);
-                    return;
-                }
-
-                SaveDraftGrade(studentId, 0, "Exam", ExamGradeTitle, examMark);
-                savedAnyMark = true;
             }
 
             if (!savedAnyMark)
@@ -1296,30 +1209,19 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                             return false;
                         }
 
-                        SaveDraftGrade(studentId, Convert.ToInt32(a["MaterialId"]), "Assignment", a["Title"].ToString(), mark);
+                        SaveDraftGrade(studentId, Convert.ToInt32(a["MaterialId"]), GetGradeTypeForMaterial(a["MaterialType"].ToString()), a["Title"].ToString(), mark);
                     }
 
                     cellIndex++;
                 }
-
-                if (HasExamGradeColumn)
-                {
-                    string examPostedValue = GetPostedGradeValue(studentId, cellIndex);
-                    if (!string.IsNullOrWhiteSpace(examPostedValue))
-                    {
-                        decimal examMark;
-                        if (!decimal.TryParse(examPostedValue.Trim(), out examMark) || examMark < 0 || examMark > 100)
-                        {
-                            validationMessage = "Final exam mark must be between 0 and 100.";
-                            return false;
-                        }
-
-                        SaveDraftGrade(studentId, 0, "Exam", ExamGradeTitle, examMark);
-                    }
-                }
             }
 
             return true;
+        }
+
+        private string GetGradeTypeForMaterial(string materialType)
+        {
+            return materialType == "Final Exam" ? "Exam" : "Assignment";
         }
 
         private void SaveDraftGrade(string studentId, int materialId, string type, string title, decimal marks)
@@ -1493,3 +1395,5 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         }
     }
 }
+
+
