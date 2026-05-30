@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using SIMS.Helpers;
+using System.Linq;
 
 namespace Student_Information_Management_System__SIMS_.Lecturer
 {
@@ -23,6 +24,19 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 LoadStudents();
                 CheckUnreadNotifications();
                 ShowStudentsSection();
+            }
+        }
+        protected void Page_Init(object sender, EventArgs e)
+        {
+            bool gradePostBack =
+                IsPostBack &&
+                (Request.Form[btnSaveGrades.UniqueID] != null ||
+                 Request.Form[btnPublishGrades.UniqueID] != null);
+
+            if (gradePostBack)
+            {
+                EnsureGradeRecords();
+                LoadGrades(true);
             }
         }
 
@@ -130,10 +144,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     infoDt.Rows[0]["CourseName"];
 
                 lblCourseInfo.Text = "Session: " + session;
-
-                hlGrades.NavigateUrl =
-                    "CourseGrades.aspx?courseId=" + courseId +
-                    "&session=" + Server.UrlEncode(session);
             }
             else
             {
@@ -197,6 +207,183 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             lblMaterialTotal.Text = dt.Rows.Count.ToString();
             pnlNoMaterials.Visible = dt.Rows.Count == 0;
         }
+        private void LoadGrades(bool editMode)
+        {
+            string courseId = Request.QueryString["courseId"];
+            string session = Request.QueryString["session"];
+
+            bool published = GradesAlreadyPublished();
+            bool hasUnpublishedChanges = HasUnpublishedGradeChanges();
+            IsGradeEditMode = !published || editMode;
+            bool showDraftMarks = IsGradeEditMode || hasUnpublishedChanges;
+
+            string assignmentSql = @"
+        SELECT MaterialId, Title
+        FROM CourseMaterials
+        WHERE CourseId = @CourseId
+          AND Session = @Session
+          AND LecturerId = @LecturerId
+          AND MaterialType = 'Assignment'
+        ORDER BY CreatedAt ASC";
+
+            DataTable assignments = DatabaseHelper.ExecuteQuery(assignmentSql, new[]
+            {
+        new SqlParameter("@CourseId", courseId),
+        new SqlParameter("@Session", session),
+        new SqlParameter("@LecturerId", CurrentLecturerId)
+    });
+
+            AssignmentMaterials = assignments;
+
+            DataTable examInfo = DatabaseHelper.ExecuteQuery(@"
+        SELECT TOP 1 Title
+        FROM Grades g
+        INNER JOIN Enrollment e
+            ON e.StudentId = g.StudentId
+           AND e.CourseId = g.CourseId
+        WHERE g.CourseId = @CourseId
+          AND e.Session = @Session
+          AND e.Status = 'Active'
+          AND g.Type = 'Exam'
+          AND g.MaterialId = 0
+        ORDER BY g.Title", new[]
+            {
+        new SqlParameter("@CourseId", courseId),
+        new SqlParameter("@Session", session)
+    });
+
+            HasExamGradeColumn = examInfo.Rows.Count > 0;
+            ExamGradeTitle = HasExamGradeColumn
+                ? examInfo.Rows[0]["Title"].ToString()
+                : "Final Exam";
+
+            string studentSql = @"
+        SELECT 
+            sd.StudentId,
+            sd.FirstName + ' ' + sd.LastName AS StudentName
+        FROM Enrollment e
+        INNER JOIN StudentDetails sd ON e.StudentId = sd.StudentId
+        WHERE e.CourseId = @CourseId
+          AND e.Session = @Session
+          AND e.Status = 'Active'
+        ORDER BY sd.StudentId";
+
+            DataTable students = DatabaseHelper.ExecuteQuery(studentSql, new[]
+            {
+        new SqlParameter("@CourseId", courseId),
+        new SqlParameter("@Session", session)
+    });
+
+            DataTable table = new DataTable();
+            table.Columns.Add("No");
+            table.Columns.Add("Student ID");
+            table.Columns.Add("Student Name");
+
+            foreach (DataRow a in assignments.Rows)
+            {
+                table.Columns.Add(a["Title"].ToString());
+            }
+
+            if (HasExamGradeColumn)
+            {
+                table.Columns.Add(ExamGradeTitle);
+            }
+
+            table.Columns.Add("GPA");
+
+            int no = 1;
+
+            foreach (DataRow s in students.Rows)
+            {
+                DataRow row = table.NewRow();
+                string studentId = s["StudentId"].ToString();
+
+                row["No"] = no++;
+                row["Student ID"] = studentId;
+                row["Student Name"] = s["StudentName"].ToString();
+
+                foreach (DataRow a in assignments.Rows)
+                {
+                    object mark = DatabaseHelper.ExecuteScalar(@"
+                SELECT " + (showDraftMarks ? "COALESCE(DraftMarksObtained, MarksObtained)" : "MarksObtained") + @"
+                FROM Grades
+                WHERE StudentId = @StudentId
+                  AND CourseId = @CourseId
+                  AND Type = 'Assignment'
+                  AND MaterialId = @MaterialId",
+                        new[]
+                        {
+                    new SqlParameter("@StudentId", studentId),
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@MaterialId", a["MaterialId"])
+                        });
+
+                    row[a["Title"].ToString()] = mark == null || mark == DBNull.Value ? "" : mark.ToString();
+                }
+
+                if (HasExamGradeColumn)
+                {
+                    object examMark = DatabaseHelper.ExecuteScalar(@"
+            SELECT " + (showDraftMarks ? "COALESCE(DraftMarksObtained, MarksObtained)" : "MarksObtained") + @"
+            FROM Grades
+            WHERE StudentId = @StudentId
+              AND CourseId = @CourseId
+              AND Type = 'Exam'
+              AND MaterialId = 0",
+                    new[]
+                    {
+                new SqlParameter("@StudentId", studentId),
+                new SqlParameter("@CourseId", courseId)
+                    });
+
+                    row[ExamGradeTitle] = examMark == null || examMark == DBNull.Value ? "" : examMark.ToString();
+                }
+
+                row["GPA"] = CalculateStudentGpa(studentId, courseId, showDraftMarks);
+
+                table.Rows.Add(row);
+            }
+
+            gvGrades.DataSource = table;
+            gvGrades.DataBind();
+
+            lblGradeTotal.Text = students.Rows.Count.ToString();
+            pnlNoGrades.Visible = students.Rows.Count == 0;
+
+            SetGradePublishStatus(published, editMode, hasUnpublishedChanges);
+
+            btnEditGrades.Visible = published && !editMode && !hasUnpublishedChanges;
+            btnSaveGrades.Visible = !published || editMode || hasUnpublishedChanges;
+            btnSaveGrades.Text = GradesHaveDraftMarks() || GradesHavePublishedMarks() ? "Update Marks" : "Save Marks";
+            btnPublishGrades.Visible = (!published || editMode || hasUnpublishedChanges) && students.Rows.Count > 0;
+        }
+
+        private void SetGradePublishStatus(bool published, bool editMode, bool hasUnpublishedChanges)
+        {
+            if (published && !editMode && !hasUnpublishedChanges)
+            {
+                lblGradePublishStatus.Text = "Published";
+                lblGradePublishStatus.CssClass = "grade-status published";
+                return;
+            }
+
+            if (published && editMode)
+            {
+                lblGradePublishStatus.Text = "Not Published - Editing";
+            }
+            else if (hasUnpublishedChanges)
+            {
+                lblGradePublishStatus.Text = "Not Published - Draft Saved";
+            }
+            else
+            {
+                lblGradePublishStatus.Text = GradesHaveDraftMarks()
+                ? "Not Published - Draft Saved"
+                : "Not Published";
+            }
+
+            lblGradePublishStatus.CssClass = "grade-status unpublished";
+        }
 
         protected void rptMaterials_ItemDataBound(object sender, RepeaterItemEventArgs e)
         {
@@ -231,6 +418,183 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             rptMaterialFiles.DataBind();
         }
 
+        private void EnsureGradeRecords()
+        {
+            string courseId = Request.QueryString["courseId"];
+            string session = Request.QueryString["session"];
+
+            EnsureDefaultAssignmentColumn(courseId, session);
+
+            // Create grade records for all assignments
+            string assignmentSql = @"
+                INSERT INTO Grades
+                (
+                    StudentId,
+                    CourseId,
+                    MaterialId,
+                    Type,
+                    Title,
+                    MaxMarks,
+                    MarksObtained,
+                    WeightPercentage,
+                    Grade,
+                    SubmittedAt
+                )
+                SELECT
+                    e.StudentId,
+                    e.CourseId,
+                    cm.MaterialId,
+                    'Assignment',
+                    cm.Title,
+                    100,
+                    NULL,
+                    NULL,
+                    NULL,
+                    NULL
+                FROM Enrollment e
+                CROSS JOIN CourseMaterials cm
+                WHERE e.CourseId = @CourseId
+                  AND e.Session = @Session
+                  AND e.Status = 'Active'
+                  AND cm.CourseId = @CourseId
+                  AND cm.Session = @Session
+                  AND cm.MaterialType = 'Assignment'
+                  AND NOT EXISTS
+                  (
+                      SELECT 1
+                      FROM Grades g
+                      WHERE g.StudentId = e.StudentId
+                        AND g.CourseId = e.CourseId
+                        AND g.MaterialId = cm.MaterialId
+                        AND g.Type = 'Assignment'
+                  )";
+
+            DatabaseHelper.ExecuteNonQuery(
+                assignmentSql,
+                new[]
+                {
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session)
+                });
+        }
+
+        private void EnsureDefaultAssignmentColumn(string courseId, string session)
+        {
+            object count = DatabaseHelper.ExecuteScalar(@"
+                SELECT COUNT(*)
+                FROM CourseMaterials
+                WHERE CourseId = @CourseId
+                  AND Session = @Session
+                  AND LecturerId = @LecturerId
+                  AND MaterialType = 'Assignment'",
+                new[]
+                {
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session),
+                    new SqlParameter("@LecturerId", CurrentLecturerId)
+                });
+
+            if (Convert.ToInt32(count) > 0)
+                return;
+
+            DatabaseHelper.ExecuteNonQuery(@"
+                INSERT INTO CourseMaterials
+                (
+                    CourseId,
+                    Session,
+                    LecturerId,
+                    Title,
+                    Description,
+                    MaterialType
+                )
+                VALUES
+                (
+                    @CourseId,
+                    @Session,
+                    @LecturerId,
+                    'Assignment 1',
+                    'Default grade column',
+                    'Assignment'
+                )",
+                new[]
+                {
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session),
+                    new SqlParameter("@LecturerId", CurrentLecturerId)
+                });
+        }
+
+        private bool GradesAlreadyPublished()
+        {
+            string courseId = Request.QueryString["courseId"];
+            string session = Request.QueryString["session"];
+
+            object count = DatabaseHelper.ExecuteScalar(@"
+                SELECT COUNT(*)
+                FROM Grades g
+                INNER JOIN Enrollment e
+                    ON e.StudentId = g.StudentId
+                   AND e.CourseId = g.CourseId
+                WHERE g.CourseId = @CourseId
+                  AND e.Session = @Session
+                  AND e.Status = 'Active'
+                  AND g.SubmittedAt IS NOT NULL",
+                new[]
+                {
+            new SqlParameter("@CourseId", courseId),
+            new SqlParameter("@Session", session)
+                });
+
+            return Convert.ToInt32(count) > 0;
+        }
+
+        private bool GradesHavePublishedMarks()
+        {
+            string courseId = Request.QueryString["courseId"];
+            string session = Request.QueryString["session"];
+
+            object count = DatabaseHelper.ExecuteScalar(@"
+                SELECT COUNT(*)
+                FROM Grades g
+                INNER JOIN Enrollment e
+                    ON e.StudentId = g.StudentId
+                   AND e.CourseId = g.CourseId
+                WHERE g.CourseId = @CourseId
+                  AND e.Session = @Session
+                  AND e.Status = 'Active'
+                  AND g.MarksObtained IS NOT NULL",
+                new[]
+                {
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session)
+                });
+
+            return Convert.ToInt32(count) > 0;
+        }
+
+        private bool GradesHaveDraftMarks()
+        {
+            string courseId = Request.QueryString["courseId"];
+            string session = Request.QueryString["session"];
+
+            object count = DatabaseHelper.ExecuteScalar(@"
+                SELECT COUNT(*)
+                FROM Grades g
+                INNER JOIN Enrollment e
+                    ON e.StudentId = g.StudentId
+                   AND e.CourseId = g.CourseId
+                WHERE g.CourseId = @CourseId
+                  AND e.Session = @Session
+                  AND e.Status = 'Active'
+                  AND g.DraftMarksObtained IS NOT NULL",
+                new[]
+                {
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session)
+                });
+
+            return Convert.ToInt32(count) > 0;
+        }
         protected void lbShowStudents_Click(object sender, EventArgs e)
         {
             ShowStudentsSection();
@@ -241,24 +605,59 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             ShowMaterialsSection();
         }
 
+        protected void lbGrades_Click(object sender, EventArgs e)
+        {
+            ShowGradesSection(false);
+        }
+
         private void ShowStudentsSection()
         {
             pnlStudentsSection.Visible = true;
             pnlMaterialsSection.Visible = false;
+            pnlGradesSection.Visible = false;
 
             lbShowStudents.CssClass = "course-action-btn active";
             lbPostMaterial.CssClass = "course-action-btn";
+            lbGrades.CssClass = "course-action-btn";
+
+            lblTopbarTitle.Text = "Registered Students";
         }
 
         private void ShowMaterialsSection()
         {
             pnlStudentsSection.Visible = false;
             pnlMaterialsSection.Visible = true;
+            pnlGradesSection.Visible = false;
 
             lbShowStudents.CssClass = "course-action-btn";
             lbPostMaterial.CssClass = "course-action-btn active";
+            lbGrades.CssClass = "course-action-btn";
+
+            lblTopbarTitle.Text = "Post Material";
 
             LoadMaterials();
+        }
+
+        private void ShowGradesSection(bool editMode)
+        {
+            pnlStudentsSection.Visible = false;
+            pnlMaterialsSection.Visible = false;
+            pnlGradesSection.Visible = true;
+
+            lbShowStudents.CssClass = "course-action-btn";
+            lbPostMaterial.CssClass = "course-action-btn";
+            lbGrades.CssClass = "course-action-btn active";
+
+            lblTopbarTitle.Text = "Grades";
+
+            LoadAssignmentMaterialInfo();
+            EnsureGradeRecords();
+            LoadGrades(editMode);
+        }
+
+        protected void lbBackToCourses_Click(object sender, EventArgs e)
+        {
+            Response.Redirect("MyCourses.aspx");
         }
 
         protected void btnUploadMaterial_Click(object sender, EventArgs e)
@@ -653,6 +1052,387 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             rptExistingFiles.DataBind();
         }
 
+        protected void btnEditGrades_Click(object sender, EventArgs e)
+        {
+            ShowGradesSection(true);
+            ShowMessage("You can now edit student marks.", "warning");
+        }
+
+        protected void gvGrades_RowDataBound(object sender, GridViewRowEventArgs e)
+        {
+            if (e.Row.RowType != DataControlRowType.DataRow)
+                return;
+
+            string studentId = e.Row.Cells[1].Text.Trim();
+            int lastEditableCell = e.Row.Cells.Count - 2; // GPA is the final read-only column.
+
+            for (int i = 3; i <= lastEditableCell; i++)
+            {
+                string value = e.Row.Cells[i].Text.Replace("&nbsp;", "").Trim();
+
+                if (!IsGradeEditMode)
+                {
+                    e.Row.Cells[i].CssClass = "grade-readonly";
+                    continue;
+                }
+
+                TextBox txt = new TextBox();
+                txt.ID = "txt_" + studentId + "_" + i;
+                txt.CssClass = "form-control";
+                txt.Style["width"] = "100px";
+                txt.Text = value;
+
+                e.Row.Cells[i].Controls.Clear();
+                e.Row.Cells[i].Controls.Add(txt);
+            }
+
+            e.Row.Cells[e.Row.Cells.Count - 1].CssClass = "grade-readonly";
+        }
+        protected void btnSaveGrades_Click(object sender, EventArgs e)
+        {
+            string courseId = Request.QueryString["courseId"];
+            bool hadSavedMarks = GradesHaveDraftMarks() || GradesHavePublishedMarks();
+
+            DataTable assignments = AssignmentMaterials;
+
+            if (assignments == null)
+            {
+                ShowMessage("Grade data expired. Please click Grades again and try saving.", "danger");
+                ShowGradesSection(true);
+                return;
+            }
+
+            bool savedAnyMark = false;
+
+            foreach (GridViewRow row in gvGrades.Rows)
+            {
+                if (row.RowType != DataControlRowType.DataRow)
+                    continue;
+
+                string studentId = row.Cells[1].Text.Trim();
+
+                int cellIndex = 3;
+
+                if (assignments != null)
+                {
+                    foreach (DataRow a in assignments.Rows)
+                    {
+                        if (cellIndex >= row.Cells.Count)
+                        {
+                            ShowMessage("Grade column mismatch. Please refresh and try again.", "danger");
+                            ShowGradesSection(true);
+                            return;
+                        }
+
+                        if (row.Cells[cellIndex].Controls.Count == 0)
+                        {
+                            ShowMessage(
+                                 "Column: " + cellIndex +
+                                 " Controls: " + row.Cells[cellIndex].Controls.Count,
+                                 "danger");
+                            ShowGradesSection(true);
+                            return;
+                        }
+
+                        string inputName = "txt_" + studentId + "_" + cellIndex;
+                        string postedValue = Request.Form.AllKeys
+                            .Where(k => k != null && k.EndsWith(inputName))
+                            .Select(k => Request.Form[k])
+                            .FirstOrDefault();
+
+                        if (postedValue == null)
+                        {
+                            ShowMessage("Cannot find assignment mark input.", "danger");
+                            ShowGradesSection(true);
+                            return;
+                        }
+
+                        postedValue = postedValue.Trim();
+                        if (string.IsNullOrWhiteSpace(postedValue))
+                        {
+                            cellIndex++;
+                            continue;
+                        }
+
+                        decimal mark;
+                        if (!decimal.TryParse(postedValue, out mark) || mark < 0 || mark > 100)
+                        {
+                            ShowMessage("Marks must be between 0 and 100.", "danger");
+                            ShowGradesSection(true);
+                            return;
+                        }
+
+                        SaveDraftGrade(
+                            studentId,
+                            Convert.ToInt32(a["MaterialId"]),
+                            "Assignment",
+                            a["Title"].ToString(),
+                            mark);
+
+                        savedAnyMark = true;
+                        cellIndex++;
+                    }
+                }
+
+                if (!HasExamGradeColumn)
+                {
+                    continue;
+                }
+
+                string examInputName = "txt_" + studentId + "_" + cellIndex;
+                string examPostedValue = Request.Form.AllKeys
+                    .Where(k => k != null && k.EndsWith(examInputName))
+                    .Select(k => Request.Form[k])
+                    .FirstOrDefault();
+
+                if (examPostedValue == null)
+                {
+                    ShowMessage("Cannot find final exam mark input.", "danger");
+                    ShowGradesSection(true);
+                    return;
+                }
+
+                examPostedValue = examPostedValue.Trim();
+                if (string.IsNullOrWhiteSpace(examPostedValue))
+                {
+                    continue;
+                }
+
+                decimal examMark;
+                if (!decimal.TryParse(examPostedValue, out examMark) || examMark < 0 || examMark > 100)
+                {
+                    ShowMessage("Final exam mark must be between 0 and 100.", "danger");
+                    ShowGradesSection(true);
+                    return;
+                }
+
+                SaveDraftGrade(studentId, 0, "Exam", ExamGradeTitle, examMark);
+                savedAnyMark = true;
+            }
+
+            if (!savedAnyMark)
+            {
+                ShowMessage("Please enter at least one mark to save.", "danger");
+                ShowGradesSection(true);
+                return;
+            }
+
+            ShowGradesSection(false);
+
+            ShowMessage(
+                hadSavedMarks ? "Student grades updated successfully." : "Student grades saved successfully.",
+                "success");
+        }
+
+        protected void btnPublishGrades_Click(object sender, EventArgs e)
+        {
+            string validationMessage;
+            if (!SavePostedGrades(out validationMessage))
+            {
+                ShowMessage(validationMessage, "danger");
+                ShowGradesSection(true);
+                return;
+            }
+
+            string courseId = Request.QueryString["courseId"];
+            string session = Request.QueryString["session"];
+
+            if (!GradesHaveDraftMarks())
+            {
+                ShowMessage("Please save at least one mark before publishing.", "danger");
+                ShowGradesSection(true);
+                return;
+            }
+
+            DatabaseHelper.ExecuteNonQuery(@"
+                UPDATE g
+                SET MarksObtained = g.DraftMarksObtained,
+                    DraftMarksObtained = NULL,
+                    SubmittedAt = GETDATE()
+                FROM Grades g
+                INNER JOIN Enrollment e
+                    ON e.StudentId = g.StudentId
+                   AND e.CourseId = g.CourseId
+                WHERE g.CourseId = @CourseId
+                  AND e.Session = @Session
+                  AND e.Status = 'Active'
+                  AND g.DraftMarksObtained IS NOT NULL",
+                new[]
+                {
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session)
+                });
+
+            ShowGradesSection(false);
+            ShowMessage("Student grades published successfully.", "success");
+        }
+
+        private bool SavePostedGrades(out string validationMessage)
+        {
+            validationMessage = "";
+            string courseId = Request.QueryString["courseId"];
+            DataTable assignments = AssignmentMaterials;
+
+            if (assignments == null)
+                return true;
+
+            foreach (GridViewRow row in gvGrades.Rows)
+            {
+                if (row.RowType != DataControlRowType.DataRow)
+                    continue;
+
+                string studentId = row.Cells[1].Text.Trim();
+                int cellIndex = 3;
+
+                foreach (DataRow a in assignments.Rows)
+                {
+                    string postedValue = GetPostedGradeValue(studentId, cellIndex);
+                    if (!string.IsNullOrWhiteSpace(postedValue))
+                    {
+                        decimal mark;
+                        if (!decimal.TryParse(postedValue.Trim(), out mark) || mark < 0 || mark > 100)
+                        {
+                            validationMessage = "Marks must be between 0 and 100.";
+                            return false;
+                        }
+
+                        SaveDraftGrade(studentId, Convert.ToInt32(a["MaterialId"]), "Assignment", a["Title"].ToString(), mark);
+                    }
+
+                    cellIndex++;
+                }
+
+                if (HasExamGradeColumn)
+                {
+                    string examPostedValue = GetPostedGradeValue(studentId, cellIndex);
+                    if (!string.IsNullOrWhiteSpace(examPostedValue))
+                    {
+                        decimal examMark;
+                        if (!decimal.TryParse(examPostedValue.Trim(), out examMark) || examMark < 0 || examMark > 100)
+                        {
+                            validationMessage = "Final exam mark must be between 0 and 100.";
+                            return false;
+                        }
+
+                        SaveDraftGrade(studentId, 0, "Exam", ExamGradeTitle, examMark);
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private void SaveDraftGrade(string studentId, int materialId, string type, string title, decimal marks)
+        {
+            string courseId = Request.QueryString["courseId"];
+
+            string sql = @"
+                UPDATE Grades
+                SET Title = @Title,
+                    MaxMarks = 100,
+                    DraftMarksObtained = @DraftMarksObtained
+                WHERE StudentId = @StudentId
+                  AND CourseId = @CourseId
+                  AND Type = @Type
+                  AND MaterialId = @MaterialId";
+
+            DatabaseHelper.ExecuteNonQuery(sql, new[]
+            {
+                new SqlParameter("@StudentId", studentId),
+                new SqlParameter("@CourseId", courseId),
+                new SqlParameter("@MaterialId", materialId),
+                new SqlParameter("@Type", type),
+                new SqlParameter("@Title", title),
+                new SqlParameter("@DraftMarksObtained", marks)
+            });
+        }
+
+        private string GetPostedGradeValue(string studentId, int cellIndex)
+        {
+            string inputName = "txt_" + studentId + "_" + cellIndex;
+
+            return Request.Form.AllKeys
+                .Where(k => k != null && k.EndsWith(inputName))
+                .Select(k => Request.Form[k])
+                .FirstOrDefault();
+        }
+
+        private string CalculateStudentGpa(string studentId, string courseId, bool showDraftMarks)
+        {
+            DataTable marks = DatabaseHelper.ExecuteQuery(@"
+                SELECT " + (showDraftMarks ? "COALESCE(DraftMarksObtained, MarksObtained)" : "MarksObtained") + @" AS MarksForGpa
+                FROM Grades
+                WHERE StudentId = @StudentId
+                  AND CourseId = @CourseId
+                  AND " + (showDraftMarks ? "COALESCE(DraftMarksObtained, MarksObtained)" : "MarksObtained") + @" IS NOT NULL",
+                new[]
+                {
+                    new SqlParameter("@StudentId", studentId),
+                    new SqlParameter("@CourseId", courseId)
+                });
+
+            if (marks.Rows.Count == 0)
+                return "";
+
+            decimal total = 0;
+            foreach (DataRow row in marks.Rows)
+            {
+                total += Convert.ToDecimal(row["MarksForGpa"]);
+            }
+
+            decimal average = total / marks.Rows.Count;
+            decimal gpa = Math.Round(Math.Min(4m, average / 25m), 2);
+
+            return gpa.ToString("0.00");
+        }
+
+        private bool HasUnpublishedGradeChanges()
+        {
+            return GradesHaveDraftMarks();
+        }
+
+        private void LoadAssignmentMaterialInfo()
+        {
+            string courseId = Request.QueryString["courseId"];
+            string session = Request.QueryString["session"];
+
+            string sql = @"
+                SELECT MaterialId, Title
+                FROM CourseMaterials
+                WHERE CourseId = @CourseId
+                  AND Session = @Session
+                  AND LecturerId = @LecturerId
+                  AND MaterialType = 'Assignment'
+                ORDER BY CreatedAt DESC";
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
+                new SqlParameter("@CourseId", courseId),
+                new SqlParameter("@Session", session),
+                new SqlParameter("@LecturerId", CurrentLecturerId)
+            });
+
+            if (dt.Rows.Count > 0)
+            {
+                HasAssignmentMaterial = true;
+                AssignmentMaterialId = Convert.ToInt32(dt.Rows[0]["MaterialId"]);
+                AssignmentColumnTitle = dt.Rows[0]["Title"].ToString() + " /100";
+            }
+            else
+            {
+                HasAssignmentMaterial = false;
+                AssignmentMaterialId = 0;
+                AssignmentColumnTitle = "";
+            }
+        }
+        private string CalculateGrade(decimal average)
+        {
+            if (average >= 80) return "A";
+            if (average >= 70) return "B";
+            if (average >= 60) return "C";
+            if (average >= 50) return "D";
+            return "F";
+        }
         private void ShowMessage(string message, string type)
         {
             string safeMessage = message.Replace("'", "\\'")
@@ -683,6 +1463,33 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         {
             SessionHelper.Logout(Session);
             Response.Redirect("~/Login.aspx", false);
+        }
+
+        public bool HasAssignmentMaterial { get; set; }
+        public string AssignmentColumnTitle { get; set; }
+        private int AssignmentMaterialId { get; set; }
+        private bool IsGradeEditMode
+        {
+            get { return ViewState["IsGradeEditMode"] != null && (bool)ViewState["IsGradeEditMode"]; }
+            set { ViewState["IsGradeEditMode"] = value; }
+        }
+
+        private bool HasExamGradeColumn
+        {
+            get { return ViewState["HasExamGradeColumn"] != null && (bool)ViewState["HasExamGradeColumn"]; }
+            set { ViewState["HasExamGradeColumn"] = value; }
+        }
+
+        private string ExamGradeTitle
+        {
+            get { return ViewState["ExamGradeTitle"] == null ? "Final Exam" : ViewState["ExamGradeTitle"].ToString(); }
+            set { ViewState["ExamGradeTitle"] = value; }
+        }
+
+        private DataTable AssignmentMaterials
+        {
+            get { return Session["AssignmentMaterials"] as DataTable; }
+            set { Session["AssignmentMaterials"] = value; }
         }
     }
 }

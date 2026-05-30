@@ -99,23 +99,47 @@
             margin-bottom: 28px;
         }
 
-        .course-action-btn {
+        .course-toolbar {
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .course-action-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 0;
+        }
+
+        .course-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             gap: 8px;
-            padding: 10px 20px;
+
+            height: 42px;
+            padding: 0 20px;
+
             border-radius: var(--radius-pill);
             border: 2px solid var(--orange-main);
             background: var(--white);
             color: var(--orange-dark);
+
             font-family: var(--font-primary);
             font-size: 13px;
             font-weight: 700;
+            line-height: 1;
+
+            text-decoration: none;
             cursor: pointer;
             transition: var(--transition);
-            text-decoration: none;
+            box-sizing: border-box;
+            white-space: nowrap;
         }
-
         .course-action-btn:hover,
         .course-action-btn.active {
             background: var(--orange-gradient);
@@ -261,6 +285,48 @@
             text-decoration: underline;
         }
 
+        .material-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .material-form-actions .btn {
+            min-width: 140px;
+        }
+
+        .grade-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .grade-readonly {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .grade-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            border-radius: var(--radius-pill);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .grade-status.published {
+            background: #eaf8ef;
+            color: #207543;
+        }
+
+        .grade-status.unpublished {
+            background: #fff3e0;
+            color: var(--orange-dark);
+        }
+
         #customModalOverlay {
             display: none;
             position: fixed;
@@ -378,6 +444,10 @@
         }
 
         @media (max-width: 900px) {
+            .course-toolbar {
+                align-items: flex-start;
+            }
+
             .material-form-grid {
                 grid-template-columns: 1fr;
             }
@@ -389,6 +459,7 @@
             .material-file-row {
                 align-items: flex-start;
             }
+
         }
     </style>
 </head>
@@ -486,7 +557,9 @@
 
         <div class="topbar">
             <div>
-                <div class="topbar-title">Registered Students</div>
+                <div class="topbar-title">
+                    <asp:Label ID="lblTopbarTitle" runat="server" Text="Registered Students" />
+                </div>
                 <div class="topbar-date">
                     <asp:Label ID="lblDate" runat="server" />
                 </div>
@@ -506,14 +579,7 @@
 
         <div class="page-content">
 
-            <div class="top-actions">
-                <a href="MyCourses.aspx" class="btn btn-outline btn-sm">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    Back to My Courses
-                </a>
-            </div>
-
-            <div class="page-header">
+           <div class="page-header">
                 <h1>
                     <asp:Label ID="lblCourseTitle" runat="server" Text="Course Title" />
                 </h1>
@@ -522,25 +588,41 @@
                 </p>
             </div>
 
-            <div class="course-action-bar">
-                <asp:LinkButton ID="lbShowStudents" runat="server"
-                    CssClass="course-action-btn active"
-                    OnClick="lbShowStudents_Click">
-                    <i class="fa-solid fa-user-graduate"></i>
-                    Registered Students
-                </asp:LinkButton>
+            <div class="course-toolbar">
 
-                <asp:LinkButton ID="lbPostMaterial" runat="server"
-                    CssClass="course-action-btn"
-                    OnClick="lbPostMaterial_Click">
-                    <i class="fa-solid fa-file-arrow-up"></i>
-                    Post Material
-                </asp:LinkButton>
+                <div class="course-action-bar">
 
-                <asp:HyperLink ID="hlGrades" runat="server" CssClass="course-action-btn">
-                    <i class="fa-solid fa-star-half-stroke"></i>
-                    Grades
-                </asp:HyperLink>
+                    <asp:LinkButton ID="lbShowStudents" runat="server"
+                        CssClass="course-action-btn active"
+                        OnClick="lbShowStudents_Click">
+                        <i class="fa-solid fa-user-graduate"></i>
+                        Registered Students
+                    </asp:LinkButton>
+
+                    <asp:LinkButton ID="lbPostMaterial" runat="server"
+                        CssClass="course-action-btn"
+                        OnClick="lbPostMaterial_Click">
+                        <i class="fa-solid fa-file-arrow-up"></i>
+                        Post Material
+                    </asp:LinkButton>
+
+                    <asp:LinkButton ID="lbGrades" runat="server"
+                        CssClass="course-action-btn"
+                        OnClick="lbGrades_Click">
+                        <i class="fa-solid fa-star-half-stroke"></i>
+                        Grades
+                    </asp:LinkButton>
+
+                </div>
+
+                   <asp:LinkButton ID="lbBackToCourses"
+                        runat="server"
+                        CssClass="course-action-btn"
+                        OnClick="lbBackToCourses_Click">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        Back to My Courses
+                    </asp:LinkButton>
+
             </div>
 
             <asp:Panel ID="pnlStudentsSection" runat="server">
@@ -659,17 +741,16 @@
                             </asp:Repeater>
                         </asp:Panel>
 
-                        <div style="text-align:right; margin-top:18px;">
+                        <div class="material-form-actions">
+                            <asp:Button ID="btnUploadMaterial" runat="server"
+                                Text="Post Material"
+                                CssClass="btn btn-primary"
+                                OnClick="btnUploadMaterial_Click" />
                             <asp:Button ID="btnCancelEditMaterial" runat="server"
                                 Text="Cancel"
                                 CssClass="btn btn-outline"
                                 Visible="false"
                                 OnClick="btnCancelEditMaterial_Click" />
-
-                            <asp:Button ID="btnUploadMaterial" runat="server"
-                                Text="Post Material"
-                                CssClass="btn btn-primary"
-                                OnClick="btnUploadMaterial_Click" />
                         </div>
                     </div>
                 </div>
@@ -755,7 +836,61 @@
                 </div>
 
             </asp:Panel>
+            <asp:Panel ID="pnlGradesSection" runat="server" Visible="false">
 
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Student Grades</span>
+
+            <span class="badge badge-orange">
+                <asp:Label ID="lblGradeTotal" runat="server" Text="0" />
+                Students
+            </span>
+
+            <asp:Label ID="lblGradePublishStatus" runat="server"
+                CssClass="grade-status unpublished"
+                Text="Not Published" />
+        </div>
+
+        <div class="card-body">
+
+            <div class="grade-table-wrap">
+                <asp:GridView ID="gvGrades" runat="server"
+                    AutoGenerateColumns="true"
+                    CssClass="student-table"
+                    GridLines="None"
+                    OnRowDataBound="gvGrades_RowDataBound">
+                </asp:GridView>
+            </div>
+
+            <asp:Panel ID="pnlNoGrades" runat="server" CssClass="empty-state" Visible="false">
+                <i class="fa-solid fa-user-slash"></i>
+                <h3>No students found</h3>
+                <p>No active students are enrolled in this course and session.</p>
+            </asp:Panel>
+
+            <div class="material-form-actions">
+                <asp:Button ID="btnSaveGrades" runat="server"
+                    Text="Save Marks"
+                    CssClass="btn btn-primary"
+                    OnClick="btnSaveGrades_Click" />
+
+                <asp:Button ID="btnEditGrades" runat="server"
+                    Text="Edit Marks"
+                    CssClass="btn btn-outline"
+                    Visible="false"
+                    OnClick="btnEditGrades_Click" />
+
+                <asp:Button ID="btnPublishGrades" runat="server"
+                    Text="Publish Marks"
+                    CssClass="btn btn-primary"
+                    OnClick="btnPublishGrades_Click" />
+            </div>
+
+        </div>
+    </div>
+
+</asp:Panel>
         </div>
     </div>
 
