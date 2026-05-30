@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true"
+<%@ Page Language="C#" AutoEventWireup="true"
     CodeBehind="CourseStudents.aspx.cs"
     Inherits="Student_Information_Management_System__SIMS_.Lecturer.CourseStudents" %>
 
@@ -695,14 +695,15 @@
                                     <asp:ListItem Text="Assignment" Value="Assignment" />
                                     <asp:ListItem Text="Lecture Notes" Value="Lecture Notes" />
                                     <asp:ListItem Text="Tutorial & Lab Exercise" Value="Tutorial & Lab Exercise" />
+                                    <asp:ListItem Text="Final Exam" Value="Final Exam" />
                                 </asp:DropDownList>
                             </div>
 
                             <div class="form-group">
-                                <label>Attachment *</label>
+                                <label>Attachment</label>
                                 <asp:FileUpload ID="fuMaterial" runat="server" CssClass="form-control" AllowMultiple="true" />
                                 <div class="edit-note">
-                                    You can select multiple files. During edit, upload new files only if you want to add more attachments.
+                                    Attachments are optional. You can select multiple files if needed.
                                 </div>
                             </div>
                         </div>
@@ -991,3 +992,4 @@
 </form>
 </body>
 </html>
+
