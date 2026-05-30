@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Configuration;
+using System.IO;
 using System.Net;
 using System.Net.Mail;
-using System.Configuration;
+using System.Web;
 
 namespace SIMS.Helpers
 {
@@ -16,6 +18,9 @@ namespace SIMS.Helpers
     ///   SmtpPass        — sender password / app-password
     ///   SmtpDisplayName — e.g. SIMS – ONTI University
     ///   AppBaseUrl      — e.g. https://localhost:44300 (no trailing slash)
+    ///
+    /// Logo file required:
+    ///   ~/Image/logo.png
     /// </summary>
     public static class EmailHelper
     {
@@ -28,7 +33,17 @@ namespace SIMS.Helpers
                                                    string token)
         {
             string baseUrl = ConfigurationManager.AppSettings["AppBaseUrl"];
-            string resetUrl = $"{baseUrl}/ResetPassword.aspx?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(toEmail)}";
+
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                throw new ConfigurationErrorsException("AppBaseUrl is missing in Web.config appSettings.");
+            }
+
+            baseUrl = baseUrl.TrimEnd('/');
+
+            string resetUrl = baseUrl
+                + "/ResetPassword.aspx?token=" + Uri.EscapeDataString(token)
+                + "&email=" + Uri.EscapeDataString(toEmail);
 
             string subject = "SIMS – Password Reset Request";
             string body = BuildResetEmailBody(recipientName, resetUrl);
@@ -38,6 +53,8 @@ namespace SIMS.Helpers
 
         // ---------------------------------------------------------------
         // Core send method — reads SMTP settings from Web.config.
+        // This version embeds ~/Image/logo.png using CID, so the logo can
+        // display during local testing without using localhost image URLs.
         // ---------------------------------------------------------------
         private static void SendEmail(string to, string subject, string htmlBody)
         {
@@ -47,21 +64,55 @@ namespace SIMS.Helpers
             string pass = ConfigurationManager.AppSettings["SmtpPass"];
             string displayName = ConfigurationManager.AppSettings["SmtpDisplayName"] ?? "SIMS ONTI";
 
+            if (string.IsNullOrWhiteSpace(host) ||
+                string.IsNullOrWhiteSpace(user) ||
+                string.IsNullOrWhiteSpace(pass))
+            {
+                throw new ConfigurationErrorsException("SMTP settings are incomplete in Web.config appSettings.");
+            }
+
             using (var client = new SmtpClient(host, port))
+            using (var msg = new MailMessage())
             {
                 client.EnableSsl = true;
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
                 client.UseDefaultCredentials = false;
                 client.Credentials = new NetworkCredential(user, pass);
 
-                var msg = new MailMessage
-                {
-                    From = new MailAddress(user, displayName),
-                    Subject = subject,
-                    Body = htmlBody,
-                    IsBodyHtml = true
-                };
+                msg.From = new MailAddress(user, displayName);
                 msg.To.Add(to);
+                msg.Subject = subject;
+                msg.IsBodyHtml = true;
+
+                string logoPath = HttpContext.Current.Server.MapPath("~/Images/Logo_Dashboard.png");
+
+                // If logo exists, embed it in the email using CID.
+                // If not found, email still sends with text fallback.
+                if (File.Exists(logoPath))
+                {
+                    AlternateView htmlView = AlternateView.CreateAlternateViewFromString(
+                        htmlBody,
+                        null,
+                        "text/html"
+                    );
+
+                    LinkedResource logo = new LinkedResource(logoPath, "image/png")
+                    {
+                        ContentId = "logoImage",
+                        TransferEncoding = System.Net.Mime.TransferEncoding.Base64
+                    };
+
+                    logo.ContentLink = new Uri("cid:logoImage");
+                    htmlView.LinkedResources.Add(logo);
+                    msg.AlternateViews.Add(htmlView);
+                }
+                else
+                {
+                    msg.Body = htmlBody.Replace(
+                        "<img src='cid:logoImage' alt='ONTI International University Logo' class='logo'>",
+                        "<h1>ONTI International University</h1>"
+                    );
+                }
 
                 client.Send(msg);
             }
@@ -69,6 +120,7 @@ namespace SIMS.Helpers
 
         // ---------------------------------------------------------------
         // Build a styled HTML email body for the reset link.
+        // Logo uses cid:logoImage and is attached in SendEmail().
         // ---------------------------------------------------------------
         private static string BuildResetEmailBody(string name, string resetUrl)
         {
@@ -83,9 +135,10 @@ namespace SIMS.Helpers
                   border-radius: 12px; overflow: hidden;
                   box-shadow: 0 4px 20px rgba(0,0,0,0.08); }}
     .header {{ background: linear-gradient(135deg, #f5a623, #e8890a);
-               padding: 32px 40px; }}
+               padding: 32px 40px; text-align: center; }}
+    .logo {{ width: 220px; height: auto; display: block; margin: 0 auto 10px; }}
     .header h1 {{ color: #fff; margin: 0; font-size: 22px; letter-spacing: 0.5px; }}
-    .header p  {{ color: rgba(255,255,255,0.85); margin: 4px 0 0; font-size: 13px; }}
+    .header p  {{ color: rgba(255,255,255,0.90); margin: 6px 0 0; font-size: 13px; }}
     .body   {{ padding: 36px 40px; color: #333; line-height: 1.6; }}
     .body p {{ margin: 0 0 16px; }}
     .btn    {{ display: inline-block; padding: 14px 36px;
@@ -102,7 +155,7 @@ namespace SIMS.Helpers
 <body>
   <div class='container'>
     <div class='header'>
-      <h1>π ONTI International University</h1>
+      <img src='cid:logoImage' alt='ONTI International University Logo' class='logo'>
       <p>Student Information Management System</p>
     </div>
     <div class='body'>

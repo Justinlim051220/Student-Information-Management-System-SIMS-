@@ -135,8 +135,49 @@
             text-decoration: underline;
         }
     
-        .checkbox-list label { margin-left: 8px; margin-right: 18px; }
-        .checkbox-list input { margin-bottom: 8px; }
+        .multi-select-wrapper { position: relative; width: 100%; }
+        .multi-select-display {
+            min-height: 42px;
+            padding: 10px 42px 10px 14px;
+            border: 1px solid #dcdfe6;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            color: #333;
+            line-height: 1.35;
+            position: relative;
+        }
+        .multi-select-display::after {
+            content: '\f078';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 15px;
+            color: #777;
+            font-size: 13px;
+        }
+        .multi-select-wrapper.open .multi-select-display::after { content: '\f077'; }
+        .multi-select-panel {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: #fff;
+            border: 1px solid #dcdfe6;
+            border-radius: 10px;
+            box-shadow: 0 10px 26px rgba(0,0,0,.12);
+            padding: 10px 12px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .multi-select-wrapper.open .multi-select-panel { display: block; }
+        .checkbox-list label { margin-left: 8px; margin-right: 18px; font-weight: 500; color: #333; }
+        .checkbox-list input { margin-bottom: 10px; }
+        .multi-select-help { display:block; margin-top:7px; color:#777; font-size:.86rem; }
 </style>
 </head>
 <body>
@@ -186,8 +227,14 @@
                             <asp:TextBox ID="txtPhone" runat="server" CssClass="form-control" />
                         </div>
                         <div class="form-group">
-                            <label>Programme <span style="color:red">*</span></label>
-                            <asp:CheckBoxList ID="cblProgrammes" runat="server" CssClass="checkbox-list" RepeatDirection="Vertical" />
+                            <label>Programmes <span style="color:red">*</span></label>
+                            <div class="multi-select-wrapper" id="programmeMultiSelect">
+                                <div class="multi-select-display" id="programmeMultiSelectDisplay" tabindex="0">Select programme(s)</div>
+                                <div class="multi-select-panel">
+                                    <asp:CheckBoxList ID="cblProgrammes" runat="server" CssClass="checkbox-list" RepeatDirection="Vertical" RepeatLayout="Flow" />
+                                </div>
+                            </div>
+                            <small class="multi-select-help">You may select more than one programme for the same lecturer.</small>
                         </div>
                     </div>
 
@@ -302,6 +349,50 @@
             OnClick="btnDeleteConfirmed_Click" CausesValidation="false" />
 
         <script>
+
+            function setupProgrammeMultiSelect() {
+                var wrapper = document.getElementById('programmeMultiSelect');
+                var display = document.getElementById('programmeMultiSelectDisplay');
+                var checkboxContainer = document.getElementById('<%= cblProgrammes.ClientID %>');
+
+                if (!wrapper || !display || !checkboxContainer) return;
+
+                function updateProgrammeDisplay() {
+                    var checkedBoxes = checkboxContainer.querySelectorAll('input[type="checkbox"]:checked');
+                    var selectedNames = [];
+
+                    checkedBoxes.forEach(function (cb) {
+                        var label = checkboxContainer.querySelector('label[for="' + cb.id + '"]');
+                        if (label) selectedNames.push(label.textContent.trim());
+                    });
+
+                    display.textContent = selectedNames.length > 0
+                        ? selectedNames.join(', ')
+                        : 'Select programme(s)';
+                }
+
+                display.addEventListener('click', function () {
+                    wrapper.classList.toggle('open');
+                });
+
+                display.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        wrapper.classList.toggle('open');
+                    }
+                });
+
+                checkboxContainer.addEventListener('change', updateProgrammeDisplay);
+
+                document.addEventListener('click', function (e) {
+                    if (!wrapper.contains(e.target)) wrapper.classList.remove('open');
+                });
+
+                updateProgrammeDisplay();
+            }
+
+            document.addEventListener('DOMContentLoaded', setupProgrammeMultiSelect);
+
             var SVG_TICK  = '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
             var SVG_CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
             var SVG_WARN  = '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';

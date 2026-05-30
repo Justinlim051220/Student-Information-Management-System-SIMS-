@@ -39,12 +39,10 @@
     <div class="login-card">
 
       <!-- Logo -->
-      <div class="login-logo">
-        <span class="logo-icon">π</span>
-        <div class="logo-text">
-          <div class="name">ONTI</div>
-          <div class="sub">International University Malaysia</div>
-        </div>
+      <div class="login-logo" style="justify-content:center; margin-bottom:24px;">
+        <img src="Images/logo.png"
+             alt="ONTI International University"
+             style="max-width:220px; height:auto; display:block;" />
       </div>
 
       <!-- Alert panels -->
@@ -163,42 +161,42 @@
   </div><!-- /login-page -->
 
   <script>
-    // Toggle individual password field visibility
-    function togglePwd(inputId, iconId) {
-      // ASP.NET renders TextBox IDs — we use partial match via contains selector
-      var inputs = document.querySelectorAll('input[id*="' + inputId + '"]');
-      var icon   = document.getElementById(iconId);
-      if (inputs.length > 0) {
-        var box = inputs[0];
-        if (box.type === 'password') {
-          box.type       = 'text';
-          icon.className = 'fa-solid fa-eye-slash';
-        } else {
-          box.type       = 'password';
-          icon.className = 'fa-solid fa-eye';
-        }
+      // Toggle individual password field visibility
+      function togglePwd(inputId, iconId) {
+          // ASP.NET renders TextBox IDs — we use partial match via contains selector
+          var inputs = document.querySelectorAll('input[id*="' + inputId + '"]');
+          var icon = document.getElementById(iconId);
+          if (inputs.length > 0) {
+              var box = inputs[0];
+              if (box.type === 'password') {
+                  box.type = 'text';
+                  icon.className = 'fa-solid fa-eye-slash';
+              } else {
+                  box.type = 'password';
+                  icon.className = 'fa-solid fa-eye';
+              }
+          }
       }
-    }
 
-    // Password strength checker
-    function checkStrength(val) {
-      var fill  = document.getElementById('strengthFill');
-      var label = document.getElementById('strengthLabel');
-      var score = 0;
-      if (val.length >= 8)              score++;
-      if (/[A-Z]/.test(val))           score++;
-      if (/[0-9]/.test(val))           score++;
-      if (/[^A-Za-z0-9]/.test(val))    score++;
+      // Password strength checker
+      function checkStrength(val) {
+          var fill = document.getElementById('strengthFill');
+          var label = document.getElementById('strengthLabel');
+          var score = 0;
+          if (val.length >= 8) score++;
+          if (/[A-Z]/.test(val)) score++;
+          if (/[0-9]/.test(val)) score++;
+          if (/[^A-Za-z0-9]/.test(val)) score++;
 
-      var colors = ['', '#E74C3C', '#E67E22', '#F39C12', '#2ECC71'];
-      var labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
-      var widths = ['0%', '25%', '50%', '75%', '100%'];
+          var colors = ['', '#E74C3C', '#E67E22', '#F39C12', '#2ECC71'];
+          var labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+          var widths = ['0%', '25%', '50%', '75%', '100%'];
 
-      fill.style.width      = widths[score] || '0%';
-      fill.style.background = colors[score] || 'transparent';
-      label.textContent     = val.length > 0 ? labels[score] : '';
-      label.style.color     = colors[score] || '';
-    }
+          fill.style.width = widths[score] || '0%';
+          fill.style.background = colors[score] || 'transparent';
+          label.textContent = val.length > 0 ? labels[score] : '';
+          label.style.color = colors[score] || '';
+      }
   </script>
 
 </body>
