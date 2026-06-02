@@ -102,21 +102,38 @@ namespace Student_Information_Management_System__SIMS_.Admin
         private void LoadSummary()
         {
             string sql = @"
-                SELECT e.StudentId,
-                       s.FirstName + ' ' + s.LastName AS StudentName,
-                       c.CourseCode,
-                       c.CourseName,
-                       e.Session,
-                       e.Semester,
-                       ISNULL(cf.Amount, 0) AS Amount,
-                       e.Status
+                SELECT
+                    e.StudentId,
+                    s.FirstName + ' ' + s.LastName AS StudentName,
+                    e.Session,
+                    e.Semester,
+                    COUNT(e.CourseId) AS CourseCount,
+                    SUM(ISNULL(cf.Amount, 0)) AS TotalAmount,
+                    e.Status,
+                    STUFF((
+                        SELECT '<br/>' + c2.CourseCode + ' - ' + c2.CourseName +
+                               ' <span style=''color:#777;''>(RM ' +
+                               CONVERT(VARCHAR(20), CAST(ISNULL(cf2.Amount, 0) AS DECIMAL(10,2))) +
+                               ')</span>'
+                        FROM Enrollment e2
+                        INNER JOIN Courses c2 ON e2.CourseId = c2.CourseId
+                        LEFT JOIN CourseFees cf2
+                               ON e2.CourseId = cf2.CourseId
+                              AND e2.Session = cf2.Session
+                        WHERE e2.StudentId = e.StudentId
+                          AND e2.Session = e.Session
+                          AND e2.Semester = e.Semester
+                          AND e2.Status = e.Status
+                        ORDER BY c2.CourseCode
+                        FOR XML PATH(''), TYPE
+                    ).value('.', 'NVARCHAR(MAX)'), 1, 5, '') AS CourseList
                 FROM Enrollment e
                 INNER JOIN StudentDetails s ON e.StudentId = s.StudentId
-                INNER JOIN Courses c ON e.CourseId = c.CourseId
                 LEFT JOIN CourseFees cf ON e.CourseId = cf.CourseId AND e.Session = cf.Session
                 WHERE (@StudentId = '' OR e.StudentId = @StudentId)
                   AND (@Session = '' OR e.Session = @Session)
-                ORDER BY e.EnrollmentDate DESC, c.CourseCode";
+                GROUP BY e.StudentId, s.FirstName, s.LastName, e.Session, e.Semester, e.Status
+                ORDER BY MAX(e.EnrollmentDate) DESC";
 
             SqlParameter[] p =
             {
@@ -131,7 +148,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
             decimal total = 0;
             foreach (DataRow row in dt.Rows)
             {
-                total += Convert.ToDecimal(row["Amount"]);
+                total += Convert.ToDecimal(row["TotalAmount"]);
             }
             lblSelectedTotal.Text = total.ToString("N2");
         }
@@ -171,15 +188,23 @@ namespace Student_Information_Management_System__SIMS_.Admin
             try
             {
                 int inserted = 0;
+                int reactivated = 0;
+                int skipped = 0;
+
                 foreach (ListItem item in cblCourses.Items)
                 {
                     if (!item.Selected) continue;
 
-                    if (!EnrollmentExists(ddlStudent.SelectedValue, int.Parse(item.Value), ddlSession.SelectedValue))
-                    {
-                        InsertEnrollment(ddlStudent.SelectedValue, int.Parse(item.Value), ddlSession.SelectedValue, int.Parse(txtSemester.Text.Trim()));
-                        inserted++;
-                    }
+                    string result = SaveOrReactivateEnrollment(
+                        ddlStudent.SelectedValue,
+                        int.Parse(item.Value),
+                        ddlSession.SelectedValue,
+                        int.Parse(txtSemester.Text.Trim())
+                    );
+
+                    if (result == "Inserted") inserted++;
+                    else if (result == "Reactivated") reactivated++;
+                    else skipped++;
                 }
 
                 UpdateStudentTuitionFee(ddlStudent.SelectedValue, ddlSession.SelectedValue);
@@ -187,10 +212,14 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 LoadCourses();
                 LoadSummary();
 
-                if (inserted == 0)
-                    ShowMessage("Warning", "The selected student is already enrolled in the selected course(s) for this session.");
+                if (inserted == 0 && reactivated == 0)
+                {
+                    ShowMessage("Warning", "No new enrolment was added. The selected course(s) may already be Active or Drop Pending.");
+                }
                 else
-                    ShowMessage("Success", "Student enrolled successfully. Fee summary has been updated.");
+                {
+                    ShowMessage("Success", "Enrolment updated. New: " + inserted + ", Reactivated: " + reactivated + ", Skipped: " + skipped + ". Fee summary has been updated.");
+                }
             }
             catch (Exception ex)
             {
@@ -235,40 +264,73 @@ namespace Student_Information_Management_System__SIMS_.Admin
             return true;
         }
 
-        private bool EnrollmentExists(string studentId, int courseId, string session)
+        private string SaveOrReactivateEnrollment(string studentId, int courseId, string session, int semester)
         {
-            string sql = @"
-                SELECT COUNT(*)
+            string statusSql = @"
+                SELECT Status
                 FROM Enrollment
                 WHERE StudentId = @StudentId
                   AND CourseId = @CourseId
                   AND Session = @Session";
 
-            SqlParameter[] p =
+            SqlParameter[] statusParams =
             {
                 new SqlParameter("@StudentId", studentId),
                 new SqlParameter("@CourseId", courseId),
                 new SqlParameter("@Session", session)
             };
 
-            return Convert.ToInt32(DatabaseHelper.ExecuteScalar(sql, p)) > 0;
-        }
+            object statusObj = DatabaseHelper.ExecuteScalar(statusSql, statusParams);
 
-        private void InsertEnrollment(string studentId, int courseId, string session, int semester)
-        {
-            string sql = @"
-                INSERT INTO Enrollment (StudentId, CourseId, Session, Semester, Status, EnrollmentDate)
-                VALUES (@StudentId, @CourseId, @Session, @Semester, 'Active', GETDATE())";
-
-            SqlParameter[] p =
+            if (statusObj == null || statusObj == DBNull.Value)
             {
-                new SqlParameter("@StudentId", studentId),
-                new SqlParameter("@CourseId", courseId),
-                new SqlParameter("@Session", session),
-                new SqlParameter("@Semester", semester)
-            };
+                string insertSql = @"
+                    INSERT INTO Enrollment (StudentId, CourseId, Session, Semester, Status, EnrollmentDate)
+                    VALUES (@StudentId, @CourseId, @Session, @Semester, 'Active', GETDATE())";
 
-            DatabaseHelper.ExecuteNonQuery(sql, p);
+                SqlParameter[] insertParams =
+                {
+                    new SqlParameter("@StudentId", studentId),
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session),
+                    new SqlParameter("@Semester", semester)
+                };
+
+                DatabaseHelper.ExecuteNonQuery(insertSql, insertParams);
+                return "Inserted";
+            }
+
+            string currentStatus = statusObj.ToString();
+
+            if (currentStatus == "Dropped" || currentStatus == "Drop Rejected" || currentStatus == "Enrollment Rejected")
+            {
+                string updateSql = @"
+                    UPDATE Enrollment
+                    SET Status = 'Active',
+                        Semester = @Semester,
+                        EnrollmentDate = GETDATE(),
+                        DropReason = NULL,
+                        DropRequestedAt = NULL,
+                        DropReviewedAt = NULL,
+                        DropReviewedBy = NULL
+                    WHERE StudentId = @StudentId
+                      AND CourseId = @CourseId
+                      AND Session = @Session
+                      AND Status IN ('Dropped', 'Drop Rejected', 'Enrollment Rejected')";
+
+                SqlParameter[] updateParams =
+                {
+                    new SqlParameter("@StudentId", studentId),
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session),
+                    new SqlParameter("@Semester", semester)
+                };
+
+                DatabaseHelper.ExecuteNonQuery(updateSql, updateParams);
+                return "Reactivated";
+            }
+
+            return "Skipped";
         }
 
         private void UpdateStudentTuitionFee(string studentId, string session)
@@ -311,6 +373,111 @@ namespace Student_Information_Management_System__SIMS_.Admin
             };
 
             DatabaseHelper.ExecuteNonQuery(upsertSql, p2);
+        }
+
+
+        protected void gvSummary_RowCommand(object sender, GridViewCommandEventArgs e)
+        {
+            if (e.CommandName != "ApproveDrop" && e.CommandName != "RejectDrop")
+                return;
+
+            string[] parts = e.CommandArgument.ToString().Split('|');
+            if (parts.Length != 3)
+            {
+                ShowMessage("Error", "Invalid enrollment record selected.");
+                return;
+            }
+
+            string studentId = parts[0];
+            string session = parts[1];
+
+            int semester;
+            if (!int.TryParse(parts[2], out semester))
+            {
+                ShowMessage("Error", "Invalid semester selected.");
+                return;
+            }
+            if (e.CommandName == "ApproveDrop")
+            {
+                UpdateDropRequest(studentId, session, semester, "Dropped");
+                UpdateStudentTuitionFee(studentId, session);
+                ShowMessage("Success", "Drop request approved successfully.");
+            }
+            else if (e.CommandName == "RejectDrop")
+            {
+                UpdateDropRequest(studentId, session, semester, "Drop Rejected");
+                ShowMessage("Success", "Drop request rejected successfully.");
+            }
+
+            LoadStats();
+            LoadSummary();
+        }
+
+        private void UpdateEnrollmentRequest(string studentId, string session, int semester, string newStatus)
+        {
+            string sql = @"
+                UPDATE Enrollment
+                SET Status = @Status
+                WHERE StudentId = @StudentId
+                  AND Session = @Session
+                  AND Semester = @Semester
+                  AND Status = 'Enrollment Pending'";
+
+            SqlParameter[] p =
+            {
+                new SqlParameter("@Status", newStatus),
+                new SqlParameter("@StudentId", studentId),
+                new SqlParameter("@Session", session),
+                new SqlParameter("@Semester", semester)
+            };
+
+            DatabaseHelper.ExecuteNonQuery(sql, p);
+        }
+
+        private void UpdateDropRequest(string studentId, string session, int semester, string newStatus)
+        {
+            string sql = @"
+                UPDATE Enrollment
+                SET Status = @Status,
+                    DropReviewedAt = GETDATE(),
+                    DropReviewedBy = @ReviewedBy
+                WHERE StudentId = @StudentId
+                  AND Session = @Session
+                  AND Semester = @Semester
+                  AND Status = 'Drop Pending'";
+
+            SqlParameter[] p =
+            {
+                new SqlParameter("@Status", newStatus),
+                new SqlParameter("@ReviewedBy", GetCurrentAdminId()),
+                new SqlParameter("@StudentId", studentId),
+                new SqlParameter("@Session", session),
+                new SqlParameter("@Semester", semester)
+            };
+
+            DatabaseHelper.ExecuteNonQuery(sql, p);
+        }
+
+        private string GetCurrentAdminId()
+        {
+            if (Session["UserId"] != null) return Session["UserId"].ToString();
+            if (Session["HoPId"] != null) return Session["HoPId"].ToString();
+            if (Session["AdminId"] != null) return Session["AdminId"].ToString();
+            if (Session["Username"] != null) return Session["Username"].ToString();
+
+            return "Admin";
+        }
+
+        protected bool IsEnrollmentPending(object status)
+        {
+            return status != null &&
+                   status.ToString().Equals("Enrollment Pending", StringComparison.OrdinalIgnoreCase);
+        }
+
+        protected bool IsDropPending(object status)
+        {
+            return status != null &&
+                   status.ToString().Equals("Drop Pending", StringComparison.OrdinalIgnoreCase);
         }
 
         protected void btnClear_Click(object sender, EventArgs e)

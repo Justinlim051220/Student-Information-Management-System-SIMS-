@@ -172,12 +172,19 @@
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Duration (Years) <span style="color:red">*</span></label>
-                            <asp:TextBox ID="txtDuration" runat="server" TextMode="Number" CssClass="form-control" />
+                            <asp:TextBox ID="txtDuration" runat="server" TextMode="Number" CssClass="form-control"
+                                         placeholder="e.g. 3" />
                         </div>
                         <div class="form-group">
-                            <label>Head of Programme</label>
-                            <asp:Label ID="lblCurrentHoP" runat="server" CssClass="form-control" BackColor="#f8f9fa" />
+                            <label>Credit Hour <span style="color:red">*</span></label>
+                            <asp:TextBox ID="txtCreditHour" runat="server" TextMode="Number" CssClass="form-control"
+                                         placeholder="e.g. 90" />
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Head of Programme</label>
+                        <asp:Label ID="lblCurrentHoP" runat="server" CssClass="form-control" BackColor="#f8f9fa" />
                     </div>
 
                     <div class="form-group">
@@ -208,7 +215,7 @@
                 <div class="card-body">
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>Search Programme Code / Name / Description</label>
+                            <label>Search Programme Code / Name / Description / Credit Hour</label>
                             <asp:TextBox ID="txtSearchProgramme" runat="server" CssClass="form-control"
                                          placeholder="e.g. DCS, Computer Science, Diploma" />
                         </div>
@@ -252,6 +259,7 @@
                             <asp:BoundField DataField="ProgrammeCode" HeaderText="Code" />
                             <asp:BoundField DataField="ProgrammeName" HeaderText="Programme Name" />
                             <asp:BoundField DataField="Duration" HeaderText="Duration (Years)" />
+                            <asp:BoundField DataField="CreditHour" HeaderText="Credit Hour" />
                             <asp:BoundField DataField="Description" HeaderText="Description" />
                             <asp:TemplateField HeaderText="Actions">
                             <ItemTemplate>

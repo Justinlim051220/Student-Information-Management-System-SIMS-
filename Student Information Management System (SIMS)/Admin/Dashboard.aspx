@@ -113,6 +113,24 @@
         scrollbar-width: thin; /* Firefox */
     }
 
+
+    .sidebar-photo-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        overflow: hidden;
+        padding: 0 !important;
+        flex-shrink: 0;
+    }
+
+    .sidebar-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        display: block;
+    }
+
   </style>
 </head>
 <body>
@@ -159,6 +177,10 @@
       <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
     </a>
 
+    <a href="CourseOffering.aspx" class="sidebar-link">
+      <i class="fa-solid fa-calendar-check"></i> Course Offering
+    </a>
+
     <div class="sidebar-section-label" style="margin-top:12px;">Finance & Reports</div>
 
     <a href="ManageFees.aspx" class="sidebar-link">
@@ -176,7 +198,7 @@
 
     <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
 
-    <a href="Profile.aspx" class="sidebar-link">
+    <a href="Admin_Profile.aspx" class="sidebar-link">
       <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
     </a>
   </nav>
@@ -184,8 +206,11 @@
   <!-- Sidebar user footer -->
   <div class="sidebar-footer">
     <div class="sidebar-user">
-      <div class="user-avatar">
+      <div class="user-avatar" id="divSidebarInitial" runat="server">
         <asp:Label ID="lblAvatarInitial" runat="server" Text="A" />
+      </div>
+      <div class="user-avatar sidebar-photo-avatar" id="divSidebarPhoto" runat="server" visible="false">
+        <asp:Image ID="imgSidebarAvatar" runat="server" CssClass="sidebar-avatar-img" />
       </div>
       <div class="user-info">
         <div class="user-name">
@@ -217,11 +242,11 @@
       </div>
     </div>
     <div class="topbar-right">
-      <a href="Notifications.aspx" class="topbar-icon-btn" title="Notifications">
+      <a href="Admin_Announcement.aspx" class="topbar-icon-btn" title="Notifications">
         <i class="fa-solid fa-bell"></i>
         <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
       </a>
-      <a href="Profile.aspx" class="topbar-icon-btn" title="My Profile">
+      <a href="Admin_Profile.aspx" class="topbar-icon-btn" title="My Profile">
         <i class="fa-solid fa-circle-user"></i>
       </a>
     </div>

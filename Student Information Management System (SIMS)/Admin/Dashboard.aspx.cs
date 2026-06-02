@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Data.SqlClient;
 using System.Web.UI;
 using SIMS.Helpers;
 
@@ -35,6 +36,9 @@ namespace Student_Information_Management_System__SIMS_
                                         ? fullName[0].ToString().ToUpper()
                                         : "A";
 
+                // Load admin profile picture for the sidebar footer.
+                LoadAdminProfilePicture();
+
                 // Today's date
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
 
@@ -45,6 +49,45 @@ namespace Student_Information_Management_System__SIMS_
                 LoadCourses();
                 LoadFeeStats();
                 CheckUnreadNotifications();
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // Load admin profile picture in the sidebar footer.
+        // Shows uploaded photo if available, otherwise keeps the first-letter icon.
+        // ---------------------------------------------------------------
+        private void LoadAdminProfilePicture()
+        {
+            divSidebarPhoto.Visible = false;
+            divSidebarInitial.Visible = true;
+
+            try
+            {
+                int userId = SessionHelper.GetUserId(Session);
+
+                object pictureObj = DatabaseHelper.ExecuteScalar(
+                    @"SELECT ProfilePicture
+                      FROM   HoPDetails
+                      WHERE  UserId = @UserId",
+                    new[] { new SqlParameter("@UserId", userId) });
+
+                string picture = pictureObj == null || pictureObj == DBNull.Value
+                    ? ""
+                    : pictureObj.ToString();
+
+                if (!string.IsNullOrWhiteSpace(picture))
+                {
+                    imgSidebarAvatar.ImageUrl = picture;
+                    divSidebarPhoto.Visible = true;
+                    divSidebarInitial.Visible = false;
+                }
+            }
+            catch
+            {
+                // If the ProfilePicture column has not been added yet,
+                // dashboard still works using the first-letter avatar.
+                divSidebarPhoto.Visible = false;
+                divSidebarInitial.Visible = true;
             }
         }
 
