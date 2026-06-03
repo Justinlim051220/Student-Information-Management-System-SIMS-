@@ -124,18 +124,24 @@ namespace Student_Information_Management_System__SIMS_
                 new[] { new System.Data.SqlClient.SqlParameter("@Lid", lecturerId) });
             lblAvgAttendance.Text = (avgAtt?.ToString() ?? "0") + "%";
 
-            // Count of at-risk students (attendance < 80%) across this lecturer's courses
+            // Count of at-risk students. Attendance risk starts only after 14 of 28 roll calls.
             object atRisk = DatabaseHelper.ExecuteScalar(@"
                 SELECT COUNT(*)
                 FROM (
-                    SELECT a.StudentId, a.CourseId,
-                           CAST(100.0 * SUM(CASE WHEN a.Status = 'Present' THEN 1 ELSE 0 END)
-                                / NULLIF(COUNT(*), 0) AS DECIMAL(5,1)) AS AttPct
+                    SELECT a.StudentId,
+                           a.CourseId,
+                           a.Session,
+                           COUNT(*) AS RollCallCount,
+                           CAST(
+                               100.0 * SUM(CASE WHEN a.Status = 'Present' THEN 1 ELSE 0 END) / 28
+                           AS DECIMAL(5,1)) AS AttPct
                     FROM   Attendance a
                     WHERE  a.LecturerId = @Lid
-                    GROUP BY a.StudentId, a.CourseId
+                      AND  a.Session = 'April 2026'
+                    GROUP BY a.StudentId, a.CourseId, a.Session
                 ) sub
-                WHERE sub.AttPct < 80",
+                WHERE sub.RollCallCount > 14
+                  AND sub.AttPct < 80",
                 new[] { new System.Data.SqlClient.SqlParameter("@Lid", lecturerId) });
             lblAtRiskCount.Text = atRisk?.ToString() ?? "0";
         }
@@ -217,7 +223,7 @@ namespace Student_Information_Management_System__SIMS_
         }
 
         // ---------------------------------------------------------------
-        // Load students with attendance below 80% (at-risk).
+        // Load students with attendance below 80% after more than 14 of 28 roll calls.
         // ---------------------------------------------------------------
         private void LoadAtRiskStudents()
         {
@@ -231,17 +237,20 @@ namespace Student_Information_Management_System__SIMS_
                 FROM (
                     SELECT s.FirstName + ' ' + s.LastName AS FullName,
                            c.CourseCode,
+                           COUNT(*) AS RollCallCount,
                            CAST(
                                100.0 * SUM(CASE WHEN a.Status = 'Present' THEN 1 ELSE 0 END)
-                               / NULLIF(COUNT(a.StudentId), 0)
+                               / 28
                            AS DECIMAL(5,1)) AS AttendancePct
                     FROM   Attendance a
                     INNER JOIN StudentDetails s ON s.StudentId = a.StudentId
                     INNER JOIN Courses        c ON c.CourseId  = a.CourseId
                     WHERE  a.LecturerId = @Lid
+                      AND  a.Session = 'April 2026'
                     GROUP BY s.FirstName, s.LastName, c.CourseCode
                 ) sub
-                WHERE  sub.AttendancePct < 80
+                WHERE  sub.RollCallCount > 14
+                  AND  sub.AttendancePct < 80
                 ORDER BY sub.AttendancePct ASC";
 
             DataTable dt = DatabaseHelper.ExecuteQuery(sql,

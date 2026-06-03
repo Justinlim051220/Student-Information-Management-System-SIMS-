@@ -216,8 +216,8 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                         CAST(
                             ISNULL(
                                 CASE 
-                                    WHEN ats.TotalAttendance > 0 
-                                    THEN (ats.PresentCount * 100.0 / ats.TotalAttendance)
+                                    WHEN ats.TotalAttendance > 14
+                                    THEN (ats.PresentCount * 100.0 / 28)
                                     ELSE 100
                                 END, 100
                             ) AS DECIMAL(5,2)
@@ -227,10 +227,11 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                         CAST(ISNULL(gs.AverageMarks, 100) AS DECIMAL(5,2)) AS AverageMarks,
 
                         CASE 
-                            WHEN ISNULL(
+                            WHEN ISNULL(ats.TotalAttendance, 0) > 14
+                                 AND ISNULL(
                                     CASE 
-                                        WHEN ats.TotalAttendance > 0 
-                                        THEN (ats.PresentCount * 100.0 / ats.TotalAttendance)
+                                        WHEN ats.TotalAttendance > 14
+                                        THEN (ats.PresentCount * 100.0 / 28)
                                         ELSE 100
                                     END, 100
                                  ) < 80
