@@ -262,7 +262,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 table.Columns.Add(GetGradeColumnTitle(a));
             }
 
-            table.Columns.Add("Grade");
+            table.Columns.Add("Final Mark");
 
             int no = 1;
 
@@ -296,7 +296,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     row[GetGradeColumnTitle(a)] = mark == null || mark == DBNull.Value ? "" : mark.ToString();
                 }
 
-                row["Grade"] = CalculateFinalLetterGrade(studentId, courseId, showDraftMarks);
+                row["Final Mark"] = CalculateActualMark(studentId, courseId, showDraftMarks);
 
                 table.Rows.Add(row);
             }
@@ -1061,7 +1061,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 return;
 
             string studentId = e.Row.Cells[1].Text.Trim();
-            int lastEditableCell = e.Row.Cells.Count - 2; // Grade is the final read-only column.
+            int lastEditableCell = e.Row.Cells.Count - 2; // Actual Mark is the final read-only column.
 
             for (int i = 3; i <= lastEditableCell; i++)
             {
@@ -1317,40 +1317,40 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 .FirstOrDefault();
         }
 
-        private string CalculateFinalLetterGrade(string studentId, string courseId, bool showDraftMarks)
+        private string CalculateActualMark(string studentId, string courseId, bool showDraftMarks)
         {
             string marksExpression = showDraftMarks
                 ? "COALESCE(DraftMarksObtained, MarksObtained)"
                 : "MarksObtained";
 
             DataTable marks = DatabaseHelper.ExecuteQuery(@"
-                SELECT " + marksExpression + @" AS MarksForGrade,
-                       WeightPercentage
-                FROM Grades
-                WHERE StudentId = @StudentId
-                  AND CourseId = @CourseId
-                  AND WeightPercentage IS NOT NULL
-                  AND " + marksExpression + @" IS NOT NULL",
+        SELECT " + marksExpression + @" AS MarksForGrade,
+               WeightPercentage
+        FROM Grades
+        WHERE StudentId = @StudentId
+          AND CourseId = @CourseId
+          AND WeightPercentage IS NOT NULL
+          AND " + marksExpression + @" IS NOT NULL",
                 new[]
                 {
-                    new SqlParameter("@StudentId", studentId),
-                    new SqlParameter("@CourseId", courseId)
+            new SqlParameter("@StudentId", studentId),
+            new SqlParameter("@CourseId", courseId)
                 });
 
             if (marks.Rows.Count == 0)
                 return "";
 
-            decimal totalPercentage = 0;
+            decimal totalMark = 0;
 
             foreach (DataRow row in marks.Rows)
             {
                 decimal mark = Convert.ToDecimal(row["MarksForGrade"]);
                 decimal weight = Convert.ToDecimal(row["WeightPercentage"]);
 
-                totalPercentage += (mark / 100m) * weight;
+                totalMark += (mark / 100m) * weight;
             }
 
-            return CalculateGrade(totalPercentage);
+            return totalMark.ToString("0.00");
         }
 
         private string CalculateGrade(decimal mark)
