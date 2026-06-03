@@ -176,6 +176,7 @@
     <Content Include="Site.Master" />
     <Content Include="Student\Student_Dashboard.aspx" />
     <Content Include="Student\Student_Enrollment.aspx" />
+    <Content Include="Student\Student_Payment.aspx" />
     <Content Include="Styles\SIMS.css" />
     <Content Include="ViewSwitcher.ascx" />
     <Content Include="Web.config" />
@@ -403,6 +404,13 @@
     <Compile Include="Student\Student_Enrollment.aspx.designer.cs">
       <DependentUpon>Student_Enrollment.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Student\Student_Payment.aspx.cs">
+      <DependentUpon>Student_Payment.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Student\Student_Payment.aspx.designer.cs">
+      <DependentUpon>Student_Payment.aspx</DependentUpon>
+    </Compile>
     <Compile Include="ViewSwitcher.ascx.cs">
       <DependentUpon>ViewSwitcher.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -416,6 +424,7 @@
     <Folder Include="App_Code\" />
     <Folder Include="App_Data\" />
     <Folder Include="ProfilePicture\" />
+    <Folder Include="Student\StudentReceipt\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />

@@ -61,6 +61,17 @@
             color: #721c24;
         }
 
+
+        .course-list { line-height:1.65; min-width:260px; }
+        .course-line { padding:4px 0; border-bottom:1px dashed #eee; }
+        .course-line:last-child { border-bottom:none; }
+        .course-code { font-weight:700; color:#1f2937; margin-right:8px; }
+        .course-name { color:#4b5563; }
+        .course-fee { color:#b7791f; font-weight:700; margin-left:8px; white-space:nowrap; }
+        .receipt-link { display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border:1px solid #e8a838; color:#b7791f; border-radius:50px; text-decoration:none; font-weight:700; font-size:12px; background:#fffaf0; }
+        .receipt-link:hover { background:#e8a838; color:#fff; }
+        .receipt-empty { color:#9ca3af; font-size:12px; font-weight:600; }
+
         .status-rejected {
             background: #e2e3e5;
             color: #383d41;
@@ -166,8 +177,14 @@
                             <asp:BoundField DataField="StudentName" HeaderText="Student" />
                             <asp:BoundField DataField="ProgrammeCode" HeaderText="Programme" />
                             <asp:BoundField DataField="Session" HeaderText="Session" />
-                            <asp:BoundField DataField="FeeType" HeaderText="Fee Type" />
-                            <asp:BoundField DataField="Amount" HeaderText="Amount (RM)" DataFormatString="{0:N2}" />
+                            <asp:TemplateField HeaderText="Courses to Pay">
+                                <ItemTemplate>
+                                    <div class="course-list">
+                                        <%# Eval("CoursePaymentList") %>
+                                    </div>
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                            <asp:BoundField DataField="Amount" HeaderText="Total Amount (RM)" DataFormatString="{0:N2}" />
                             <asp:TemplateField HeaderText="Status">
                                 <ItemTemplate>
                                     <asp:Label ID="lblStatus" runat="server"
@@ -176,6 +193,11 @@
                                 </ItemTemplate>
                             </asp:TemplateField>
                             <asp:BoundField DataField="PaymentDate" HeaderText="Payment Date" DataFormatString="{0:yyyy-MM-dd}" />
+                            <asp:TemplateField HeaderText="Receipt">
+                                <ItemTemplate>
+                                    <%# GetReceiptLink(Eval("PaymentReceiptPath")) %>
+                                </ItemTemplate>
+                            </asp:TemplateField>
                             <asp:TemplateField HeaderText="Action">
                                 <ItemTemplate>
                                     <div class="action-row">

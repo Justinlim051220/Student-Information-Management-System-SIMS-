@@ -11,9 +11,13 @@
         h2.page-title { margin-bottom: 25px; }
         .course-box { border:1px solid #e5e7eb; border-radius:14px; padding:16px; max-height:300px; overflow:auto; background:#fff; }
         .course-box label { margin-left:8px; }
-        .summary-box { background:#fff8e1; border:1px solid #f0d38a; border-radius:14px; padding:18px; margin-top:18px; }
-        .fee-total { font-size:1.3rem; font-weight:700; color:#1a1a2e; }
-        .data-table td:nth-child(3) { line-height:1.8; min-width:280px; }
+        .data-table td:nth-child(4) { line-height:1.8; min-width:460px; }
+        .course-line { display:grid; grid-template-columns:110px minmax(220px, 1fr) 95px; gap:12px; align-items:start; padding:4px 0; border-bottom:1px dashed #eee; }
+        .course-line:last-child { border-bottom:none; }
+        .course-line .course-code { font-weight:700; color:#1a1a2e; }
+        .course-line .course-name { color:#333; }
+        .course-line .course-fee { color:#777; white-space:nowrap; text-align:right; }
+
         .data-table .btn { padding:7px 14px; font-size:.82rem; border-radius:999px; text-decoration:none; display:inline-block; }
         .action-row { display:flex; align-items:center; gap:10px; flex-wrap:nowrap; white-space:nowrap; justify-content:center; }
         .action-row .action-btn { min-width:112px; text-align:center; margin:0 !important; }
@@ -94,7 +98,7 @@
                     </div>
                     <div class="form-group">
                         <label>Semester <span style="color:red">*</span></label>
-                        <asp:TextBox ID="txtSemester" runat="server" CssClass="form-control" TextMode="Number" Text="1" />
+                        <asp:TextBox ID="txtSemester" runat="server" CssClass="form-control" TextMode="Number" />
                     </div>
                 </div>
 
@@ -110,11 +114,6 @@
                     <asp:Button ID="btnClear" runat="server" Text="Clear" CssClass="btn btn-outline" OnClick="btnClear_Click" CausesValidation="false" />
                     <asp:Button ID="btnBack" runat="server" Text="Back to Dashboard" CssClass="btn btn-outline" OnClick="btnBack_Click" CausesValidation="false" />
                 </div>
-
-                <div class="summary-box">
-                    <div class="fee-total">Selected Fee Summary: RM <asp:Label ID="lblSelectedTotal" runat="server" Text="0.00" /></div>
-                    <div style="color:#666; margin-top:6px;">Fee total is based on CourseFees for the selected session.</div>
-                </div>
             </div>
         </div>
 
@@ -123,11 +122,34 @@
                 <span class="card-title"><i class="fa-solid fa-list"></i> Student Enrollment Summary</span>
             </div>
             <div class="card-body">
+                <div class="grid-2" style="margin-bottom:18px;">
+                    <div class="form-group">
+                        <label>Filter by Programme</label>
+                        <asp:DropDownList ID="ddlFilterProgramme" runat="server" CssClass="form-control"
+                            AutoPostBack="true" OnSelectedIndexChanged="ddlFilterProgramme_SelectedIndexChanged" />
+                    </div>
+                    <div class="form-group">
+                        <label>Filter by Status</label>
+                        <asp:DropDownList ID="ddlFilterStatus" runat="server" CssClass="form-control"
+                            AutoPostBack="true" OnSelectedIndexChanged="ddlFilterStatus_SelectedIndexChanged">
+                            <asp:ListItem Text="-- All Status --" Value="" />
+                            <asp:ListItem Text="Active" Value="Active" />
+                            <asp:ListItem Text="Drop Pending" Value="Drop Pending" />
+                            <asp:ListItem Text="Dropped" Value="Dropped" />
+                            <asp:ListItem Text="Drop Rejected" Value="Drop Rejected" />
+                            <asp:ListItem Text="Completed" Value="Completed" />
+                        </asp:DropDownList>
+                    </div>
+                </div>
+                <div style="margin-bottom:18px;">
+                    <asp:Button ID="btnResetSummaryFilter" runat="server" Text="Reset Filter" CssClass="btn btn-outline" OnClick="btnResetSummaryFilter_Click" CausesValidation="false" />
+                </div>
                 <div class="table-wrapper">
                     <asp:GridView ID="gvSummary" runat="server" CssClass="data-table" AutoGenerateColumns="false" EmptyDataText="No enrollment summary found." OnRowCommand="gvSummary_RowCommand">
                         <Columns>
                             <asp:BoundField DataField="StudentId" HeaderText="Student ID" />
                             <asp:BoundField DataField="StudentName" HeaderText="Student Name" />
+                            <asp:BoundField DataField="ProgrammeCode" HeaderText="Programme" />
                             <asp:TemplateField HeaderText="Enrolled Courses">
                                 <ItemTemplate>
                                     <asp:Literal ID="litCourses" runat="server" Text='<%# Eval("CourseList") %>' />
@@ -145,7 +167,7 @@
                                             Text="Approve Drop"
                                             CssClass="btn btn-primary action-btn"
                                             CommandName="ApproveDrop"
-                                            CommandArgument='<%# Eval("StudentId") + "|" + Eval("Session") + "|" + Eval("Semester") %>'
+                                            CommandArgument='<%# Eval("StudentId") + "|" + Eval("CourseId") + "|" + Eval("Session") + "|" + Eval("Semester") %>'
                                             Visible='<%# IsDropPending(Eval("Status")) %>'
                                             OnClientClick="return showConfirmDialog(this, 'Approve this drop request?');" />
 
@@ -153,7 +175,7 @@
                                             Text="Reject"
                                             CssClass="btn btn-outline action-btn"
                                             CommandName="RejectDrop"
-                                            CommandArgument='<%# Eval("StudentId") + "|" + Eval("Session") + "|" + Eval("Semester") %>'
+                                            CommandArgument='<%# Eval("StudentId") + "|" + Eval("CourseId") + "|" + Eval("Session") + "|" + Eval("Semester") %>'
                                             Visible='<%# IsDropPending(Eval("Status")) %>'
                                             OnClientClick="return showConfirmDialog(this, 'Reject this drop request?');" />
 
