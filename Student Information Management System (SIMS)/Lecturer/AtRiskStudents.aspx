@@ -388,6 +388,7 @@
                                         <th>Student Name</th>
                                         <th>Course</th>
                                         <th>Session</th>
+                                        <th>Present Time</th>
                                         <th>Attendance Rate</th>
                                         <th>Average Marks</th>
                                         <th>Risk Reason</th>
@@ -403,6 +404,7 @@
                                 <td><%# Eval("StudentName") %></td>
                                 <td><%# Eval("CourseDisplay") %></td>
                                 <td><%# Eval("Session") %></td>
+                                <td><%# Eval("PresentCount") %> / <%# Eval("RollCallCount") %></td>
                                 <td><%# Eval("AttendanceRate") %>%</td>
                                 <td><%# Eval("AverageMarks") %>%</td>
                                 <td><%# Eval("RiskReason") %></td>
