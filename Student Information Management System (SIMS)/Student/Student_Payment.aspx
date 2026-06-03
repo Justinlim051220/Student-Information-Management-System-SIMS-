@@ -406,25 +406,31 @@
 
   
 
-    /* ===== Standardized logout warning icon: triangle + ! ===== */
-    .logout-warning-icon {
-        width: 74px !important;
-        height: 66px !important;
-        margin: 0 auto 14px !important;
+    /* ===== FINAL STANDARD LOGOUT TRIANGLE ICON - DO NOT DUPLICATE ===== */
+    .logout-warning-icon,
+    .prompt-modal .cm-icon-wrap.logout-warning-icon {
+        width: 72px !important;
+        height: 72px !important;
+        margin: 0 auto 16px !important;
+        padding: 0 !important;
         border: 0 !important;
         border-radius: 0 !important;
-        background: #fff8e1 !important;
-        color: #e8a838 !important;
-        clip-path: polygon(50% 0%, 100% 100%, 0% 100%) !important;
+        background: transparent !important;
+        color: #f59e0b !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        padding-top: 14px !important;
-        box-sizing: border-box !important;
-        font-family: Arial, sans-serif !important;
-        font-size: 34px !important;
-        font-weight: 900 !important;
         line-height: 1 !important;
+        box-shadow: none !important;
+        font-family: inherit !important;
+    }
+
+    .logout-warning-icon i,
+    .prompt-modal .cm-icon-wrap.logout-warning-icon i {
+        color: #f59e0b !important;
+        font-size: 56px !important;
+        line-height: 1 !important;
+        display: block !important;
     }
 
   </style>
@@ -607,7 +613,7 @@
 
 <div id="logoutModalOverlay">
     <div class="prompt-modal">
-        <div class="cm-icon-wrap logout-warning-icon">!</div>
+        <div class="cm-icon-wrap logout-warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
         <div class="cm-title">Log Out</div>
         <hr class="cm-divider" />
         <div class="cm-body">Are you sure you want to log out?</div>

@@ -169,16 +169,20 @@
     }
 
     .logout-warning-icon {
-        width: 68px;
-        height: 68px;
-        border-radius: 50%;
-        background: #fff4d8;
-        color: var(--orange-main);
-        display: inline-flex;
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 18px;
+        display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 30px;
-        margin-bottom: 18px;
+        background: transparent;
+        color: #f59e0b;
+        font-size: 56px;
+        line-height: 1;
+    }
+
+    .logout-warning-icon i {
+        color: #f59e0b;
     }
 
     .logout-title {
@@ -637,7 +641,7 @@
   <div class="logout-modal-card" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
     <div class="logout-modal-top">
       <div class="logout-warning-icon">
-        <i class="fa-solid fa-exclamation"></i>
+        <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
       <h3 id="logoutTitle" class="logout-title">Log Out</h3>
     </div>
