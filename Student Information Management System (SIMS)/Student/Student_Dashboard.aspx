@@ -384,7 +384,7 @@
   <nav class="sidebar-nav">
     <div class="sidebar-section-label">Main</div>
 
-    <a href="Dashboard.aspx" class="sidebar-link active">
+    <a href="Student_Dashboard.aspx" class="sidebar-link active">
       <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
     </a>
     <a href="MyCourses.aspx" class="sidebar-link">
@@ -395,6 +395,9 @@
     </a>
       <a href="Student_Enrollment.aspx" class="sidebar-link">
       <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
+    </a>
+      <a href="Student_Payment.aspx" class="sidebar-link">
+        <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
     </a>
     <a href="Results.aspx" class="sidebar-link">
       <i class="fa-solid fa-chart-line nav-icon"></i> Results
@@ -619,13 +622,13 @@
 </div>
 
 <script>
-  /* ── Logout modal ─────────────────────────────────────── */
-  function showLogoutModal() { document.getElementById('logoutModal').style.display = 'flex'; }
-  function hideLogoutModal() { document.getElementById('logoutModal').style.display = 'none'; }
+    /* ── Logout modal ─────────────────────────────────────── */
+    function showLogoutModal() { document.getElementById('logoutModal').style.display = 'flex'; }
+    function hideLogoutModal() { document.getElementById('logoutModal').style.display = 'none'; }
 
-  /* ── Charts (run after DOM ready) ────────────────────── */
-  document.addEventListener('DOMContentLoaded', function () {
-    var attLabels = document.getElementById('<%= hdnAttendanceLabels.ClientID %>').value;
+    /* ── Charts (run after DOM ready) ────────────────────── */
+    document.addEventListener('DOMContentLoaded', function () {
+        var attLabels = document.getElementById('<%= hdnAttendanceLabels.ClientID %>').value;
     var attData   = document.getElementById('<%= hdnAttendanceData.ClientID %>').value;
     var gpaLabels = document.getElementById('<%= hdnGpaLabels.ClientID %>').value;
     var gpaData   = document.getElementById('<%= hdnGpaData.ClientID %>').value;
