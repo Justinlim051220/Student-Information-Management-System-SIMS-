@@ -361,6 +361,126 @@
 
         scrollbar-width: thin; /* Firefox */
     }
+
+    /* ===== Standard Student logout dialog - same layout as Enrollment/Payment ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(30,30,40,.60);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 18px;
+    }
+    .system-dialog .modal-box {
+      width: 100%;
+      max-width: 400px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.28);
+      text-align: center;
+      overflow: hidden;
+      animation: studentModalPop .18s ease-out;
+    }
+    @keyframes studentModalPop {
+      from { opacity: 0; transform: translateY(10px) scale(.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .system-dialog .modal-head {
+      background: #fff;
+      color: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      border-bottom: 1px solid #ececec;
+      padding: 36px 32px 18px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      gap: 14px;
+    }
+    .logout-warning-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: #fff8e1;
+      color: #e8a838;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      font-weight: 900;
+      margin: 0 auto 2px;
+      line-height: 1;
+      font-family: Arial, sans-serif;
+    }
+    .system-dialog .modal-body {
+      padding: 18px 32px 28px;
+      color: #555;
+      font-size: .97rem;
+      line-height: 1.65;
+    }
+    .system-dialog .modal-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 0 32px 28px;
+    }
+    .system-dialog .modal-cancel,
+    .system-dialog .modal-submit {
+      min-width: 110px;
+      padding: 10px 32px;
+      border-radius: 50px;
+      font-size: .95rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .18s ease;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .system-dialog .modal-cancel {
+      background: transparent;
+      border: 2px solid #e8a838;
+      color: #e8a838;
+    }
+    .system-dialog .modal-submit {
+      background: #e8a838;
+      border: 2px solid #e8a838;
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(232,168,56,.22);
+    }
+    .system-dialog .modal-cancel:hover { background: #fff8e1; }
+    .system-dialog .modal-submit:hover { background: #d99a2e; border-color: #d99a2e; }
+    .dashboard-hidden-badge { display: none !important; visibility: hidden !important; }
+
+  
+
+    /* ===== Standardized logout warning icon: triangle + ! ===== */
+    .logout-warning-icon {
+        width: 74px !important;
+        height: 66px !important;
+        margin: 0 auto 14px !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: #fff8e1 !important;
+        color: #e8a838 !important;
+        clip-path: polygon(50% 0%, 100% 100%, 0% 100%) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding-top: 14px !important;
+        box-sizing: border-box !important;
+        font-family: Arial, sans-serif !important;
+        font-size: 34px !important;
+        font-weight: 900 !important;
+        line-height: 1 !important;
+    }
+
   </style>
 </head>
 <body>
@@ -410,7 +530,7 @@
 
     <a href="Notifications.aspx" class="sidebar-link">
       <i class="fa-solid fa-bell nav-icon"></i> Notifications
-      <asp:Panel ID="pnlSidebarNotifBadge" runat="server" CssClass="badge-dot" Visible="false" style="margin-left:auto;" />
+      <asp:Panel ID="pnlSidebarNotifBadge" runat="server" CssClass="badge-dot dashboard-hidden-badge" Visible="false" style="display:none !important;" />
     </a>
     <a href="Contacts.aspx" class="sidebar-link">
       <i class="fa-solid fa-address-book nav-icon"></i> Contacts
@@ -460,7 +580,7 @@
     <div class="topbar-right">
       <a href="Notifications.aspx" class="topbar-icon-btn" title="Notifications">
         <i class="fa-solid fa-bell"></i>
-        <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
+        <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot dashboard-hidden-badge" Visible="false" style="display:none !important;" />
       </a>
       <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile">
         <i class="fa-solid fa-circle-user"></i>
@@ -603,20 +723,19 @@
 <!-- ================================================================
      LOGOUT MODAL
      ================================================================ -->
-<div id="logoutModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(26,26,46,0.85);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:white;border-radius:12px;width:100%;max-width:380px;box-shadow:0 15px 35px rgba(0,0,0,0.3);overflow:hidden;">
-    <div style="padding:25px 30px 10px;text-align:center;border-bottom:1px solid #eee;">
-      <h3>🔒 Log Out</h3>
+<div id="logoutModal" class="modal-overlay system-dialog">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="logout-warning-icon">!</div>
+      <span>Log Out</span>
     </div>
-    <div style="padding:25px 30px;text-align:center;color:#555;">
-      <p>Are you sure you want to log out of SIMS?</p>
+    <div class="modal-body">
+      Are you sure you want to log out?
     </div>
-    <div style="padding:20px 30px 25px;display:flex;gap:12px;justify-content:center;border-top:1px solid #eee;">
-      <button type="button" onclick="hideLogoutModal()" style="padding:10px 24px;" class="btn btn-outline">Cancel</button>
+    <div class="modal-actions">
+      <button type="button" class="modal-cancel" onclick="hideLogoutModal();">Cancel</button>
       <asp:LinkButton ID="btnConfirmLogout" runat="server"
-        CssClass="btn btn-danger" OnClick="lbLogout_Click">
-        Yes, Log Out
-      </asp:LinkButton>
+        CssClass="modal-submit" OnClick="lbLogout_Click">Log Out</asp:LinkButton>
     </div>
   </div>
 </div>
@@ -633,76 +752,76 @@
     var gpaLabels = document.getElementById('<%= hdnGpaLabels.ClientID %>').value;
     var gpaData   = document.getElementById('<%= hdnGpaData.ClientID %>').value;
 
-      var aLabels = attLabels ? attLabels.split('|') : [];
-      var aData = attData ? attData.split('|').map(Number) : [];
-      var gLabels = gpaLabels ? gpaLabels.split('|') : [];
-      var gData = gpaData ? gpaData.split('|').map(Number) : [];
+        var aLabels = attLabels ? attLabels.split('|') : [];
+        var aData = attData ? attData.split('|').map(Number) : [];
+        var gLabels = gpaLabels ? gpaLabels.split('|') : [];
+        var gData = gpaData ? gpaData.split('|').map(Number) : [];
 
-      /* ── Attendance Chart ──────── */
-      var attCtx = document.getElementById('attendanceChart').getContext('2d');
-      new Chart(attCtx, {
-          type: 'bar',
-          data: {
-              labels: aLabels,
-              datasets: [{
-                  label: 'Attendance %',
-                  data: aData,
-                  backgroundColor: 'rgba(245,166,35,0.75)',
-                  borderColor: '#E8890A',
-                  borderWidth: 2,
-                  borderRadius: 6
-              }]
-          },
-          options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: {
-                  y: {
-                      beginAtZero: true,
-                      max: 100,
-                      ticks: { callback: function (v) { return v + '%'; }, font: { size: 11 } },
-                      grid: { color: 'rgba(0,0,0,0.05)' }
-                  },
-                  x: { ticks: { font: { size: 11 } }, grid: { display: false } }
-              }
-          }
-      });
+        /* ── Attendance Chart ──────── */
+        var attCtx = document.getElementById('attendanceChart').getContext('2d');
+        new Chart(attCtx, {
+            type: 'bar',
+            data: {
+                labels: aLabels,
+                datasets: [{
+                    label: 'Attendance %',
+                    data: aData,
+                    backgroundColor: 'rgba(245,166,35,0.75)',
+                    borderColor: '#E8890A',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { callback: function (v) { return v + '%'; }, font: { size: 11 } },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+                }
+            }
+        });
 
-      /* ── GPA Chart ─────────────── */
-      var gpaCtx = document.getElementById('gpaChart').getContext('2d');
-      new Chart(gpaCtx, {
-          type: 'line',
-          data: {
-              labels: gLabels,
-              datasets: [{
-                  label: 'GPA',
-                  data: gData,
-                  borderColor: '#F5A623',
-                  backgroundColor: 'rgba(245,166,35,0.15)',
-                  borderWidth: 2.5,
-                  pointBackgroundColor: '#E8890A',
-                  pointRadius: 5,
-                  fill: true,
-                  tension: 0.4
-              }]
-          },
-          options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: {
-                  y: {
-                      beginAtZero: false,
-                      min: 0, max: 4,
-                      ticks: { font: { size: 11 } },
-                      grid: { color: 'rgba(0,0,0,0.05)' }
-                  },
-                  x: { ticks: { font: { size: 11 } }, grid: { display: false } }
-              }
-          }
-      });
-  });
+        /* ── GPA Chart ─────────────── */
+        var gpaCtx = document.getElementById('gpaChart').getContext('2d');
+        new Chart(gpaCtx, {
+            type: 'line',
+            data: {
+                labels: gLabels,
+                datasets: [{
+                    label: 'GPA',
+                    data: gData,
+                    borderColor: '#F5A623',
+                    backgroundColor: 'rgba(245,166,35,0.15)',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#E8890A',
+                    pointRadius: 5,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 0, max: 4,
+                        ticks: { font: { size: 11 } },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+                }
+            }
+        });
+    });
 </script>
 
   </form>

@@ -168,6 +168,29 @@
     .drop-modal-consistent .modal-course{background:#fafafa;border:1px solid #ececec;border-radius:12px;padding:12px 14px;font-size:13px;font-weight:800;color:#1a1a2e;margin-bottom:16px;}
     .drop-modal-consistent .modal-textarea{border-radius:12px;min-height:115px;}
 
+  
+
+    /* ===== Standardized logout warning icon: triangle + ! ===== */
+    .logout-warning-icon {
+        width: 74px !important;
+        height: 66px !important;
+        margin: 0 auto 14px !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: #fff8e1 !important;
+        color: #e8a838 !important;
+        clip-path: polygon(50% 0%, 100% 100%, 0% 100%) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding-top: 14px !important;
+        box-sizing: border-box !important;
+        font-family: Arial, sans-serif !important;
+        font-size: 34px !important;
+        font-weight: 900 !important;
+        line-height: 1 !important;
+    }
+
   </style>
 </head>
 <body>

@@ -404,6 +404,29 @@
         }
     }
 
+  
+
+    /* ===== Standardized logout warning icon: triangle + ! ===== */
+    .logout-warning-icon {
+        width: 74px !important;
+        height: 66px !important;
+        margin: 0 auto 14px !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: #fff8e1 !important;
+        color: #e8a838 !important;
+        clip-path: polygon(50% 0%, 100% 100%, 0% 100%) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding-top: 14px !important;
+        box-sizing: border-box !important;
+        font-family: Arial, sans-serif !important;
+        font-size: 34px !important;
+        font-weight: 900 !important;
+        line-height: 1 !important;
+    }
+
   </style>
 </head>
 <body>
@@ -584,9 +607,7 @@
 
 <div id="logoutModalOverlay">
     <div class="prompt-modal">
-        <div class="cm-icon-wrap logout-warning-wrap">
-            <div class="logout-warning-icon">!</div>
-        </div>
+        <div class="cm-icon-wrap logout-warning-icon">!</div>
         <div class="cm-title">Log Out</div>
         <hr class="cm-divider" />
         <div class="cm-body">Are you sure you want to log out?</div>
