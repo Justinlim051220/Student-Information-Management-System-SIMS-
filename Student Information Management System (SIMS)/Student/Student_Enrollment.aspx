@@ -48,12 +48,40 @@
     .course-code{font-weight:900;color:var(--orange-dark);}
     .status-badge{display:inline-flex;padding:4px 11px;border-radius:var(--radius-pill);font-size:11px;font-weight:900;}
     .status-active{background:rgba(46,204,113,.14);color:#1a7a40;}
+    .status-pending{background:rgba(245,166,35,.16);color:#a86405;}
+    .status-dropped{background:rgba(149,165,166,.16);color:#5d6d7e;}
+    .status-rejected{background:rgba(231,76,60,.12);color:#b03a2e;}
+    .action-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border:0;border-radius:var(--radius-pill);font-size:12px;font-weight:900;cursor:pointer;text-decoration:none;}
+    .action-drop{background:rgba(231,76,60,.10);color:#b03a2e;border:1px solid rgba(231,76,60,.30);}
+    .action-drop:hover{background:rgba(231,76,60,.18);}
+    .action-disabled{background:#f4f4f4;color:#999;border:1px solid #ddd;cursor:not-allowed;}
+    .drop-note{font-size:12px;color:var(--text-muted);line-height:1.5;margin-top:10px;}
+    .table-card .card-head{align-items:flex-start;}
+    .table-subtitle{font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px;}
     .empty-row{text-align:center;color:var(--text-muted);padding:28px!important;}
     .sidebar-user{margin-bottom:18px;align-items:flex-start;}.user-info{padding-top:4px;}.user-name{margin-bottom:4px;}.user-role{margin-top:2px;}
+    .modal-overlay{position:fixed;inset:0;background:rgba(10,18,32,.45);display:none;align-items:center;justify-content:center;z-index:9999;padding:18px;}
+    .modal-box{width:100%;max-width:480px;background:#fff;border-radius:18px;box-shadow:0 18px 48px rgba(0,0,0,.22);overflow:hidden;animation:modalIn .18s ease-out;}
+    @keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+    .modal-head{padding:20px 24px;background:var(--orange-gradient);color:#fff;display:flex;align-items:center;gap:10px;font-weight:900;font-size:17px;}
+    .modal-body{padding:22px 24px;color:var(--text-primary);}
+    .modal-course{background:var(--off-white);border:1px solid var(--border-light);border-radius:12px;padding:12px 14px;font-size:13px;font-weight:800;color:var(--text-primary);margin-bottom:14px;}
+    .modal-textarea{width:100%;min-height:110px;resize:vertical;padding:12px 14px;border:1.5px solid var(--border-mid);border-radius:12px;font-family:var(--font-primary);font-size:13px;outline:none;box-sizing:border-box;}
+    .modal-textarea:focus{border-color:var(--orange-main);box-shadow:0 0 0 3px rgba(245,166,35,.12);}
+    .modal-error{display:none;margin-top:8px;font-size:12px;font-weight:800;color:#b03a2e;}
+    .modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:0 24px 22px;}
+    .modal-cancel{padding:10px 18px;border-radius:999px;border:1.5px solid var(--border-mid);background:#fff;color:var(--text-primary);font-weight:900;cursor:pointer;}
+    .modal-submit{padding:10px 18px;border-radius:999px;border:0;background:var(--orange-gradient);color:#fff;font-weight:900;cursor:pointer;}
+    .system-dialog .modal-head{background:var(--orange-gradient);} 
+    .system-dialog .dialog-icon{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;}
+    .system-message{font-size:14px;line-height:1.6;font-weight:700;color:var(--text-primary);}
+
   </style>
 </head>
 <body>
 <form id="form1" runat="server">
+<asp:HiddenField ID="hfDropCourseId" runat="server" />
+<asp:HiddenField ID="hfDropSession" runat="server" />
 
 <div class="sidebar" id="sidebar">
   <div class="sidebar-brand">
@@ -136,7 +164,7 @@
           </div>
 
           <div class="btn-row">
-            <asp:Button ID="btnEnroll" runat="server" Text="Enroll Course" CssClass="btn-orange" OnClick="btnEnroll_Click" />
+            <asp:Button ID="btnEnroll" runat="server" Text="Submit Enrollment Request" CssClass="btn-orange" OnClick="btnEnroll_Click" />
             <asp:Button ID="btnRefresh" runat="server" Text="Refresh" CssClass="btn-outline-custom" OnClick="btnRefresh_Click" />
           </div>
         </div>
@@ -144,22 +172,111 @@
     </div>
 
     <div class="table-card" style="margin-top:22px;">
-      <div class="card-head"><div class="card-title"><i class="fa-solid fa-list-check"></i> My Current Enrollments</div></div>
+      <div class="card-head">
+        <div>
+          <div class="card-title"><i class="fa-solid fa-list-check"></i> My Current Enrollments</div>
+          <div class="table-subtitle">Use Request Drop to send a subject drop request to admin. The subject is not removed until admin approves it.</div>
+        </div>
+      </div>
       <asp:GridView ID="gvEnrolled" runat="server" AutoGenerateColumns="False" CssClass="enroll-table" GridLines="None" EmptyDataText="No enrolled course yet.">
         <Columns>
           <asp:BoundField DataField="CourseCode" HeaderText="Code" ItemStyle-CssClass="course-code" />
           <asp:BoundField DataField="CourseName" HeaderText="Course Name" />
           <asp:BoundField DataField="Credits" HeaderText="Credit" />
           <asp:BoundField DataField="Session" HeaderText="Session" />
-          <asp:BoundField DataField="Semester" HeaderText="Semester" />
-          <asp:TemplateField HeaderText="Status"><ItemTemplate><span class="status-badge status-active"><%# Eval("Status") %></span></ItemTemplate></asp:TemplateField>
+          <asp:TemplateField HeaderText="Status">
+            <ItemTemplate>
+              <span class='status-badge <%# GetStatusCss(Eval("Status")) %>'><%# Eval("Status") %></span>
+            </ItemTemplate>
+          </asp:TemplateField>
           <asp:BoundField DataField="EnrollmentDate" HeaderText="Date" DataFormatString="{0:dd MMM yyyy}" />
+          <asp:TemplateField HeaderText="Action">
+            <ItemTemplate>
+              <asp:LinkButton ID="btnRequestDrop" runat="server"
+                CssClass='<%# CanRequestDrop(Eval("Status")) ? "action-btn action-drop" : "action-btn action-disabled" %>'
+                Enabled='<%# CanRequestDrop(Eval("Status")) %>'
+                OnClientClick='<%# GetDropClientClick(Eval("CourseId"), Eval("Session"), Eval("CourseCode"), Eval("CourseName")) %>'>
+                <i class="fa-solid fa-circle-minus"></i> Request Drop
+              </asp:LinkButton>
+            </ItemTemplate>
+          </asp:TemplateField>
         </Columns>
         <EmptyDataRowStyle CssClass="empty-row" />
       </asp:GridView>
     </div>
   </div>
 </div>
+
+
+<div id="dropModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-head"><i class="fa-solid fa-circle-minus"></i> Request Subject Drop</div>
+    <div class="modal-body">
+      <div id="dropCourseText" class="modal-course">Selected course</div>
+      <label class="form-label" for="txtDropReason">Drop Reason <span style="color:#b03a2e;">*</span></label>
+      <asp:TextBox ID="txtDropReason" runat="server" CssClass="modal-textarea" TextMode="MultiLine" MaxLength="255" placeholder="Example: Timetable conflict, wrong subject selected, personal reason..." />
+      <div id="dropReasonError" class="modal-error">Please enter your reason before submitting.</div>
+      <div class="drop-note">Your request will be sent to admin for review. The subject will remain active until admin approves the drop.</div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="modal-cancel" onclick="closeDropModal();">Cancel</button>
+      <asp:Button ID="btnSubmitDrop" runat="server" Text="Submit Drop Request" CssClass="modal-submit" CausesValidation="false" OnClientClick="return validateDropReason();" OnClick="btnSubmitDrop_Click" />
+    </div>
+  </div>
+</div>
+
+<div id="systemDialog" class="modal-overlay system-dialog">
+  <div class="modal-box">
+    <div class="modal-head"><span class="dialog-icon"><i id="systemDialogIcon" class="fa-solid fa-circle-info"></i></span><span id="systemDialogTitle">Message</span></div>
+    <div class="modal-body"><div id="systemDialogMessage" class="system-message"></div></div>
+    <div class="modal-actions"><button type="button" class="modal-submit" onclick="closeSystemDialog();">OK</button></div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  function openDropModal(courseId, session, courseText) {
+      document.getElementById('<%= hfDropCourseId.ClientID %>').value = courseId;
+      document.getElementById('<%= hfDropSession.ClientID %>').value = session;
+      document.getElementById('<%= txtDropReason.ClientID %>').value = '';
+      document.getElementById('dropReasonError').style.display = 'none';
+      document.getElementById('dropCourseText').innerText = courseText + ' | ' + session;
+      document.getElementById('dropModal').style.display = 'flex';
+      setTimeout(function () { document.getElementById('<%= txtDropReason.ClientID %>').focus(); }, 100);
+      return false;
+  }
+
+  function closeDropModal() {
+      document.getElementById('dropModal').style.display = 'none';
+      document.getElementById('dropReasonError').style.display = 'none';
+  }
+
+  function validateDropReason() {
+      var reasonBox = document.getElementById('<%= txtDropReason.ClientID %>');
+        var reason = reasonBox.value.replace(/^\s+|\s+$/g, '');
+        if (reason.length === 0) {
+            document.getElementById('dropReasonError').style.display = 'block';
+            reasonBox.focus();
+            return false;
+        }
+        reasonBox.value = reason;
+        return confirm('Submit this drop request to admin?');
+    }
+
+    function showSystemDialog(message, type) {
+        var title = 'Message';
+        var icon = 'fa-circle-info';
+        if (type === 'success') { title = 'Success'; icon = 'fa-circle-check'; }
+        if (type === 'error') { title = 'Notice'; icon = 'fa-triangle-exclamation'; }
+        document.getElementById('systemDialogTitle').innerText = title;
+        document.getElementById('systemDialogIcon').className = 'fa-solid ' + icon;
+        document.getElementById('systemDialogMessage').innerText = message;
+        document.getElementById('systemDialog').style.display = 'flex';
+    }
+
+    function closeSystemDialog() {
+        document.getElementById('systemDialog').style.display = 'none';
+    }
+</script>
 
 </form>
 </body>

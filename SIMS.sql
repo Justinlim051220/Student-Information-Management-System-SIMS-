@@ -227,6 +227,38 @@ CREATE TABLE Enrollment (
     CONSTRAINT CK_Enrollment_Semester CHECK (Semester >= 1)
 );
 
+--New added Alter Table Enrollment, 31/5 By Justin
+
+/* =========================================================
+   UPDATE ENROLLMENT STATUS FOR DROP REQUEST FLOW
+   ========================================================= */
+
+-- 1. Drop old CHECK constraint
+ALTER TABLE Enrollment
+DROP CONSTRAINT CK_Enrollment_Status;
+
+-- 2. Add new CHECK constraint with drop request statuses
+ALTER TABLE Enrollment
+ADD CONSTRAINT CK_Enrollment_Status
+CHECK (Status IN (
+    'Enrollment Pending',
+    'Enrollment Rejected',
+    'Active',
+    'Drop Pending',
+    'Drop Rejected',
+    'Dropped',
+    'Completed'
+));
+
+-- 3. Add drop request tracking columns
+ALTER TABLE Enrollment
+ADD
+    DropReason VARCHAR(255) NULL,
+    DropRequestedAt DATETIME NULL,
+    DropReviewedAt DATETIME NULL,
+    DropReviewedBy VARCHAR(20) NULL;
+----------------------------------------------
+
 select * from Enrollment;
 
 -- =============================================
@@ -267,6 +299,7 @@ CREATE TABLE Attendance (
     CONSTRAINT CK_Attendance_Status CHECK (Status IN ('Present', 'Absent', 'Late'))
 );
 
+--New added by Yin jia - 31/5
 -- =============================================
 -- TABLE 10: Grades
 -- Assessment marks per student per course
@@ -275,21 +308,34 @@ CREATE TABLE Attendance (
 CREATE TABLE Grades (
     StudentId           VARCHAR(20)     NOT NULL,
     CourseId            INT             NOT NULL,
-    Type                VARCHAR(20)     NOT NULL,   -- 'Assignment', 'Quiz', 'Exam'
+    MaterialId          INT             NOT NULL DEFAULT 0,
+    Type                VARCHAR(20)     NOT NULL,
     Title               VARCHAR(100)    NOT NULL,
     MaxMarks            DECIMAL(5,2)    NOT NULL,
     MarksObtained       DECIMAL(5,2)    NULL,
+    DraftMarksObtained  DECIMAL(5,2)     NULL,
     WeightPercentage    DECIMAL(5,2)    NULL,
     Grade               VARCHAR(5)      NULL,
     DueDate             DATE            NULL,
     Remarks             TEXT            NULL,
     SubmittedAt         DATETIME        NULL,
 
-    CONSTRAINT PK_Grades PRIMARY KEY (StudentId, CourseId, Type),
-    CONSTRAINT FK_Grades_Student FOREIGN KEY (StudentId) REFERENCES StudentDetails(StudentId),
-    CONSTRAINT FK_Grades_Course FOREIGN KEY (CourseId) REFERENCES Courses(CourseId),
-    CONSTRAINT CK_Grades_Type CHECK (Type IN ('Assignment', 'Quiz', 'Exam'))
+    CONSTRAINT PK_Grades
+        PRIMARY KEY (StudentId, CourseId, Type, MaterialId),
+
+    CONSTRAINT FK_Grades_Student
+        FOREIGN KEY (StudentId)
+        REFERENCES StudentDetails(StudentId),
+
+    CONSTRAINT FK_Grades_Course
+        FOREIGN KEY (CourseId)
+        REFERENCES Courses(CourseId),
+
+    CONSTRAINT CK_Grades_Type
+        CHECK (Type IN ('Assignment', 'Quiz', 'Exam'))
 );
+
+select * from Grades;
 
 -- =============================================
 -- TABLE 11: Fees
