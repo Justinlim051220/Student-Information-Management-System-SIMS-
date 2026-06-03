@@ -218,7 +218,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             bool showDraftMarks = IsGradeEditMode || hasUnpublishedChanges;
 
             string assignmentSql = @"
-        SELECT MaterialId, Title, MaterialType
+        SELECT MaterialId, Title, MaterialType, WeightPercentage
         FROM CourseMaterials
         WHERE CourseId = @CourseId
           AND Session = @Session
@@ -259,10 +259,10 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             foreach (DataRow a in assignments.Rows)
             {
-                table.Columns.Add(a["Title"].ToString());
+                table.Columns.Add(GetGradeColumnTitle(a));
             }
 
-            table.Columns.Add("GPA");
+            table.Columns.Add("Final Mark");
 
             int no = 1;
 
@@ -293,10 +293,10 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     new SqlParameter("@MaterialId", a["MaterialId"])
                         });
 
-                    row[a["Title"].ToString()] = mark == null || mark == DBNull.Value ? "" : mark.ToString();
+                    row[GetGradeColumnTitle(a)] = mark == null || mark == DBNull.Value ? "" : mark.ToString();
                 }
 
-                row["GPA"] = CalculateStudentGpa(studentId, courseId, showDraftMarks);
+                row["Final Mark"] = CalculateActualMark(studentId, courseId, showDraftMarks);
 
                 table.Rows.Add(row);
             }
@@ -402,7 +402,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     cm.Title,
                     100,
                     NULL,
-                    NULL,
+                    cm.WeightPercentage,
                     NULL,
                     NULL
                 FROM Enrollment e
@@ -455,14 +455,15 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             DatabaseHelper.ExecuteNonQuery(@"
                 INSERT INTO CourseMaterials
-                (
-                    CourseId,
-                    Session,
-                    LecturerId,
-                    Title,
-                    Description,
-                    MaterialType
-                )
+                    (
+                        CourseId,
+                        Session,
+                        LecturerId,
+                        Title,
+                        Description,
+                        MaterialType,
+                        WeightPercentage
+                    )
                 VALUES
                 (
                     @CourseId,
@@ -635,6 +636,45 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 ShowMaterialsSection();
                 return;
             }
+            decimal? weightPercentage = null;
+
+            if (ddlMaterialType.SelectedValue == "Assignment" || ddlMaterialType.SelectedValue == "Final Exam")
+            {
+                decimal parsedWeight;
+
+                if (!decimal.TryParse(txtMaterialWeight.Text.Trim(), out parsedWeight) || parsedWeight <= 0 || parsedWeight > 100)
+                {
+                    ShowMessage("Please enter a valid grade percentage between 1 and 100.", "danger");
+                    ShowMaterialsSection();
+                    return;
+                }
+
+                weightPercentage = parsedWeight;
+            }
+
+            object duplicateCount = DatabaseHelper.ExecuteScalar(@"
+                SELECT COUNT(*)
+                FROM CourseMaterials
+                WHERE CourseId = @CourseId
+                  AND Session = @Session
+                  AND LecturerId = @LecturerId
+                  AND LOWER(LTRIM(RTRIM(Title))) = LOWER(LTRIM(RTRIM(@Title)))
+                  AND MaterialId <> @MaterialId",
+                new[]
+                {
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session),
+                    new SqlParameter("@LecturerId", CurrentLecturerId),
+                    new SqlParameter("@Title", txtMaterialTitle.Text.Trim()),
+                    new SqlParameter("@MaterialId", editId)
+                });
+
+            if (Convert.ToInt32(duplicateCount) > 0)
+            {
+                ShowMessage("A material with this title already exists for this course and session. Please use a different title.", "danger");
+                ShowMaterialsSection();
+                return;
+            }
             if (editId == 0)
             {
                 string insertSql = @"
@@ -645,7 +685,8 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                         LecturerId,
                         Title,
                         Description,
-                        MaterialType
+                        MaterialType,
+                        WeightPercentage
                     )
                     OUTPUT INSERTED.MaterialId
                     VALUES
@@ -655,7 +696,8 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                         @LecturerId,
                         @Title,
                         @Description,
-                        @MaterialType
+                        @MaterialType,
+                        @WeightPercentage
                     )";
 
                 int materialId = Convert.ToInt32(DatabaseHelper.ExecuteScalar(insertSql, new[]
@@ -665,7 +707,8 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     new SqlParameter("@LecturerId", CurrentLecturerId),
                     new SqlParameter("@Title", txtMaterialTitle.Text.Trim()),
                     new SqlParameter("@Description", txtMaterialDescription.Text.Trim()),
-                    new SqlParameter("@MaterialType", ddlMaterialType.SelectedValue)
+                    new SqlParameter("@MaterialType", ddlMaterialType.SelectedValue),
+                    new SqlParameter("@WeightPercentage", (object)weightPercentage ?? DBNull.Value)
                 }));
 
                 SaveMaterialFiles(materialId, courseId, session);
@@ -678,7 +721,8 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     UPDATE CourseMaterials
                     SET Title = @Title,
                         Description = @Description,
-                        MaterialType = @MaterialType
+                        MaterialType = @MaterialType,
+                        WeightPercentage = @WeightPercentage
                     WHERE MaterialId = @MaterialId
                       AND LecturerId = @LecturerId";
 
@@ -687,6 +731,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     new SqlParameter("@Title", txtMaterialTitle.Text.Trim()),
                     new SqlParameter("@Description", txtMaterialDescription.Text.Trim()),
                     new SqlParameter("@MaterialType", ddlMaterialType.SelectedValue),
+                    new SqlParameter("@WeightPercentage", (object)weightPercentage ?? DBNull.Value),
                     new SqlParameter("@MaterialId", editId),
                     new SqlParameter("@LecturerId", CurrentLecturerId)
                 });
@@ -773,7 +818,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         private void LoadMaterialForEdit(int materialId)
         {
             string sql = @"
-                SELECT MaterialId, Title, Description, MaterialType
+                SELECT MaterialId, Title, Description, MaterialType, WeightPercentage
                 FROM CourseMaterials
                 WHERE MaterialId = @MaterialId
                   AND LecturerId = @LecturerId";
@@ -789,6 +834,9 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 hfEditMaterialId.Value = dt.Rows[0]["MaterialId"].ToString();
                 txtMaterialTitle.Text = dt.Rows[0]["Title"].ToString();
                 txtMaterialDescription.Text = dt.Rows[0]["Description"].ToString();
+                txtMaterialWeight.Text = dt.Rows[0]["WeightPercentage"] == DBNull.Value
+                    ? ""
+                    : Convert.ToDecimal(dt.Rows[0]["WeightPercentage"]).ToString("0.##");
 
                 string materialType = dt.Rows[0]["MaterialType"].ToString();
 
@@ -986,6 +1034,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             txtMaterialTitle.Text = "";
             txtMaterialDescription.Text = "";
+            txtMaterialWeight.Text = "";
 
             if (ddlMaterialType.Items.Count > 0)
             {
@@ -1012,7 +1061,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 return;
 
             string studentId = e.Row.Cells[1].Text.Trim();
-            int lastEditableCell = e.Row.Cells.Count - 2; // GPA is the final read-only column.
+            int lastEditableCell = e.Row.Cells.Count - 2; // Actual Mark is the final read-only column.
 
             for (int i = 3; i <= lastEditableCell; i++)
             {
@@ -1219,6 +1268,15 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             return true;
         }
 
+        private string GetGradeColumnTitle(DataRow materialRow)
+        {
+            string title = materialRow["Title"].ToString();
+
+            if (!materialRow.Table.Columns.Contains("WeightPercentage") || materialRow["WeightPercentage"] == DBNull.Value)
+                return title;
+
+            return title + " (" + Convert.ToDecimal(materialRow["WeightPercentage"]).ToString("0.##") + "%)";
+        }
         private string GetGradeTypeForMaterial(string materialType)
         {
             return materialType == "Final Exam" ? "Exam" : "Assignment";
@@ -1259,35 +1317,56 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 .FirstOrDefault();
         }
 
-        private string CalculateStudentGpa(string studentId, string courseId, bool showDraftMarks)
+        private string CalculateActualMark(string studentId, string courseId, bool showDraftMarks)
         {
+            string marksExpression = showDraftMarks
+                ? "COALESCE(DraftMarksObtained, MarksObtained)"
+                : "MarksObtained";
+
             DataTable marks = DatabaseHelper.ExecuteQuery(@"
-                SELECT " + (showDraftMarks ? "COALESCE(DraftMarksObtained, MarksObtained)" : "MarksObtained") + @" AS MarksForGpa
-                FROM Grades
-                WHERE StudentId = @StudentId
-                  AND CourseId = @CourseId
-                  AND " + (showDraftMarks ? "COALESCE(DraftMarksObtained, MarksObtained)" : "MarksObtained") + @" IS NOT NULL",
+        SELECT " + marksExpression + @" AS MarksForGrade,
+               WeightPercentage
+        FROM Grades
+        WHERE StudentId = @StudentId
+          AND CourseId = @CourseId
+          AND WeightPercentage IS NOT NULL
+          AND " + marksExpression + @" IS NOT NULL",
                 new[]
                 {
-                    new SqlParameter("@StudentId", studentId),
-                    new SqlParameter("@CourseId", courseId)
+            new SqlParameter("@StudentId", studentId),
+            new SqlParameter("@CourseId", courseId)
                 });
 
             if (marks.Rows.Count == 0)
                 return "";
 
-            decimal total = 0;
+            decimal totalMark = 0;
+
             foreach (DataRow row in marks.Rows)
             {
-                total += Convert.ToDecimal(row["MarksForGpa"]);
+                decimal mark = Convert.ToDecimal(row["MarksForGrade"]);
+                decimal weight = Convert.ToDecimal(row["WeightPercentage"]);
+
+                totalMark += (mark / 100m) * weight;
             }
 
-            decimal average = total / marks.Rows.Count;
-            decimal gpa = Math.Round(Math.Min(4m, average / 25m), 2);
-
-            return gpa.ToString("0.00");
+            return totalMark.ToString("0.00");
         }
 
+        private string CalculateGrade(decimal mark)
+        {
+            if (mark >= 90) return "A+";
+            if (mark >= 80) return "A";
+            if (mark >= 75) return "A-";
+            if (mark >= 70) return "B+";
+            if (mark >= 65) return "B";
+            if (mark >= 60) return "B-";
+            if (mark >= 55) return "C+";
+            if (mark >= 50) return "C";
+            if (mark >= 45) return "C-";
+            if (mark >= 40) return "D";
+            return "F";
+        }
         private bool HasUnpublishedGradeChanges()
         {
             return GradesHaveDraftMarks();
@@ -1326,14 +1405,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 AssignmentMaterialId = 0;
                 AssignmentColumnTitle = "";
             }
-        }
-        private string CalculateGrade(decimal average)
-        {
-            if (average >= 80) return "A";
-            if (average >= 70) return "B";
-            if (average >= 60) return "C";
-            if (average >= 50) return "D";
-            return "F";
         }
         private void ShowMessage(string message, string type)
         {

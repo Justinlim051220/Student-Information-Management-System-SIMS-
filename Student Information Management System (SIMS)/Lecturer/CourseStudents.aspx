@@ -698,6 +698,15 @@
                                     <asp:ListItem Text="Final Exam" Value="Final Exam" />
                                 </asp:DropDownList>
                             </div>
+                            <div class="form-group">
+                                <label>Grade Percentage</label>
+                                <asp:TextBox ID="txtMaterialWeight" runat="server"
+                                    CssClass="form-control"
+                                    TextMode="Number" />
+                                <div class="edit-note">
+                                    Required only for Assignment and Final Exam. Example: 20 or 25.
+                                </div>
+                            </div>
 
                             <div class="form-group">
                                 <label>Attachment</label>
