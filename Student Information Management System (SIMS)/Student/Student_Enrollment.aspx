@@ -201,6 +201,7 @@
 </head>
 <body>
 <form id="form1" runat="server">
+<asp:HiddenField ID="hfDropEnrollmentId" runat="server" />
 <asp:HiddenField ID="hfDropCourseId" runat="server" />
 <asp:HiddenField ID="hfDropSession" runat="server" />
 
@@ -221,7 +222,7 @@
     <a href="AcademicHistory.aspx" class="sidebar-link"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History</a>
 
     <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-    <a href="Notifications.aspx" class="sidebar-link"><i class="fa-solid fa-bell nav-icon"></i> Notifications</a>
+    <a href="Notification.aspx" class="sidebar-link"><i class="fa-solid fa-bell nav-icon"></i> Notifications</a>
     <a href="Contacts.aspx" class="sidebar-link"><i class="fa-solid fa-address-book nav-icon"></i> Contacts</a>
 
     <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
@@ -240,7 +241,7 @@
 <div class="main-wrapper">
   <div class="topbar">
     <div><div class="topbar-title">Enrollment</div><div class="topbar-date"><asp:Label ID="lblDate" runat="server" /></div></div>
-    <div class="topbar-right"><a href="Notifications.aspx" class="topbar-icon-btn" title="Notifications"><i class="fa-solid fa-bell"></i></a><a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile"><i class="fa-solid fa-circle-user"></i></a></div>
+    <div class="topbar-right"><a href="Notification.aspx" class="topbar-icon-btn" title="Notifications"><i class="fa-solid fa-bell"></i></a><a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile"><i class="fa-solid fa-circle-user"></i></a></div>
   </div>
 
   <div class="page-content">
@@ -331,7 +332,7 @@
               <asp:LinkButton ID="btnRequestDrop" runat="server"
                 CssClass='<%# CanRequestDrop(Eval("Status")) ? "action-btn action-drop" : "action-btn action-disabled" %>'
                 Enabled='<%# CanRequestDrop(Eval("Status")) %>'
-                OnClientClick='<%# GetDropClientClick(Eval("CourseId"), Eval("Session"), Eval("CourseCode"), Eval("CourseName")) %>'>
+                OnClientClick='<%# GetDropClientClick(Eval("EnrollmentId"), Eval("CourseId"), Eval("Session"), Eval("CourseCode"), Eval("CourseName")) %>'>
                 <i class="fa-solid fa-circle-minus"></i> Request Drop
               </asp:LinkButton>
             </ItemTemplate>
@@ -367,7 +368,7 @@
   <div class="modal-box">
     <div class="modal-head"><span class="dialog-icon"><i id="systemDialogIcon" class="fa-solid fa-circle-info"></i></span><span id="systemDialogTitle">Message</span></div>
     <div class="modal-body"><div id="systemDialogMessage" class="system-message"></div></div>
-    <div class="modal-actions"><button type="button" class="modal-submit" onclick="closeSystemDialog();">OK</button></div>
+    <div class="modal-actions"><button type="button" class="modal-cancel" id="systemDialogCancel" onclick="closeSystemDialog();">OK</button><button type="button" class="modal-submit" id="systemDialogPayment" style="display:none;" onclick="goPaymentPage();">Go Payment</button></div>
   </div>
 </div>
 
@@ -404,7 +405,8 @@
 </div>
 
 <script type="text/javascript">
-    function openDropModal(courseId, session, courseText) {
+    function openDropModal(enrollmentId, courseId, session, courseText) {
+        document.getElementById('<%= hfDropEnrollmentId.ClientID %>').value = enrollmentId;
         document.getElementById('<%= hfDropCourseId.ClientID %>').value = courseId;
       document.getElementById('<%= hfDropSession.ClientID %>').value = session;
       document.getElementById('<%= txtDropReason.ClientID %>').value = '';
@@ -462,11 +464,26 @@
         document.getElementById('systemDialogTitle').innerText = title;
         document.getElementById('systemDialogIcon').className = 'fa-solid ' + icon;
         document.getElementById('systemDialogMessage').innerText = message;
+        document.getElementById('systemDialogCancel').innerText = 'OK';
+        document.getElementById('systemDialogPayment').style.display = 'none';
+        document.getElementById('systemDialog').style.display = 'flex';
+    }
+
+    function showPaymentDialog(message) {
+        document.getElementById('systemDialogTitle').innerText = 'Enrollment Completed';
+        document.getElementById('systemDialogIcon').className = 'fa-solid fa-circle-check';
+        document.getElementById('systemDialogMessage').innerText = message;
+        document.getElementById('systemDialogCancel').innerText = 'Later';
+        document.getElementById('systemDialogPayment').style.display = 'inline-flex';
         document.getElementById('systemDialog').style.display = 'flex';
     }
 
     function closeSystemDialog() {
         document.getElementById('systemDialog').style.display = 'none';
+    }
+
+    function goPaymentPage() {
+        window.location.href = 'Student_Payment.aspx';
     }
 
     function showLogoutModal() {

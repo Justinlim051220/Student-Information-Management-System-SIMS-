@@ -270,17 +270,20 @@
 
   <!-- Navigation -->
   <nav class="sidebar-nav">
-    <div class="sidebar-section-label">Main</div>
-
+    <div class="sidebar-section-label">Overview</div>
     <a href="Dashboard.aspx" class="sidebar-link active">
       <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
     </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">User Management</div>
     <a href="ManageStudents.aspx" class="sidebar-link">
       <i class="fa-solid fa-user-graduate nav-icon"></i> Students
     </a>
     <a href="ManageLecturers.aspx" class="sidebar-link">
       <i class="fa-solid fa-chalkboard-teacher nav-icon"></i> Lecturers
     </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Academic Setup</div>
     <a href="ManageProgrammes.aspx" class="sidebar-link">
       <i class="fa-solid fa-layer-group nav-icon"></i> Programmes
     </a>
@@ -290,16 +293,16 @@
     <a href="AssignLecturerCourse.aspx" class="sidebar-link">
       <i class="fa-solid fa-user-check nav-icon"></i> Assign Course
     </a>
+    <a href="CourseOffering.aspx" class="sidebar-link">
+      <i class="fa-solid fa-calendar-check nav-icon"></i> Course Offering
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Enrollment</div>
     <a href="Admin_enrolment.aspx" class="sidebar-link">
       <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
     </a>
 
-    <a href="CourseOffering.aspx" class="sidebar-link">
-      <i class="fa-solid fa-calendar-check"></i> Course Offering
-    </a>
-
     <div class="sidebar-section-label" style="margin-top:12px;">Finance & Reports</div>
-
     <a href="ManageFees.aspx" class="sidebar-link">
       <i class="fa-solid fa-money-bill-wave nav-icon"></i> Fees
     </a>
@@ -308,13 +311,14 @@
     </a>
 
     <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-
     <a href="Admin_Announcement.aspx" class="sidebar-link">
       <i class="fa-solid fa-bullhorn nav-icon"></i> Announcements
     </a>
+    <a href="Admin_Notification.aspx" class="sidebar-link">
+      <i class="fa-solid fa-bell nav-icon"></i> Notifications
+    </a>
 
     <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
-
     <a href="Admin_Profile.aspx" class="sidebar-link">
       <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
     </a>
@@ -358,7 +362,7 @@
       </div>
     </div>
     <div class="topbar-right">
-      <a href="Admin_Announcement.aspx" class="topbar-icon-btn" title="Notifications">
+      <a href="Admin_Notification.aspx" class="topbar-icon-btn" title="Notifications">
         <i class="fa-solid fa-bell"></i>
         <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
       </a>

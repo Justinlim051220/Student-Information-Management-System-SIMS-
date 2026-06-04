@@ -78,7 +78,26 @@ namespace Student_Information_Management_System__SIMS_
 
         private void LoadStats()
         {
-            object pending = DatabaseHelper.ExecuteScalar("SELECT ISNULL(SUM(Amount), 0) FROM Fees WHERE Status = 'Pending'");
+            string pendingSql = @"
+                SELECT ISNULL(SUM(
+                    CASE 
+                        WHEN f.Status = 'Pending'
+                             AND ISNULL(f.PaymentReceiptPath, '') = ''
+                             AND e.EnrollmentId IS NOT NULL
+                             AND ISNULL(e.Status, '') IN ('Dropped', 'Drop Approved', 'Not Active', 'Inactive')
+                        THEN 0
+                        ELSE f.Amount
+                    END), 0)
+                FROM Fees f
+                LEFT JOIN Enrollment e ON e.EnrollmentId = f.EnrollmentId
+                WHERE f.Status = 'Pending'
+                  AND NOT (
+                        ISNULL(f.PaymentReceiptPath, '') = ''
+                        AND e.EnrollmentId IS NOT NULL
+                        AND ISNULL(e.Status, '') IN ('Dropped', 'Drop Approved', 'Not Active', 'Inactive')
+                  )";
+
+            object pending = DatabaseHelper.ExecuteScalar(pendingSql);
             object paid = DatabaseHelper.ExecuteScalar("SELECT ISNULL(SUM(Amount), 0) FROM Fees WHERE Status = 'Paid'");
 
             lblPendingAmount.Text = Convert.ToDecimal(pending).ToString("N2");
@@ -100,41 +119,80 @@ namespace Student_Information_Management_System__SIMS_
 
         private void LoadPayments()
         {
+            string selectedStatus = ddlStatus.SelectedValue ?? "";
+
             string sql = @"
-                SELECT f.StudentId,
-                       s.FirstName + ' ' + s.LastName AS StudentName,
-                       p.ProgrammeCode,
-                       f.Session,
-                       f.FeeType,
-                       f.Amount,
-                       f.Status,
-                       f.PaymentDate,
-                       ISNULL(f.PaymentReceiptPath, '') AS PaymentReceiptPath,
-                       ISNULL(
-                           STUFF((
-                               SELECT '<div class=""course-line""><span class=""course-code"">' + c.CourseCode + '</span><span class=""course-name"">' + c.CourseName + '</span><span class=""course-fee"">RM ' + FORMAT(ISNULL(cf.Amount, 0), 'N2') + '</span></div>'
-                               FROM Enrollment e
-                               INNER JOIN Courses c ON e.CourseId = c.CourseId
-                               LEFT JOIN CourseFees cf ON cf.CourseId = c.CourseId AND cf.Session = e.Session
-                               WHERE e.StudentId = f.StudentId
-                                 AND e.Session = f.Session
-                                 AND e.Status = 'Active'
-                               ORDER BY c.CourseCode
-                               FOR XML PATH(''), TYPE
-                           ).value('.', 'NVARCHAR(MAX)'), 1, 0, ''),
-                           '<span class=""receipt-empty"">No active enrolled course found</span>'
-                       ) AS CoursePaymentList
-                FROM Fees f
-                INNER JOIN StudentDetails s ON f.StudentId = s.StudentId
-                INNER JOIN Programmes p ON s.ProgrammeId = p.ProgrammeId
-                WHERE (@Session = '' OR f.Session = @Session)
-                  AND (@Status = '' OR f.Status = @Status)
-                ORDER BY CASE WHEN f.Status = 'Pending' THEN 0 ELSE 1 END, f.Session DESC, s.FirstName";
+                SELECT *
+                FROM
+                (
+                    SELECT f.FeeId,
+                           ISNULL(f.EnrollmentId, 0) AS EnrollmentId,
+                           ('PAY-' + RIGHT('000000' + CAST(f.FeeId AS VARCHAR(6)), 6)) AS PaymentRef,
+                           f.StudentId,
+                           s.FirstName + ' ' + s.LastName AS StudentName,
+                           p.ProgrammeCode,
+                           f.Session,
+                           f.FeeType,
+                           f.Amount,
+                           CASE 
+                               WHEN f.Status = 'Pending'
+                                    AND ISNULL(f.PaymentReceiptPath, '') = ''
+                                    AND e.EnrollmentId IS NOT NULL
+                                    AND ISNULL(e.Status, '') IN ('Dropped', 'Drop Approved', 'Not Active', 'Inactive')
+                               THEN CAST(0 AS DECIMAL(18,2))
+                               ELSE f.Amount
+                           END AS DisplayAmount,
+                           f.Status,
+                           CASE 
+                               WHEN f.Status = 'Pending'
+                                    AND ISNULL(f.PaymentReceiptPath, '') = ''
+                                    AND e.EnrollmentId IS NOT NULL
+                                    AND ISNULL(e.Status, '') IN ('Dropped', 'Drop Approved', 'Not Active', 'Inactive')
+                               THEN 'Not Active'
+                               ELSE f.Status
+                           END AS DisplayStatus,
+                           ISNULL(e.Status, '') AS EnrollmentStatus,
+                           f.PaymentDate,
+                           ISNULL(f.PaymentReceiptPath, '') AS PaymentReceiptPath,
+                           CASE 
+                               WHEN f.Status = 'Pending'
+                                    AND ISNULL(f.PaymentReceiptPath, '') = ''
+                                    AND e.EnrollmentId IS NOT NULL
+                                    AND ISNULL(e.Status, '') IN ('Dropped', 'Drop Approved', 'Not Active', 'Inactive')
+                               THEN '<span class=""receipt-empty"">Dropped before payment</span>'
+                               ELSE ISNULL(
+                                   STUFF((
+                                       SELECT '<div class=""course-line""><span class=""course-code"">' + c.CourseCode + '</span><span class=""course-name"">' + c.CourseName + '</span><span class=""course-fee"">RM ' + FORMAT(ISNULL(cf.Amount, 0), 'N2') + '</span></div>'
+                                       FROM Enrollment e2
+                                       INNER JOIN Courses c ON e2.CourseId = c.CourseId
+                                       LEFT JOIN CourseFees cf ON cf.CourseId = c.CourseId AND cf.Session = e2.Session
+                                       WHERE e2.EnrollmentId = f.EnrollmentId
+                                       ORDER BY c.CourseCode
+                                       FOR XML PATH(''), TYPE
+                                   ).value('.', 'NVARCHAR(MAX)'), 1, 0, ''),
+                                   '<span class=""receipt-empty"">No active enrolled course found</span>'
+                               )
+                           END AS CoursePaymentList
+                    FROM Fees f
+                    INNER JOIN StudentDetails s ON f.StudentId = s.StudentId
+                    INNER JOIN Programmes p ON s.ProgrammeId = p.ProgrammeId
+                    LEFT JOIN Enrollment e ON e.EnrollmentId = f.EnrollmentId
+                    WHERE (@Session = '' OR f.Session = @Session)
+                ) x
+                WHERE (@Status = '' OR x.DisplayStatus = @Status)
+                ORDER BY 
+                    CASE 
+                        WHEN x.DisplayStatus = 'Pending' THEN 0
+                        WHEN x.DisplayStatus = 'Not Active' THEN 2
+                        ELSE 1
+                    END,
+                    x.Session DESC,
+                    x.StudentName";
 
             SqlParameter[] pms =
             {
                 new SqlParameter("@Session", ddlPaymentSession.SelectedValue ?? ""),
-                new SqlParameter("@Status", ddlStatus.SelectedValue ?? "")
+                new SqlParameter("@Status", selectedStatus)
             };
 
             gvPayments.DataSource = DatabaseHelper.ExecuteQuery(sql, pms);
@@ -309,21 +367,17 @@ namespace Student_Information_Management_System__SIMS_
 
         protected void gvPayments_RowCommand(object sender, GridViewCommandEventArgs e)
         {
-            string[] parts = e.CommandArgument.ToString().Split('|');
-            if (parts.Length != 3) return;
-
-            string studentId = parts[0];
-            string session = parts[1];
-            string feeType = parts[2];
+            int feeId;
+            if (!int.TryParse(e.CommandArgument.ToString(), out feeId)) return;
 
             if (e.CommandName == "ApprovePayment")
             {
-                UpdatePaymentStatus(studentId, session, feeType, "Paid");
+                UpdatePaymentStatus(feeId, "Paid");
                 ShowMessage("Success", "Payment approved successfully.");
             }
             else if (e.CommandName == "RejectPayment")
             {
-                UpdatePaymentStatus(studentId, session, feeType, "Rejected");
+                UpdatePaymentStatus(feeId, "Rejected");
                 ShowMessage("Success", "Payment rejected successfully.");
             }
 
@@ -331,37 +385,98 @@ namespace Student_Information_Management_System__SIMS_
             LoadPayments();
         }
 
-        private void UpdatePaymentStatus(string studentId, string session, string feeType, string status)
+        private void UpdatePaymentStatus(int feeId, string status)
         {
+            string readSql = "SELECT StudentId, Session, FeeType FROM Fees WHERE FeeId = @FeeId";
+            DataTable dt = DatabaseHelper.ExecuteQuery(readSql, new[] { new SqlParameter("@FeeId", feeId) });
+            if (dt.Rows.Count == 0) return;
+
+            string studentId = dt.Rows[0]["StudentId"].ToString();
+            string session = dt.Rows[0]["Session"].ToString();
+            string feeType = dt.Rows[0]["FeeType"].ToString();
+
             string sql = @"
                 UPDATE Fees
                 SET Status = @Status,
-                    PaymentDate = CASE WHEN @Status = 'Paid' THEN GETDATE() ELSE NULL END
-                WHERE StudentId = @StudentId AND Session = @Session AND FeeType = @FeeType";
+                    PaymentDate = CASE WHEN @Status = 'Paid' THEN GETDATE() ELSE NULL END,
+                    PaymentReceiptPath = CASE WHEN @Status = 'Rejected' THEN NULL ELSE PaymentReceiptPath END,
+                    PaymentReceiptUploadedAt = CASE WHEN @Status = 'Rejected' THEN NULL ELSE PaymentReceiptUploadedAt END
+                WHERE FeeId = @FeeId";
 
             SqlParameter[] p =
             {
                 new SqlParameter("@Status", status),
-                new SqlParameter("@StudentId", studentId),
-                new SqlParameter("@Session", session),
-                new SqlParameter("@FeeType", feeType)
+                new SqlParameter("@FeeId", feeId)
             };
 
-            DatabaseHelper.ExecuteNonQuery(sql, p);
+            int rows = DatabaseHelper.ExecuteNonQuery(sql, p);
+
+            if (rows > 0)
+            {
+                SendPaymentStatusNotificationToStudent(studentId, session, feeType, "PAY-" + feeId.ToString("D6"), status);
+            }
+        }
+
+        private void SendPaymentStatusNotificationToStudent(string studentId, string session, string feeType, string paymentRef, string status)
+        {
+            string title = status == "Paid" ? "Payment Approved" : "Payment Rejected";
+            string statusText = status == "Paid" ? "approved" : "rejected";
+
+            string sql = @"
+                INSERT INTO Notifications (UserId, Title, Message, IsRead, CreatedAt)
+                SELECT
+                    s.UserId,
+                    @Title,
+                    'Your payment has been ' + @StatusText + ' by admin.' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10) +
+                    'Payment Ref: ' + @PaymentRef + CHAR(13) + CHAR(10) +
+                    'Session: ' + @Session + CHAR(13) + CHAR(10) +
+                    'Fee Type: ' + @FeeType + CHAR(13) + CHAR(10) +
+                    CASE WHEN @Status = 'Paid'
+                         THEN 'Payment Status: Paid'
+                         ELSE 'Payment Status: Rejected. Please upload a new valid receipt if required.'
+                    END,
+                    0,
+                    GETDATE()
+                FROM StudentDetails s
+                INNER JOIN Users u ON u.UserId = s.UserId
+                WHERE s.StudentId = @StudentId
+                  AND u.IsActive = 1";
+
+            DatabaseHelper.ExecuteNonQuery(sql, new[]
+            {
+                new SqlParameter("@StudentId", studentId),
+                new SqlParameter("@Session", session),
+                new SqlParameter("@FeeType", feeType),
+                new SqlParameter("@PaymentRef", paymentRef),
+                new SqlParameter("@Status", status),
+                new SqlParameter("@Title", title),
+                new SqlParameter("@StatusText", statusText)
+            });
         }
 
         protected void gvPayments_RowDataBound(object sender, GridViewRowEventArgs e)
         {
             if (e.Row.RowType != DataControlRowType.DataRow) return;
 
-            string status = DataBinder.Eval(e.Row.DataItem, "Status").ToString();
+            string status = DataBinder.Eval(e.Row.DataItem, "DisplayStatus").ToString();
+            string receiptPath = DataBinder.Eval(e.Row.DataItem, "PaymentReceiptPath").ToString();
+
             LinkButton approve = e.Row.FindControl("btnApprove") as LinkButton;
             LinkButton reject = e.Row.FindControl("btnReject") as LinkButton;
 
-            if (status != "Pending")
+            // Admin only needs approve/reject for pending records with uploaded receipt.
+            // Dropped-before-payment rows are displayed as Not Active history, but no admin payment action is needed.
+            if (status != "Pending" || string.IsNullOrWhiteSpace(receiptPath))
             {
                 if (approve != null) approve.Visible = false;
                 if (reject != null) reject.Visible = false;
+
+                if (status == "Not Active" && e.Row.Cells.Count > 0)
+                {
+                    TableCell actionCell = e.Row.Cells[e.Row.Cells.Count - 1];
+                    actionCell.Controls.Clear();
+                    actionCell.Controls.Add(new LiteralControl("<span class='no-admin-action'>No payment action required</span>"));
+                }
             }
         }
 
@@ -396,6 +511,9 @@ namespace Student_Information_Management_System__SIMS_
 
                 case "Rejected":
                     return "status-rejected";
+
+                case "Not Active":
+                    return "status-not-active";
 
                 default:
                     return "status-pending";

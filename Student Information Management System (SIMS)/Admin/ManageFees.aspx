@@ -76,6 +76,25 @@
             background: #e2e3e5;
             color: #383d41;
         }
+
+        .status-not-active {
+            background: #eef2f7;
+            color: #475569;
+            border: 1px solid #d7dee8;
+        }
+
+        .no-admin-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 14px;
+            border-radius: 50px;
+            background: #f3f6fa;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -166,6 +185,7 @@
                             <asp:ListItem Text="Paid" Value="Paid" />
                             <asp:ListItem Text="Rejected" Value="Rejected" />
                             <asp:ListItem Text="Overdue" Value="Overdue" />
+                            <asp:ListItem Text="Not Active" Value="Not Active" />
                             <asp:ListItem Text="All" Value="" />
                         </asp:DropDownList>
                     </div>
@@ -184,12 +204,12 @@
                                     </div>
                                 </ItemTemplate>
                             </asp:TemplateField>
-                            <asp:BoundField DataField="Amount" HeaderText="Total Amount (RM)" DataFormatString="{0:N2}" />
+                            <asp:BoundField DataField="DisplayAmount" HeaderText="Total Amount (RM)" DataFormatString="{0:N2}" />
                             <asp:TemplateField HeaderText="Status">
                                 <ItemTemplate>
                                     <asp:Label ID="lblStatus" runat="server"
-                                        Text='<%# Eval("Status") %>'
-                                        CssClass='<%# "status-badge " + GetStatusCss(Eval("Status")) %>' />
+                                        Text='<%# Eval("DisplayStatus") %>'
+                                        CssClass='<%# "status-badge " + GetStatusCss(Eval("DisplayStatus")) %>' />
                                 </ItemTemplate>
                             </asp:TemplateField>
                             <asp:BoundField DataField="PaymentDate" HeaderText="Payment Date" DataFormatString="{0:yyyy-MM-dd}" />
@@ -201,8 +221,8 @@
                             <asp:TemplateField HeaderText="Action">
                                 <ItemTemplate>
                                     <div class="action-row">
-                                        <asp:LinkButton ID="btnApprove" runat="server" CssClass="action-btn approve-btn" CommandName="ApprovePayment" CommandArgument='<%# Eval("StudentId") + "|" + Eval("Session") + "|" + Eval("FeeType") %>'><i class="fa-solid fa-check"></i> Approve</asp:LinkButton>
-                                        <asp:LinkButton ID="btnReject" runat="server" CssClass="action-btn reject-btn" CommandName="RejectPayment" CommandArgument='<%# Eval("StudentId") + "|" + Eval("Session") + "|" + Eval("FeeType") %>'><i class="fa-solid fa-xmark"></i> Reject</asp:LinkButton>
+                                        <asp:LinkButton ID="btnApprove" runat="server" CssClass="action-btn approve-btn" CommandName="ApprovePayment" CommandArgument='<%# Eval("FeeId") %>'><i class="fa-solid fa-check"></i> Approve</asp:LinkButton>
+                                        <asp:LinkButton ID="btnReject" runat="server" CssClass="action-btn reject-btn" CommandName="RejectPayment" CommandArgument='<%# Eval("FeeId") %>'><i class="fa-solid fa-xmark"></i> Reject</asp:LinkButton>
                                     </div>
                                 </ItemTemplate>
                             </asp:TemplateField>
