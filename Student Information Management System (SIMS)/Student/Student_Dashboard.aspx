@@ -534,7 +534,7 @@
 
     <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
 
-    <a href="Notifications.aspx" class="sidebar-link">
+    <a href="Notification.aspx" class="sidebar-link">
       <i class="fa-solid fa-bell nav-icon"></i> Notifications
       <asp:Panel ID="pnlSidebarNotifBadge" runat="server" CssClass="badge-dot dashboard-hidden-badge" Visible="false" style="display:none !important;" />
     </a>

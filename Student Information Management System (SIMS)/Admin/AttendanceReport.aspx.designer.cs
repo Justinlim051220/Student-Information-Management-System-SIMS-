@@ -11,7 +11,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
 {
 
 
-    public partial class Reports
+    public partial class AttendanceReport
     {
 
         /// <summary>
@@ -33,24 +33,6 @@ namespace Student_Information_Management_System__SIMS_.Admin
         protected global::System.Web.UI.ScriptManager ScriptManager1;
 
         /// <summary>
-        /// ddlReportType control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.DropDownList ddlReportType;
-
-        /// <summary>
-        /// pnlAcademicSoon control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlAcademicSoon;
-
-        /// <summary>
         /// ddlSession control.
         /// </summary>
         /// <remarks>
@@ -67,15 +49,6 @@ namespace Student_Information_Management_System__SIMS_.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.DropDownList ddlProgramme;
-
-        /// <summary>
-        /// pnlCourseFilter control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlCourseFilter;
 
         /// <summary>
         /// ddlCourse control.
@@ -123,22 +96,31 @@ namespace Student_Information_Management_System__SIMS_.Admin
         protected global::System.Web.UI.WebControls.Panel pnlReport;
 
         /// <summary>
-        /// lblReportTitle control.
+        /// lblGeneratedAt control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblReportTitle;
+        protected global::System.Web.UI.WebControls.Label lblGeneratedAt;
 
         /// <summary>
-        /// lblSession control.
+        /// lblCourseCode control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSession;
+        protected global::System.Web.UI.WebControls.Label lblCourseCode;
+
+        /// <summary>
+        /// lblCourseName control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblCourseName;
 
         /// <summary>
         /// lblProgramme control.
@@ -150,103 +132,40 @@ namespace Student_Information_Management_System__SIMS_.Admin
         protected global::System.Web.UI.WebControls.Label lblProgramme;
 
         /// <summary>
-        /// pnlCourseInfo control.
+        /// lblSession control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlCourseInfo;
+        protected global::System.Web.UI.WebControls.Label lblSession;
 
         /// <summary>
-        /// lblCourse control.
+        /// lblTotalStudents control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblCourse;
+        protected global::System.Web.UI.WebControls.Label lblTotalStudents;
 
         /// <summary>
-        /// pnlSummary control.
+        /// lblTotalClasses control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlSummary;
+        protected global::System.Web.UI.WebControls.Label lblTotalClasses;
 
         /// <summary>
-        /// lblSummaryLabel1 control.
+        /// lblAverageAttendance control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSummaryLabel1;
-
-        /// <summary>
-        /// lblSummaryValue1 control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSummaryValue1;
-
-        /// <summary>
-        /// lblSummaryLabel2 control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSummaryLabel2;
-
-        /// <summary>
-        /// lblSummaryValue2 control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSummaryValue2;
-
-        /// <summary>
-        /// lblSummaryLabel3 control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSummaryLabel3;
-
-        /// <summary>
-        /// lblSummaryValue3 control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSummaryValue3;
-
-        /// <summary>
-        /// lblSummaryLabel4 control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSummaryLabel4;
-
-        /// <summary>
-        /// lblSummaryValue4 control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSummaryValue4;
+        protected global::System.Web.UI.WebControls.Label lblAverageAttendance;
 
         /// <summary>
         /// btnExportCsv control.
@@ -255,7 +174,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnExportCsv;
+        protected global::System.Web.UI.WebControls.LinkButton btnExportCsv;
 
         /// <summary>
         /// btnExportExcel control.
@@ -264,7 +183,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnExportExcel;
+        protected global::System.Web.UI.WebControls.LinkButton btnExportExcel;
 
         /// <summary>
         /// btnExportPdf control.
@@ -273,25 +192,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnExportPdf;
-
-        /// <summary>
-        /// btnPrint control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnPrint;
-
-        /// <summary>
-        /// pnlDateSummary control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlDateSummary;
+        protected global::System.Web.UI.WebControls.LinkButton btnExportPdf;
 
         /// <summary>
         /// gvDateSummary control.
@@ -303,13 +204,13 @@ namespace Student_Information_Management_System__SIMS_.Admin
         protected global::System.Web.UI.WebControls.GridView gvDateSummary;
 
         /// <summary>
-        /// gvReport control.
+        /// gvMatrix control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.GridView gvReport;
+        protected global::System.Web.UI.WebControls.GridView gvMatrix;
 
         /// <summary>
         /// pnlEmpty control.

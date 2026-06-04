@@ -556,7 +556,45 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 new SqlParameter("@Semester", semester)
             };
 
-            DatabaseHelper.ExecuteNonQuery(sql, p);
+            int affected = DatabaseHelper.ExecuteNonQuery(sql, p);
+
+            if (affected > 0)
+            {
+                SendDropDecisionNotificationToStudent(studentId, courseId, session, newStatus);
+            }
+        }
+
+        private void SendDropDecisionNotificationToStudent(string studentId, int courseId, string session, string newStatus)
+        {
+            string title = newStatus == "Dropped" ? "Course Drop Approved" : "Course Drop Rejected";
+            string decisionText = newStatus == "Dropped" ? "approved" : "rejected";
+
+            string sql = @"
+                INSERT INTO Notifications (UserId, Title, Message, IsRead, CreatedAt)
+                SELECT
+                    s.UserId,
+                    @Title,
+                    'Your course drop request has been ' + @DecisionText + ' by admin.' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10) +
+                    'Course: ' + c.CourseCode + ' - ' + c.CourseName + CHAR(13) + CHAR(10) +
+                    'Session: ' + @Session + CHAR(13) + CHAR(10) +
+                    'Status: ' + @NewStatus,
+                    0,
+                    GETDATE()
+                FROM StudentDetails s
+                INNER JOIN Users u ON u.UserId = s.UserId
+                INNER JOIN Courses c ON c.CourseId = @CourseId
+                WHERE s.StudentId = @StudentId
+                  AND u.IsActive = 1";
+
+            DatabaseHelper.ExecuteNonQuery(sql, new[]
+            {
+                new SqlParameter("@StudentId", studentId),
+                new SqlParameter("@CourseId", courseId),
+                new SqlParameter("@Session", session),
+                new SqlParameter("@NewStatus", newStatus),
+                new SqlParameter("@Title", title),
+                new SqlParameter("@DecisionText", decisionText)
+            });
         }
 
         private string GetCurrentAdminId()

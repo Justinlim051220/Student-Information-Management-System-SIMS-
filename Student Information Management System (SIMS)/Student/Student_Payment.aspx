@@ -41,6 +41,7 @@
         .status-paid { background:#e9f9ef; color:#188044; border:1px solid #bfe8cc; }
         .status-rejected { background:#fdecec; color:#b42318; border:1px solid #f5c2c2; }
         .status-overdue { background:#f4ecff; color:#6c3483; border:1px solid #ddc7f5; }
+        .status-not-active { background:#eef2f7; color:#475569; border:1px solid #cbd5e1; }
 
         .receipt-link { display:inline-flex; align-items:center; gap:7px; color:var(--orange-dark); font-weight:900; text-decoration:none; white-space:nowrap; }
         .receipt-empty { color:var(--text-muted); font-size:12px; font-weight:800; white-space:nowrap; }
@@ -54,9 +55,48 @@
         .data-table td:nth-child(3) { line-height:1.7; min-width:430px; }
         .data-table th:last-child, .data-table td:last-child { min-width:280px; }
 
-        .action-panel { display:flex; flex-direction:column; gap:9px; align-items:flex-start; min-width:260px; }
-        .action-panel .btn { padding:8px 14px; font-size:.82rem; border-radius:999px; text-decoration:none; display:inline-flex; align-items:center; gap:7px; justify-content:center; }
-        .action-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .action-panel {
+            display:flex;
+            flex-direction:column;
+            gap:14px;
+            align-items:flex-start;
+            min-width:260px;
+            padding:6px 0;
+        }
+
+        .action-panel .btn {
+            padding:9px 16px;
+            font-size:.84rem;
+            border-radius:999px;
+            text-decoration:none;
+            display:inline-flex;
+            align-items:center;
+            gap:7px;
+            justify-content:center;
+            line-height:1;
+        }
+
+        .action-panel .btn.btn-outline {
+            min-width:136px;
+        }
+
+        .action-row {
+            display:flex;
+            flex-direction:column;
+            align-items:stretch;
+            gap:10px;
+            width:100%;
+            max-width:250px;
+            margin-top:0;
+        }
+
+        .action-panel .btn.btn-primary {
+            width:100%;
+            height:42px;
+            border-radius:999px;
+            font-weight:900;
+            box-shadow:0 8px 18px rgba(232,137,10,.24);
+        }
 
         .file-picker { max-width:180px; font-size:12px; font-family:var(--font-primary); color:var(--text-secondary); }
         .file-picker::file-selector-button { margin-right:10px; border:none; border-radius:999px; background:#fff3da; color:#a86405; padding:8px 13px; font-family:var(--font-primary); font-weight:900; cursor:pointer; transition:all .18s; }
@@ -116,7 +156,7 @@
         }
 
 
-        .payment-refresh-btn{height:44px;padding:0 22px;border-radius:12px;font-weight:900;}
+        .payment-refresh-btn{height:44px;padding:0 24px;border-radius:999px;font-weight:900;}
         .payment-filter-toolbar{width:100%;}
 
         .payment-filter-select {
@@ -136,7 +176,7 @@
             height: 44px;
             min-width: 118px;
             border: 0;
-            border-radius: 12px;
+            border-radius: 999px;
             background: linear-gradient(135deg, #f5a623, #e8890a);
             color: #fff;
             font-size: 14px;
@@ -238,6 +278,51 @@
         .upload-disabled {
             opacity: .55;
             cursor: not-allowed;
+        }
+
+
+
+        .receipt-file-input {
+            width: 100%;
+            max-width: 250px;
+            font-size: 12px;
+            font-family: var(--font-primary);
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .receipt-file-input::file-selector-button {
+            margin-right: 10px;
+            height: 38px;
+            border: 1px solid #f5a623;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #fff7d6, #ffe2a8);
+            color: #a86405;
+            padding: 0 15px;
+            font-family: var(--font-primary);
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(245, 166, 35, .18);
+            transition: all .18s ease;
+        }
+
+        .receipt-file-input::file-selector-button:hover {
+            background: linear-gradient(135deg, #f5a623, #e8890a);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .not-active-note {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 900;
         }
 
         @media (max-width: 768px) {
@@ -501,7 +586,7 @@
             <p>View pending tuition records and upload your payment receipt for admin verification.</p>
         </div>
 
-        <asp:Panel ID="pnlMessage" runat="server" Visible="false" CssClass="alert">
+        <asp:Panel ID="pnlMessage" runat="server" Visible="false" CssClass="alert" Style="display:none;">
             <asp:Label ID="lblMessage" runat="server"></asp:Label>
         </asp:Panel>
 
@@ -542,7 +627,7 @@
                     <div class="form-group"><label>Session</label><asp:TextBox ID="txtDetailSession" runat="server" CssClass="form-control" ReadOnly="true" /></div>
                 </div>
                 <div class="grid-2">
-                    <div class="form-group"><label>Session</label><asp:TextBox ID="txtDetailStatus" runat="server" CssClass="form-control" ReadOnly="true" /></div>
+                    <div class="form-group"><label>Status</label><asp:TextBox ID="txtDetailStatus" runat="server" CssClass="form-control" ReadOnly="true" /></div>
                     <div class="form-group"><label>Amount</label><asp:TextBox ID="txtDetailAmount" runat="server" CssClass="form-control" ReadOnly="true" /></div>
                 </div>
                 <div class="form-group">
@@ -563,6 +648,17 @@
                             <label>Filter by Session</label>
                             <asp:DropDownList ID="ddlSession" runat="server" CssClass="payment-filter-select" AutoPostBack="true" OnSelectedIndexChanged="ddlSession_SelectedIndexChanged" />
                         </div>
+                        <div class="payment-filter-group">
+                            <label>Filter by Status</label>
+                            <asp:DropDownList ID="ddlStatus" runat="server" CssClass="payment-filter-select" AutoPostBack="true" OnSelectedIndexChanged="ddlStatus_SelectedIndexChanged">
+                                <asp:ListItem Text="-- All Status --" Value="" />
+                                <asp:ListItem Text="Pending" Value="Pending" />
+                                <asp:ListItem Text="Paid" Value="Paid" />
+                                <asp:ListItem Text="Rejected" Value="Rejected" />
+                                <asp:ListItem Text="Overdue" Value="Overdue" />
+                                <asp:ListItem Text="Not Active" Value="Not Active" />
+                            </asp:DropDownList>
+                        </div>
                     </div>
                     <div class="payment-filter-right">
                         <asp:Button ID="btnRefresh" runat="server" Text="Refresh" CssClass="btn btn-outline payment-refresh-btn" OnClick="btnRefresh_Click" CausesValidation="false" />
@@ -571,14 +667,14 @@
 
                 <div class="table-wrapper">
                     <asp:GridView ID="gvPayments" runat="server" CssClass="data-table" AutoGenerateColumns="false" EmptyDataText="No payment record found."
-                        DataKeyNames="Session,FeeType" OnRowCommand="gvPayments_RowCommand" OnRowDataBound="gvPayments_RowDataBound">
+                        DataKeyNames="FeeId" OnRowCommand="gvPayments_RowCommand" OnRowDataBound="gvPayments_RowDataBound">
                         <Columns>
                             <asp:BoundField DataField="PaymentId" HeaderText="Payment Ref" />
                             <asp:BoundField DataField="Session" HeaderText="Session" />
                             <asp:TemplateField HeaderText="Courses to Pay">
                                 <ItemTemplate><asp:Literal ID="litCoursePaymentList" runat="server" Text='<%# Eval("CoursePaymentList") %>' /></ItemTemplate>
                             </asp:TemplateField>
-                            <asp:BoundField DataField="Amount" HeaderText="Total (RM)" DataFormatString="{0:N2}" />
+                            <asp:BoundField DataField="DisplayAmount" HeaderText="Total (RM)" DataFormatString="{0:N2}" />
                             <asp:TemplateField HeaderText="Status"><ItemTemplate><asp:Label ID="lblStatusBadge" runat="server" /></ItemTemplate></asp:TemplateField>
                             <asp:TemplateField HeaderText="Receipt"><ItemTemplate><asp:Literal ID="litReceipt" runat="server" /></ItemTemplate></asp:TemplateField>
                             <asp:TemplateField HeaderText="Action">
