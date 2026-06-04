@@ -176,7 +176,6 @@
     <Content Include="Scripts\WebForms\WebUIValidation.js" />
     <Content Include="SIMS_Patch_PasswordResets.sql" />
     <Content Include="Site.Master" />
-    <Content Include="Student\Contacts.aspx" />
     <Content Include="Student\MyCourses.aspx" />
     <Content Include="Student\Notification.aspx" />
     <Content Include="Student\Student_Dashboard.aspx" />
@@ -408,13 +407,6 @@
     </Compile>
     <Compile Include="Site.Mobile.Master.designer.cs">
       <DependentUpon>Site.Mobile.Master</DependentUpon>
-    </Compile>
-    <Compile Include="Student\Contacts.aspx.cs">
-      <DependentUpon>Contacts.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Student\Contacts.aspx.designer.cs">
-      <DependentUpon>Contacts.aspx</DependentUpon>
     </Compile>
     <Compile Include="Student\MyCourses.aspx.cs">
       <DependentUpon>MyCourses.aspx</DependentUpon>
