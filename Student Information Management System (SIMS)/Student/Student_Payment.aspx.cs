@@ -79,17 +79,18 @@ namespace Student_Information_Management_System__SIMS_
 
         private void LoadStats(string studentId)
         {
-            string countSql = @"
-                SELECT COUNT(*)
-                FROM Fees
-                WHERE StudentId = @StudentId
-                  AND Status = 'Pending'";
+            string baseWhere = @"
+                FROM Fees f
+                LEFT JOIN Enrollment e ON e.EnrollmentId = f.EnrollmentId
+                WHERE f.StudentId = @StudentId
+                  AND f.Status = 'Pending'
+                  AND NOT (
+                      ISNULL(e.Status, '') IN ('Drop Pending', 'Dropped')
+                      AND ISNULL(f.PaymentReceiptPath, '') = ''
+                  )";
 
-            string amountSql = @"
-                SELECT ISNULL(SUM(Amount), 0)
-                FROM Fees
-                WHERE StudentId = @StudentId
-                  AND Status = 'Pending'";
+            string countSql = "SELECT COUNT(*) " + baseWhere;
+            string amountSql = "SELECT ISNULL(SUM(f.Amount), 0) " + baseWhere;
 
             lblPendingCount.Text = Convert.ToInt32(DatabaseHelper.ExecuteScalar(countSql, new[] { new SqlParameter("@StudentId", studentId) })).ToString();
             lblPendingAmount.Text = Convert.ToDecimal(DatabaseHelper.ExecuteScalar(amountSql, new[] { new SqlParameter("@StudentId", studentId) })).ToString("N2");
@@ -98,39 +99,66 @@ namespace Student_Information_Management_System__SIMS_
         private void LoadPayments(string studentId)
         {
             string sql = @"
-                SELECT (f.Session + ' - ' + f.FeeType) AS PaymentId,
-                       f.StudentId,
-                       f.Session,
-                       f.FeeType,
-                       f.Amount,
-                       f.Status,
-                       f.PaymentDate,
-                       ISNULL(f.PaymentReceiptPath, '') AS PaymentReceiptPath,
-                       ISNULL(
-                           STUFF((
-                               SELECT '<div class=""payment-course-line""><span class=""payment-course-code"">' + c.CourseCode + '</span><span class=""payment-course-name"">' + c.CourseName + '</span><span class=""payment-course-fee"">RM ' + FORMAT(ISNULL(cf.Amount, 0), 'N2') + '</span></div>'
-                               FROM Enrollment e
-                               INNER JOIN Courses c ON e.CourseId = c.CourseId
-                               LEFT JOIN CourseFees cf ON cf.CourseId = c.CourseId AND cf.Session = e.Session
-                               WHERE e.StudentId = f.StudentId
-                                 AND e.Session = f.Session
-                                 AND e.Status = 'Active'
-                               ORDER BY c.CourseCode
-                               FOR XML PATH(''), TYPE
-                           ).value('.', 'NVARCHAR(MAX)'), 1, 0, ''),
-                           '<span class=""receipt-empty"">No active enrolled course found</span>'
-                       ) AS CoursePaymentList
-                FROM Fees f
-                WHERE f.StudentId = @StudentId
-                  AND (@Session = '' OR f.Session = @Session)
-                ORDER BY CASE WHEN f.Status = 'Pending' THEN 0 WHEN f.Status = 'Rejected' THEN 1 WHEN f.Status = 'Overdue' THEN 2 ELSE 3 END,
-                         f.Session DESC,
-                         f.FeeType ASC";
+                SELECT x.FeeId,
+                       x.EnrollmentId,
+                       ('PAY-' + RIGHT('000000' + CAST(x.FeeId AS VARCHAR(6)), 6)) AS PaymentId,
+                       x.StudentId,
+                       x.Session,
+                       x.FeeType,
+                       x.DisplayAmount,
+                       x.DisplayStatus,
+                       x.PaymentDate,
+                       x.PaymentReceiptPath,
+                       ISNULL('<div class=""payment-course-line""><span class=""payment-course-code"">' + x.CourseCode + '</span><span class=""payment-course-name"">' + x.CourseName + '</span><span class=""payment-course-fee"">RM ' + FORMAT(x.DisplayAmount, 'N2') + '</span></div>',
+                           '<span class=""receipt-empty"">Legacy payment record</span>') AS CoursePaymentList
+                FROM
+                (
+                    SELECT f.FeeId,
+                           ISNULL(f.EnrollmentId, 0) AS EnrollmentId,
+                           f.StudentId,
+                           f.Session,
+                           f.FeeType,
+                           f.Amount,
+                           CASE
+                               WHEN ISNULL(e.Status, '') IN ('Drop Pending', 'Dropped')
+                                    AND f.Status = 'Pending'
+                                    AND ISNULL(f.PaymentReceiptPath, '') = ''
+                               THEN CAST(0 AS DECIMAL(18,2))
+                               ELSE f.Amount
+                           END AS DisplayAmount,
+                           CASE
+                               WHEN ISNULL(e.Status, '') IN ('Drop Pending', 'Dropped')
+                                    AND f.Status = 'Pending'
+                                    AND ISNULL(f.PaymentReceiptPath, '') = ''
+                               THEN 'Not Active'
+                               ELSE f.Status
+                           END AS DisplayStatus,
+                           f.PaymentDate,
+                           ISNULL(f.PaymentReceiptPath, '') AS PaymentReceiptPath,
+                           c.CourseCode,
+                           c.CourseName
+                    FROM Fees f
+                    LEFT JOIN Enrollment e ON e.EnrollmentId = f.EnrollmentId
+                    LEFT JOIN Courses c ON c.CourseId = e.CourseId
+                    WHERE f.StudentId = @StudentId
+                      AND (@Session = '' OR f.Session = @Session)
+                ) x
+                WHERE (@Status = '' OR x.DisplayStatus = @Status)
+                ORDER BY CASE x.DisplayStatus
+                            WHEN 'Pending' THEN 0
+                            WHEN 'Rejected' THEN 1
+                            WHEN 'Overdue' THEN 2
+                            WHEN 'Paid' THEN 3
+                            WHEN 'Not Active' THEN 4
+                            ELSE 5
+                         END,
+                         x.FeeId DESC";
 
             SqlParameter[] p =
             {
                 new SqlParameter("@StudentId", studentId),
-                new SqlParameter("@Session", ddlSession.SelectedValue ?? "")
+                new SqlParameter("@Session", ddlSession.SelectedValue ?? ""),
+                new SqlParameter("@Status", ddlStatus.SelectedValue ?? "")
             };
 
             gvPayments.DataSource = DatabaseHelper.ExecuteQuery(sql, p);
@@ -138,6 +166,13 @@ namespace Student_Information_Management_System__SIMS_
         }
 
         protected void ddlSession_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string studentId = SessionHelper.GetProfileId(Session);
+            LoadStats(studentId);
+            LoadPayments(studentId);
+        }
+
+        protected void ddlStatus_SelectedIndexChanged(object sender, EventArgs e)
         {
             string studentId = SessionHelper.GetProfileId(Session);
             LoadStats(studentId);
@@ -178,18 +213,17 @@ namespace Student_Information_Management_System__SIMS_
             if (!int.TryParse(Convert.ToString(e.CommandArgument), out rowIndex)) return;
             if (rowIndex < 0 || rowIndex >= gvPayments.Rows.Count) return;
 
-            string session = Convert.ToString(gvPayments.DataKeys[rowIndex].Values["Session"]);
-            string feeType = Convert.ToString(gvPayments.DataKeys[rowIndex].Values["FeeType"]);
+            int feeId = Convert.ToInt32(gvPayments.DataKeys[rowIndex].Values["FeeId"]);
 
             if (e.CommandName == "ViewPayment")
             {
-                LoadPaymentDetail(session, feeType);
+                LoadPaymentDetail(feeId);
             }
             else if (e.CommandName == "UploadReceipt")
             {
                 GridViewRow row = gvPayments.Rows[rowIndex];
-                FileUpload fu = row.FindControl("fuReceipt") as FileUpload;
-                UploadReceipt(session, feeType, fu);
+                FileUpload fu = FindControlRecursive(row, "fuReceipt") as FileUpload;
+                UploadReceipt(feeId, fu);
             }
         }
 
@@ -197,15 +231,15 @@ namespace Student_Information_Management_System__SIMS_
         {
             if (e.Row.RowType != DataControlRowType.DataRow) return;
 
-            string status = Convert.ToString(DataBinder.Eval(e.Row.DataItem, "Status"));
+            string status = Convert.ToString(DataBinder.Eval(e.Row.DataItem, "DisplayStatus"));
             string receiptPath = Convert.ToString(DataBinder.Eval(e.Row.DataItem, "PaymentReceiptPath"));
 
-            Label lblStatusBadge = e.Row.FindControl("lblStatusBadge") as Label;
-            Literal litReceipt = e.Row.FindControl("litReceipt") as Literal;
-            LinkButton btnUpload = e.Row.FindControl("btnUpload") as LinkButton;
-            FileUpload fuReceipt = e.Row.FindControl("fuReceipt") as FileUpload;
-            Label lblActionNote = e.Row.FindControl("lblActionNote") as Label;
-            HtmlGenericControl uploadBox = e.Row.FindControl("uploadBox") as HtmlGenericControl;
+            Label lblStatusBadge = FindControlRecursive(e.Row, "lblStatusBadge") as Label;
+            Literal litReceipt = FindControlRecursive(e.Row, "litReceipt") as Literal;
+            LinkButton btnUpload = FindControlRecursive(e.Row, "btnUpload") as LinkButton;
+            FileUpload fuReceipt = FindControlRecursive(e.Row, "fuReceipt") as FileUpload;
+            Label lblActionNote = FindControlRecursive(e.Row, "lblActionNote") as Label;
+            HtmlGenericControl uploadBox = FindControlRecursive(e.Row, "uploadBox") as HtmlGenericControl;
 
             if (lblStatusBadge != null)
             {
@@ -219,7 +253,7 @@ namespace Student_Information_Management_System__SIMS_
             }
 
             bool hasReceipt = !string.IsNullOrWhiteSpace(receiptPath);
-            bool canUpload = !hasReceipt && status != "Paid";
+            bool canUpload = !hasReceipt && (status == "Pending" || status == "Rejected");
 
             if (uploadBox != null) uploadBox.Visible = canUpload;
             if (btnUpload != null) btnUpload.Visible = canUpload;
@@ -237,29 +271,66 @@ namespace Student_Information_Management_System__SIMS_
                     lblActionNote.CssClass = "receipt-uploaded";
                     lblActionNote.Text = "Payment approved.";
                 }
+                else if (status == "Not Active")
+                {
+                    lblActionNote.CssClass = "not-active-note";
+                    lblActionNote.Text = "No payment action required.";
+                }
                 else
                 {
-                    lblActionNote.Text = "Upload one receipt only.";
+                    lblActionNote.Text = string.Empty;
+                    lblActionNote.CssClass = "receipt-empty";
                 }
             }
         }
 
-        private void LoadPaymentDetail(string session, string feeType)
+        private Control FindControlRecursive(Control root, string id)
+        {
+            if (root == null) return null;
+            if (root.ID == id) return root;
+
+            foreach (Control child in root.Controls)
+            {
+                Control found = FindControlRecursive(child, id);
+                if (found != null) return found;
+            }
+
+            return null;
+        }
+
+        private void LoadPaymentDetail(int feeId)
         {
             string studentId = SessionHelper.GetProfileId(Session);
 
             string sql = @"
-                SELECT (Session + ' - ' + FeeType) AS PaymentId, Session, FeeType, Amount, Status
-                FROM Fees
-                WHERE StudentId = @StudentId
-                  AND Session = @Session
-                  AND FeeType = @FeeType";
+                SELECT ('PAY-' + RIGHT('000000' + CAST(f.FeeId AS VARCHAR(6)), 6)) AS PaymentId,
+                       f.FeeId,
+                       f.EnrollmentId,
+                       f.Session,
+                       f.FeeType,
+                       CASE
+                           WHEN ISNULL(e.Status, '') IN ('Drop Pending', 'Dropped')
+                                AND f.Status = 'Pending'
+                                AND ISNULL(f.PaymentReceiptPath, '') = ''
+                           THEN CAST(0 AS DECIMAL(18,2))
+                           ELSE f.Amount
+                       END AS DisplayAmount,
+                       CASE
+                           WHEN ISNULL(e.Status, '') IN ('Drop Pending', 'Dropped')
+                                AND f.Status = 'Pending'
+                                AND ISNULL(f.PaymentReceiptPath, '') = ''
+                           THEN 'Not Active'
+                           ELSE f.Status
+                       END AS DisplayStatus
+                FROM Fees f
+                LEFT JOIN Enrollment e ON e.EnrollmentId = f.EnrollmentId
+                WHERE f.StudentId = @StudentId
+                  AND f.FeeId = @FeeId";
 
             DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
             {
                 new SqlParameter("@StudentId", studentId),
-                new SqlParameter("@Session", session),
-                new SqlParameter("@FeeType", feeType)
+                new SqlParameter("@FeeId", feeId)
             });
 
             if (dt.Rows.Count == 0)
@@ -271,47 +342,44 @@ namespace Student_Information_Management_System__SIMS_
             DataRow row = dt.Rows[0];
             txtDetailPaymentId.Text = row["PaymentId"].ToString();
             txtDetailSession.Text = row["Session"].ToString();
-            txtDetailStatus.Text = row["Status"].ToString();
-            txtDetailAmount.Text = "RM " + Convert.ToDecimal(row["Amount"]).ToString("N2");
-            litDetailCourses.Text = GetCoursePaymentHtml(studentId, row["Session"].ToString());
+            txtDetailStatus.Text = row["DisplayStatus"].ToString();
+            txtDetailAmount.Text = "RM " + Convert.ToDecimal(row["DisplayAmount"]).ToString("N2");
+            int enrollmentId = row["EnrollmentId"] == DBNull.Value ? 0 : Convert.ToInt32(row["EnrollmentId"]);
+            litDetailCourses.Text = GetCoursePaymentHtml(enrollmentId, row["DisplayAmount"]);
             pnlDetail.Visible = true;
         }
 
-        private string GetCoursePaymentHtml(string studentId, string session)
+        private string GetCoursePaymentHtml(int enrollmentId, object amountObj)
         {
+            if (enrollmentId <= 0)
+            {
+                return "<span class='receipt-empty'>Legacy payment record. Course was not linked to an enrollment ID.</span>";
+            }
+
             string sql = @"
-                SELECT c.CourseCode, c.CourseName, ISNULL(cf.Amount, 0) AS Amount
+                SELECT c.CourseCode, c.CourseName
                 FROM Enrollment e
                 INNER JOIN Courses c ON e.CourseId = c.CourseId
-                LEFT JOIN CourseFees cf ON cf.CourseId = c.CourseId AND cf.Session = e.Session
-                WHERE e.StudentId = @StudentId
-                  AND e.Session = @Session
-                  AND e.Status = 'Active'
-                ORDER BY c.CourseCode";
+                WHERE e.EnrollmentId = @EnrollmentId";
 
             DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
             {
-                new SqlParameter("@StudentId", studentId),
-                new SqlParameter("@Session", session)
+                new SqlParameter("@EnrollmentId", enrollmentId)
             });
 
             if (dt.Rows.Count == 0)
             {
-                return "<span class='receipt-empty'>No active course found for this payment.</span>";
+                return "<span class='receipt-empty'>Enrollment course not found for this payment.</span>";
             }
 
-            string html = "<div class='payment-course-list'>";
-            foreach (DataRow r in dt.Rows)
-            {
-                html += "<div class='payment-course-line'><span class='payment-course-code'>" + HttpUtility.HtmlEncode(r["CourseCode"].ToString()) + "</span>" +
-                        "<span class='payment-course-name'>" + HttpUtility.HtmlEncode(r["CourseName"].ToString()) + "</span>" +
-                        "<span class='payment-course-fee'>RM " + Convert.ToDecimal(r["Amount"]).ToString("N2") + "</span></div>";
-            }
-            html += "</div>";
-            return html;
+            decimal amount = Convert.ToDecimal(amountObj);
+            DataRow r = dt.Rows[0];
+            return "<div class='payment-course-list'><div class='payment-course-line'><span class='payment-course-code'>" + HttpUtility.HtmlEncode(r["CourseCode"].ToString()) + "</span>" +
+                   "<span class='payment-course-name'>" + HttpUtility.HtmlEncode(r["CourseName"].ToString()) + "</span>" +
+                   "<span class='payment-course-fee'>RM " + amount.ToString("N2") + "</span></div></div>";
         }
 
-        private void UploadReceipt(string session, string feeType, FileUpload fu)
+        private void UploadReceipt(int feeId, FileUpload fu)
         {
             string studentId = SessionHelper.GetProfileId(Session);
 
@@ -321,23 +389,35 @@ namespace Student_Information_Management_System__SIMS_
                 return;
             }
 
-            if (!IsStudentPayment(session, feeType, studentId))
+            DataTable payment = GetStudentPayment(feeId, studentId);
+            if (payment.Rows.Count == 0)
             {
                 ShowMessage("Invalid payment selected.", "error");
                 return;
             }
 
-            string existingReceipt = GetExistingReceipt(session, feeType, studentId);
+            DataRow paymentRow = payment.Rows[0];
+            string session = paymentRow["Session"].ToString();
+            string feeType = paymentRow["FeeType"].ToString();
+            string existingReceipt = paymentRow["PaymentReceiptPath"].ToString();
+            string status = paymentRow["Status"].ToString();
+
             if (!string.IsNullOrWhiteSpace(existingReceipt))
             {
                 ShowMessage("Receipt already uploaded. You cannot upload another receipt for this payment.", "error");
                 return;
             }
 
-            string status = GetPaymentStatus(session, feeType, studentId);
             if (status == "Paid")
             {
                 ShowMessage("This payment has already been approved. Receipt cannot be uploaded.", "error");
+                return;
+            }
+
+            string enrollmentStatus = paymentRow.Table.Columns.Contains("EnrollmentStatus") ? paymentRow["EnrollmentStatus"].ToString() : string.Empty;
+            if ((enrollmentStatus == "Drop Pending" || enrollmentStatus == "Dropped") && status == "Pending")
+            {
+                ShowMessage("This enrollment is not active. No payment action is required.", "error");
                 return;
             }
 
@@ -354,7 +434,7 @@ namespace Student_Information_Management_System__SIMS_
                 return;
             }
 
-            string folderRelative = "~/Student/PaymentReceipt/" + MakeSafeFolderName(session + "_" + feeType) + "/";
+            string folderRelative = "~/Student/PaymentReceipt/" + MakeSafeFolderName("PAY_" + feeId.ToString()) + "/";
             string folderPhysical = Server.MapPath(folderRelative);
             if (!Directory.Exists(folderPhysical)) Directory.CreateDirectory(folderPhysical);
 
@@ -369,17 +449,15 @@ namespace Student_Information_Management_System__SIMS_
                 SET PaymentReceiptPath = @PaymentReceiptPath,
                     PaymentReceiptUploadedAt = GETDATE(),
                     Status = 'Pending'
-                WHERE StudentId = @StudentId
-                  AND Session = @Session
-                  AND FeeType = @FeeType
+                WHERE FeeId = @FeeId
+                  AND StudentId = @StudentId
                   AND (PaymentReceiptPath IS NULL OR LTRIM(RTRIM(PaymentReceiptPath)) = '')";
 
             int affected = DatabaseHelper.ExecuteNonQuery(updateSql, new[]
             {
                 new SqlParameter("@PaymentReceiptPath", dbPath),
-                new SqlParameter("@StudentId", studentId),
-                new SqlParameter("@Session", session),
-                new SqlParameter("@FeeType", feeType)
+                new SqlParameter("@FeeId", feeId),
+                new SqlParameter("@StudentId", studentId)
             });
 
             if (affected == 0)
@@ -388,46 +466,64 @@ namespace Student_Information_Management_System__SIMS_
                 return;
             }
 
+            NotifyAdminsPaymentReceiptUploaded(studentId, session, feeType, "PAY-" + feeId.ToString("D6"), dbPath);
+
             LoadSessionFilter(studentId);
             LoadStats(studentId);
             LoadPayments(studentId);
             ShowMessage("Receipt uploaded successfully. Please wait for admin verification.", "success");
         }
 
-        private bool IsStudentPayment(string session, string feeType, string studentId)
+        private DataTable GetStudentPayment(int feeId, string studentId)
         {
-            string sql = "SELECT COUNT(*) FROM Fees WHERE StudentId = @StudentId AND Session = @Session AND FeeType = @FeeType";
-            object result = DatabaseHelper.ExecuteScalar(sql, new[]
+            string sql = @"
+                SELECT f.FeeId,
+                       f.Session,
+                       f.FeeType,
+                       f.Status,
+                       ISNULL(f.PaymentReceiptPath, '') AS PaymentReceiptPath,
+                       ISNULL(e.Status, '') AS EnrollmentStatus
+                FROM Fees f
+                LEFT JOIN Enrollment e ON e.EnrollmentId = f.EnrollmentId
+                WHERE f.FeeId = @FeeId
+                  AND f.StudentId = @StudentId";
+            return DatabaseHelper.ExecuteQuery(sql, new[]
             {
-                new SqlParameter("@StudentId", studentId),
-                new SqlParameter("@Session", session),
-                new SqlParameter("@FeeType", feeType)
+                new SqlParameter("@FeeId", feeId),
+                new SqlParameter("@StudentId", studentId)
             });
-            return result != null && Convert.ToInt32(result) > 0;
         }
 
-        private string GetPaymentStatus(string session, string feeType, string studentId)
+        private void NotifyAdminsPaymentReceiptUploaded(string studentId, string session, string feeType, string paymentRef, string receiptPath)
         {
-            string sql = "SELECT Status FROM Fees WHERE StudentId = @StudentId AND Session = @Session AND FeeType = @FeeType";
-            object result = DatabaseHelper.ExecuteScalar(sql, new[]
-            {
-                new SqlParameter("@StudentId", studentId),
-                new SqlParameter("@Session", session),
-                new SqlParameter("@FeeType", feeType)
-            });
-            return result == null || result == DBNull.Value ? "" : result.ToString();
-        }
+            string sql = @"
+                INSERT INTO Notifications (UserId, Title, Message, IsRead, CreatedAt)
+                SELECT 
+                    h.UserId,
+                    'New Payment Receipt Uploaded',
+                    'A student has uploaded a payment receipt for admin verification.' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10) +
+                    'Payment Ref: ' + @PaymentRef + CHAR(13) + CHAR(10) +
+                    'Student ID: ' + s.StudentId + CHAR(13) + CHAR(10) +
+                    'Student Name: ' + s.FirstName + ' ' + s.LastName + CHAR(13) + CHAR(10) +
+                    'Session: ' + @Session + CHAR(13) + CHAR(10) +
+                    'Fee Type: ' + @FeeType + CHAR(13) + CHAR(10) +
+                    'Receipt: ' + @ReceiptPath,
+                    0,
+                    GETDATE()
+                FROM HoPDetails h
+                INNER JOIN Users u ON u.UserId = h.UserId
+                CROSS JOIN StudentDetails s
+                WHERE s.StudentId = @StudentId
+                  AND u.IsActive = 1";
 
-        private string GetExistingReceipt(string session, string feeType, string studentId)
-        {
-            string sql = "SELECT ISNULL(PaymentReceiptPath, '') FROM Fees WHERE StudentId = @StudentId AND Session = @Session AND FeeType = @FeeType";
-            object result = DatabaseHelper.ExecuteScalar(sql, new[]
+            DatabaseHelper.ExecuteNonQuery(sql, new[]
             {
                 new SqlParameter("@StudentId", studentId),
                 new SqlParameter("@Session", session),
-                new SqlParameter("@FeeType", feeType)
+                new SqlParameter("@FeeType", feeType),
+                new SqlParameter("@PaymentRef", paymentRef),
+                new SqlParameter("@ReceiptPath", receiptPath)
             });
-            return result == null || result == DBNull.Value ? "" : result.ToString();
         }
 
         private string MakeSafeFolderName(string value)
@@ -458,6 +554,7 @@ namespace Student_Information_Management_System__SIMS_
                 case "Pending": return "status-pending";
                 case "Rejected": return "status-rejected";
                 case "Overdue": return "status-overdue";
+                case "Not Active": return "status-not-active";
                 default: return "status-pending";
             }
         }
@@ -469,9 +566,10 @@ namespace Student_Information_Management_System__SIMS_
 
         private void ShowMessage(string message, string type)
         {
-            pnlMessage.Visible = true;
-            lblMessage.Text = message;
-            pnlMessage.CssClass = "alert alert-" + (type == "error" ? "danger" : type);
+            // Do not show the old top alert text above the page.
+            // Only show the clean modal dialog.
+            pnlMessage.Visible = false;
+            lblMessage.Text = string.Empty;
 
             string safeMessage = HttpUtility.JavaScriptStringEncode(message);
             string safeType = HttpUtility.JavaScriptStringEncode(type);
