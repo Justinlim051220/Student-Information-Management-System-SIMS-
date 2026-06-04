@@ -246,10 +246,6 @@
                 <i class="fa-solid fa-clipboard-check nav-icon"></i> Attendance
             </a>
 
-            <a href="Grades.aspx" class="sidebar-link">
-                <i class="fa-solid fa-star-half-stroke nav-icon"></i> Grades
-            </a>
-
             <a href="AtRiskStudents.aspx" class="sidebar-link">
                 <i class="fa-solid fa-triangle-exclamation nav-icon"></i> At-Risk Students
             </a>
