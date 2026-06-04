@@ -212,11 +212,13 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                         c.CourseId,
                         c.CourseCode + ' - ' + c.CourseName AS CourseDisplay,
                         e.Session,
+                        ISNULL(ats.TotalAttendance, 0) AS RollCallCount,
+                        ISNULL(ats.PresentCount, 0) AS PresentCount,
 
                         CAST(
                             ISNULL(
                                 CASE 
-                                    WHEN ats.TotalAttendance > 0 
+                                    WHEN ats.TotalAttendance > 0
                                     THEN (ats.PresentCount * 100.0 / ats.TotalAttendance)
                                     ELSE 100
                                 END, 100
@@ -227,9 +229,10 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                         CAST(ISNULL(gs.AverageMarks, 100) AS DECIMAL(5,2)) AS AverageMarks,
 
                         CASE 
-                            WHEN ISNULL(
+                            WHEN ISNULL(ats.TotalAttendance, 0) >= 14
+                                 AND ISNULL(
                                     CASE 
-                                        WHEN ats.TotalAttendance > 0 
+                                        WHEN ats.TotalAttendance > 0
                                         THEN (ats.PresentCount * 100.0 / ats.TotalAttendance)
                                         ELSE 100
                                     END, 100
@@ -270,6 +273,8 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     StudentName,
                     CourseDisplay,
                     Session,
+                    RollCallCount,
+                    PresentCount,
                     AttendanceRate,
                     AverageMarks,
                     IsAttendanceRisk,

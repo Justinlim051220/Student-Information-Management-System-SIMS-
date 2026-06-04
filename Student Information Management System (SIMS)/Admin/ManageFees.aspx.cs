@@ -108,7 +108,22 @@ namespace Student_Information_Management_System__SIMS_
                        f.FeeType,
                        f.Amount,
                        f.Status,
-                       f.PaymentDate
+                       f.PaymentDate,
+                       ISNULL(f.PaymentReceiptPath, '') AS PaymentReceiptPath,
+                       ISNULL(
+                           STUFF((
+                               SELECT '<div class=""course-line""><span class=""course-code"">' + c.CourseCode + '</span><span class=""course-name"">' + c.CourseName + '</span><span class=""course-fee"">RM ' + FORMAT(ISNULL(cf.Amount, 0), 'N2') + '</span></div>'
+                               FROM Enrollment e
+                               INNER JOIN Courses c ON e.CourseId = c.CourseId
+                               LEFT JOIN CourseFees cf ON cf.CourseId = c.CourseId AND cf.Session = e.Session
+                               WHERE e.StudentId = f.StudentId
+                                 AND e.Session = f.Session
+                                 AND e.Status = 'Active'
+                               ORDER BY c.CourseCode
+                               FOR XML PATH(''), TYPE
+                           ).value('.', 'NVARCHAR(MAX)'), 1, 0, ''),
+                           '<span class=""receipt-empty"">No active enrolled course found</span>'
+                       ) AS CoursePaymentList
                 FROM Fees f
                 INNER JOIN StudentDetails s ON f.StudentId = s.StudentId
                 INNER JOIN Programmes p ON s.ProgrammeId = p.ProgrammeId
@@ -348,6 +363,20 @@ namespace Student_Information_Management_System__SIMS_
                 if (approve != null) approve.Visible = false;
                 if (reject != null) reject.Visible = false;
             }
+        }
+
+
+        protected string GetReceiptLink(object receiptPathObj)
+        {
+            string receiptPath = receiptPathObj == null ? "" : receiptPathObj.ToString().Trim();
+
+            if (string.IsNullOrWhiteSpace(receiptPath))
+            {
+                return "<span class='receipt-empty'>No receipt uploaded</span>";
+            }
+
+            string safeUrl = ResolveUrl(receiptPath);
+            return "<a class='receipt-link' href='" + HttpUtility.HtmlAttributeEncode(safeUrl) + "' target='_blank'><i class='fa-solid fa-eye'></i> View Receipt</a>";
         }
 
         protected string GetStatusCss(object statusObj)

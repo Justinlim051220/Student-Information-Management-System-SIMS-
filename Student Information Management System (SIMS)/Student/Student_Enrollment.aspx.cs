@@ -25,6 +25,8 @@ namespace Student_Information_Management_System__SIMS_
                 lblProfileInitial.Text = initial;
                 lblStudentName.Text = fullName;
                 lblStudentId.Text = studentId;
+                lblStudentNameTop.Text = fullName;
+                lblStudentIdTop.Text = studentId;
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
 
                 LoadStudentInfo(studentId);
@@ -58,6 +60,8 @@ namespace Student_Information_Management_System__SIMS_
             hfSemester.Value = row["CurrentSemester"].ToString();
             lblProgramme.Text = row["ProgrammeDisplay"].ToString();
             lblSemester.Text = row["CurrentSemester"].ToString();
+            lblProgrammeTop.Text = row["ProgrammeDisplay"].ToString();
+            lblSemesterTop.Text = row["CurrentSemester"].ToString();
             lblRule.Text = "Programme = " + row["ProgrammeDisplay"] + ", Semester = " + row["CurrentSemester"] + ", Status = Open";
         }
 
@@ -440,14 +444,15 @@ namespace Student_Information_Management_System__SIMS_
             LoadOpenSessions();
             LoadAvailableCourses();
             LoadEnrolledCourses(SessionHelper.GetProfileId(Session));
-            ShowMessage("Enrollment list refreshed.", "info");
+            ShowMessage("Enrollment list refreshed successfully.", "success");
         }
 
         private void ShowMessage(string message, string type)
         {
-            pnlMessage.Visible = true;
-            lblMessage.Text = message;
-            pnlMessage.CssClass = "alert-box " + type;
+            // Message is shown using the modal prompt only.
+            // The old top notification panel is intentionally hidden for UI consistency.
+            pnlMessage.Visible = false;
+            lblMessage.Text = string.Empty;
 
             string safeMessage = HttpUtility.JavaScriptStringEncode(message);
             string safeType = HttpUtility.JavaScriptStringEncode(type);
