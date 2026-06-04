@@ -177,8 +177,8 @@
     <Content Include="SIMS_Patch_PasswordResets.sql" />
     <Content Include="Site.Master" />
     <Content Include="Student\Contacts.aspx" />
-    <Content Include="Student\MyProfile.aspx" />
     <Content Include="Student\MyCourses.aspx" />
+    <Content Include="Student\MyProfile.aspx" />
     <Content Include="Student\Notification.aspx" />
     <Content Include="Student\Student_Dashboard.aspx" />
     <Content Include="Student\Student_Enrollment.aspx" />
@@ -417,18 +417,19 @@
     <Compile Include="Student\Contacts.aspx.designer.cs">
       <DependentUpon>Contacts.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Student\MyProfile.aspx.cs">
-      <DependentUpon>MyProfile.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Student\MyProfile.aspx.designer.cs">
-      <DependentUpon>MyProfile.aspx</DependentUpon>
     <Compile Include="Student\MyCourses.aspx.cs">
       <DependentUpon>MyCourses.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Student\MyCourses.aspx.designer.cs">
       <DependentUpon>MyCourses.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Student\MyProfile.aspx.cs">
+      <DependentUpon>MyProfile.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Student\MyProfile.aspx.designer.cs">
+      <DependentUpon>MyProfile.aspx</DependentUpon>
     </Compile>
     <Compile Include="Student\Notification.aspx.cs">
       <DependentUpon>Notification.aspx</DependentUpon>
