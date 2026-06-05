@@ -186,10 +186,27 @@ CREATE TABLE CourseMaterials (
     CONSTRAINT FK_CourseMaterials_Lecturer FOREIGN KEY (LecturerId) REFERENCES LecturerDetails(LecturerId)
 );
 
+
 ALTER TABLE CourseMaterials ALTER COLUMN FileName VARCHAR(255) NULL;
 ALTER TABLE CourseMaterials ALTER COLUMN FilePath VARCHAR(500) NULL;
 ALTER TABLE CourseMaterials ALTER COLUMN FileType VARCHAR(100) NULL;
 ALTER TABLE CourseMaterials ALTER COLUMN FileSizeKB INT NULL;
+
+
+select * from Grades;
+select * from CourseMaterials;
+
+
+
+--Jason Update (3/6)
+-- Add percentage weight for Assignment / Final Exam materials.
+-- Run this once on your SIMS database.
+IF COL_LENGTH('CourseMaterials', 'WeightPercentage') IS NULL
+BEGIN
+    ALTER TABLE CourseMaterials
+    ADD WeightPercentage DECIMAL(5,2) NULL;
+END;
+GO
 
 CREATE TABLE CourseMaterialFiles (
     FileId INT IDENTITY(1,1) NOT NULL,
@@ -226,6 +243,8 @@ CREATE TABLE Enrollment (
     CONSTRAINT CK_Enrollment_Status CHECK (Status IN ('Active', 'Dropped', 'Completed')),
     CONSTRAINT CK_Enrollment_Semester CHECK (Semester >= 1)
 );
+
+select * from Enrollment;
 
 --New added Alter Table Enrollment, 31/5 By Justin
 
@@ -301,41 +320,44 @@ CREATE TABLE Attendance (
     CONSTRAINT CK_Attendance_Status CHECK (Status IN ('Present', 'Absent', 'Late'))
 );
 
---New added by Yin jia - 31/5
--- =============================================
--- TABLE 10: Grades
--- Assessment marks per student per course
--- Composite PK: StudentId + CourseId + Type
--- =============================================
-CREATE TABLE Grades (
-    StudentId           VARCHAR(20)     NOT NULL,
-    CourseId            INT             NOT NULL,
-    MaterialId          INT             NOT NULL DEFAULT 0,
-    Type                VARCHAR(20)     NOT NULL,
-    Title               VARCHAR(100)    NOT NULL,
-    MaxMarks            DECIMAL(5,2)    NOT NULL,
-    MarksObtained       DECIMAL(5,2)    NULL,
-    DraftMarksObtained  DECIMAL(5,2)     NULL,
-    WeightPercentage    DECIMAL(5,2)    NULL,
-    Grade               VARCHAR(5)      NULL,
-    DueDate             DATE            NULL,
-    Remarks             TEXT            NULL,
-    SubmittedAt         DATETIME        NULL,
 
-    CONSTRAINT PK_Grades
-        PRIMARY KEY (StudentId, CourseId, Type, MaterialId),
+select * from Attendance;
 
-    CONSTRAINT FK_Grades_Student
-        FOREIGN KEY (StudentId)
-        REFERENCES StudentDetails(StudentId),
+    --New added by Yin jia - 31/5
+    -- =============================================
+    -- TABLE 10: Grades
+    -- Assessment marks per student per course
+    -- Composite PK: StudentId + CourseId + Type
+    -- =============================================
+    CREATE TABLE Grades (
+        StudentId           VARCHAR(20)     NOT NULL,
+        CourseId            INT             NOT NULL,
+        MaterialId          INT             NOT NULL DEFAULT 0,
+        Type                VARCHAR(20)     NOT NULL,
+        Title               VARCHAR(100)    NOT NULL,
+        MaxMarks            DECIMAL(5,2)    NOT NULL,
+        MarksObtained       DECIMAL(5,2)    NULL,
+        DraftMarksObtained  DECIMAL(5,2)     NULL,
+        WeightPercentage    DECIMAL(5,2)    NULL,
+        Grade               VARCHAR(5)      NULL,
+        DueDate             DATE            NULL,
+        Remarks             TEXT            NULL,
+        SubmittedAt         DATETIME        NULL,
 
-    CONSTRAINT FK_Grades_Course
-        FOREIGN KEY (CourseId)
-        REFERENCES Courses(CourseId),
+        CONSTRAINT PK_Grades
+            PRIMARY KEY (StudentId, CourseId, Type, MaterialId),
 
-    CONSTRAINT CK_Grades_Type
-        CHECK (Type IN ('Assignment', 'Quiz', 'Exam'))
-);
+        CONSTRAINT FK_Grades_Student
+            FOREIGN KEY (StudentId)
+            REFERENCES StudentDetails(StudentId),
+
+        CONSTRAINT FK_Grades_Course
+            FOREIGN KEY (CourseId)
+            REFERENCES Courses(CourseId),
+
+        CONSTRAINT CK_Grades_Type
+            CHECK (Type IN ('Assignment', 'Quiz', 'Exam'))
+    );
 
 select * from Grades;
 
@@ -410,6 +432,23 @@ CREATE TABLE CourseFees (
         CONSTRAINT FK_CourseFees_Course FOREIGN KEY (CourseId) REFERENCES Courses(CourseId),
         CONSTRAINT CK_CourseFees_Amount CHECK (Amount >= 0)
     );
+
+
+    --Justin Update CourseFee Table (3/6)
+IF COL_LENGTH('Fees', 'PaymentReceiptPath') IS NULL
+BEGIN
+    ALTER TABLE Fees
+    ADD PaymentReceiptPath VARCHAR(255) NULL;
+END
+GO
+
+IF COL_LENGTH('Fees', 'PaymentReceiptUploadedAt') IS NULL
+BEGIN
+    ALTER TABLE Fees
+    ADD PaymentReceiptUploadedAt DATETIME NULL;
+END
+
+select * from Fees;
 
    /* =========================================================
    SIMS PATCH: Allow one lecturer to belong to multiple programmes

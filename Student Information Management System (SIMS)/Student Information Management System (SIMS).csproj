@@ -93,11 +93,28 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Site.Mobile.Master.cs">
+      <DependentUpon>Site.Mobile.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Site.Mobile.Master.designer.cs">
+      <DependentUpon>Site.Mobile.Master</DependentUpon>
+    </Compile>
+    <Compile Include="ViewSwitcher.ascx.cs">
+      <DependentUpon>ViewSwitcher.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ViewSwitcher.ascx.designer.cs">
+      <DependentUpon>ViewSwitcher.ascx</DependentUpon>
+    </Compile>
     <Content Include="About.aspx" />
     <Content Include="Admin\Admin_Announcement.aspx" />
     <Content Include="Admin\Admin_enrolment.aspx" />
+    <Content Include="Admin\Admin_Notification.aspx" />
     <Content Include="Admin\Admin_Profile.aspx" />
     <Content Include="Admin\AssignLecturerCourse.aspx" />
+    <Content Include="Admin\AttendanceReport.aspx" />
     <Content Include="Admin\CourseOffering.aspx" />
     <Content Include="Admin\Dashboard.aspx" />
     <Content Include="Admin\ManageCourses.aspx" />
@@ -179,6 +196,7 @@
     <Content Include="Student\Results.aspx" />
     <Content Include="Student\Student_Dashboard.aspx" />
     <Content Include="Student\Student_Enrollment.aspx" />
+    <Content Include="Student\Student_Payment.aspx" />
     <Content Include="Styles\SIMS.css" />
     <Content Include="ViewSwitcher.ascx" />
     <Content Include="Web.config" />
@@ -199,6 +217,13 @@
     <Compile Include="Admin\Admin_enrolment.aspx.designer.cs">
       <DependentUpon>Admin_enrolment.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\Admin_Notification.aspx.cs">
+      <DependentUpon>Admin_Notification.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\Admin_Notification.aspx.designer.cs">
+      <DependentUpon>Admin_Notification.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\Admin_Profile.aspx.cs">
       <DependentUpon>Admin_Profile.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -212,6 +237,13 @@
     </Compile>
     <Compile Include="Admin\AssignLecturerCourse.aspx.designer.cs">
       <DependentUpon>AssignLecturerCourse.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\AttendanceReport.aspx.cs">
+      <DependentUpon>AttendanceReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\AttendanceReport.aspx.designer.cs">
+      <DependentUpon>AttendanceReport.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\CourseOffering.aspx.cs">
       <DependentUpon>CourseOffering.aspx</DependentUpon>
@@ -262,7 +294,6 @@
     <Compile Include="Admin\Reports.aspx.designer.cs">
       <DependentUpon>Reports.aspx</DependentUpon>
     </Compile>
-    <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Helpers\DatabaseHelper.cs" />
     <Compile Include="Helpers\PasswordHelper.cs" />
     <Compile Include="Helpers\EmailHelper.cs" />
@@ -385,12 +416,26 @@
     <Compile Include="Site.Master.designer.cs">
       <DependentUpon>Site.Master</DependentUpon>
     </Compile>
-    <Compile Include="Site.Mobile.Master.cs">
-      <DependentUpon>Site.Mobile.Master</DependentUpon>
+    <Compile Include="Student\Contacts.aspx.cs">
+      <DependentUpon>Contacts.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="Site.Mobile.Master.designer.cs">
-      <DependentUpon>Site.Mobile.Master</DependentUpon>
+    <Compile Include="Student\Contacts.aspx.designer.cs">
+      <DependentUpon>Contacts.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Student\MyProfile.aspx.cs">
+      <DependentUpon>MyProfile.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Student\MyProfile.aspx.designer.cs">
+      <DependentUpon>MyProfile.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Student\Notification.aspx.cs">
+      <DependentUpon>Notification.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Student\Notification.aspx.designer.cs">
+      <DependentUpon>Notification.aspx</DependentUpon>
     </Compile>
     <Compile Include="Student\Attendance.aspx.cs">
       <DependentUpon>Attendance.aspx</DependentUpon>
@@ -434,12 +479,12 @@
     <Compile Include="Student\Student_Enrollment.aspx.designer.cs">
       <DependentUpon>Student_Enrollment.aspx</DependentUpon>
     </Compile>
-    <Compile Include="ViewSwitcher.ascx.cs">
-      <DependentUpon>ViewSwitcher.ascx</DependentUpon>
+    <Compile Include="Student\Student_Payment.aspx.cs">
+      <DependentUpon>Student_Payment.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="ViewSwitcher.ascx.designer.cs">
-      <DependentUpon>ViewSwitcher.ascx</DependentUpon>
+    <Compile Include="Student\Student_Payment.aspx.designer.cs">
+      <DependentUpon>Student_Payment.aspx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -447,6 +492,7 @@
     <Folder Include="App_Code\" />
     <Folder Include="App_Data\" />
     <Folder Include="ProfilePicture\" />
+    <Folder Include="Student\StudentReceipt\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />

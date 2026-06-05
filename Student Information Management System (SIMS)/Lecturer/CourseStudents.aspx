@@ -461,6 +461,120 @@
             }
 
         }
+        /* ================================================================
+           Logout confirmation prompt - exact Lecturer_Dashboard style
+           ================================================================ */
+        .logout-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.62);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .logout-modal-card {
+            width: 100%;
+            max-width: 400px;
+            background: #ffffff;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28);
+            text-align: center;
+            font-family: var(--font-primary);
+            animation: logoutPop 0.18s ease-out;
+        }
+
+        @keyframes logoutPop {
+            from { transform: translateY(8px) scale(0.98); opacity: 0; }
+            to   { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .logout-modal-top {
+            padding: 36px 32px 20px;
+        }
+
+        .logout-warning-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            color: #f59e0b;
+            font-size: 56px;
+            line-height: 1;
+        }
+
+        .logout-warning-icon i {
+            color: #f59e0b;
+        }
+
+        .logout-title {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .logout-message {
+            margin: 0;
+            padding: 20px 32px;
+            border-top: 1px solid var(--border-light);
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .logout-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 18px 28px 28px;
+        }
+
+        .logout-btn {
+            min-width: 118px;
+            height: 44px;
+            border-radius: 999px;
+            font-family: var(--font-primary);
+            font-size: 14px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .logout-btn-cancel {
+            border: 2px solid var(--orange-main);
+            background: #ffffff;
+            color: var(--orange-main);
+        }
+
+        .logout-btn-cancel:hover {
+            background: #fff7ed;
+            transform: translateY(-1px);
+        }
+
+        .logout-btn-confirm {
+            border: 2px solid transparent;
+            background: var(--orange-gradient);
+            color: #ffffff !important;
+            box-shadow: var(--shadow-orange);
+        }
+
+        .logout-btn-confirm:hover {
+            transform: translateY(-1px);
+            color: #ffffff !important;
+        }
     </style>
 </head>
 
@@ -505,10 +619,6 @@
                 <i class="fa-solid fa-clipboard-check nav-icon"></i> Attendance
             </a>
 
-            <a href="Grades.aspx" class="sidebar-link">
-                <i class="fa-solid fa-star-half-stroke nav-icon"></i> Grades
-            </a>
-
             <a href="AtRiskStudents.aspx" class="sidebar-link">
                 <i class="fa-solid fa-triangle-exclamation nav-icon"></i> At-Risk Students
             </a>
@@ -547,7 +657,8 @@
                 </div>
             </div>
 
-            <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link" OnClick="lbLogout_Click">
+            <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link"
+                OnClientClick="showLogoutModal(); return false;">
                 <i class="fa-solid fa-right-from-bracket"></i> Log Out
             </asp:LinkButton>
         </div>
@@ -697,6 +808,15 @@
                                     <asp:ListItem Text="Tutorial & Lab Exercise" Value="Tutorial & Lab Exercise" />
                                     <asp:ListItem Text="Final Exam" Value="Final Exam" />
                                 </asp:DropDownList>
+                            </div>
+                            <div class="form-group">
+                                <label>Grade Percentage</label>
+                                <asp:TextBox ID="txtMaterialWeight" runat="server"
+                                    CssClass="form-control"
+                                    TextMode="Number" />
+                                <div class="edit-note">
+                                    Required only for Assignment and Final Exam. Example: 20 or 25.
+                                </div>
                             </div>
 
                             <div class="form-group">
@@ -988,7 +1108,46 @@
             document.getElementById('customModalOverlay').classList.remove('active');
         }
     </script>
+<!-- Logout Confirmation Modal -->
+<div id="logoutModal" class="logout-modal-overlay" onclick="hideLogoutModalOnBackdrop(event)">
+    <div class="logout-modal-card" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+        <div class="logout-modal-top">
+            <div class="logout-warning-icon">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 id="logoutTitle" class="logout-title">Log Out</h3>
+        </div>
 
+        <p class="logout-message">Are you sure you want to log out?</p>
+
+        <div class="logout-actions">
+            <button type="button" class="logout-btn logout-btn-cancel" onclick="hideLogoutModal()">Cancel</button>
+            <asp:LinkButton ID="btnConfirmLogout" runat="server"
+                CssClass="logout-btn logout-btn-confirm"
+                OnClick="lbLogout_Click">
+                Log Out
+            </asp:LinkButton>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showLogoutModal() {
+        var modal = document.getElementById('logoutModal');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function hideLogoutModal() {
+        var modal = document.getElementById('logoutModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function hideLogoutModalOnBackdrop(event) {
+        if (event.target && event.target.id === 'logoutModal') {
+            hideLogoutModal();
+        }
+    }
+</script>
 </form>
 </body>
 </html>
