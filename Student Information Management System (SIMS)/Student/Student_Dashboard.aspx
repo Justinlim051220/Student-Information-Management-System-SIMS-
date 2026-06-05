@@ -384,7 +384,7 @@
   <nav class="sidebar-nav">
     <div class="sidebar-section-label">Main</div>
 
-    <a href="Dashboard.aspx" class="sidebar-link active">
+    <a href="Student_Dashboard.aspx" class="sidebar-link active">
       <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
     </a>
     <a href="MyCourses.aspx" class="sidebar-link">

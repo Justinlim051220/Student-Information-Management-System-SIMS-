@@ -272,13 +272,15 @@ CREATE TABLE LecturerCourse (
     Session         VARCHAR(15)     NOT NULL,   -- 'April 2026' / 'August 2026'
     Semester        INT             NOT NULL,
     AssignedDate    DATE            NOT NULL DEFAULT GETDATE(),
-    SortOrder INT NULL;
+    SortOrder INT NULL,
 
     CONSTRAINT PK_LecturerCourse PRIMARY KEY (LecturerId, CourseId, Session),
     CONSTRAINT FK_LecturerCourse_Lecturer FOREIGN KEY (LecturerId) REFERENCES LecturerDetails(LecturerId),
     CONSTRAINT FK_LecturerCourse_Course FOREIGN KEY (CourseId) REFERENCES Courses(CourseId)
 );
 
+
+select * from LecturerCourse;
 -- =============================================
 -- TABLE 9: Attendance
 -- Per student per course per date
