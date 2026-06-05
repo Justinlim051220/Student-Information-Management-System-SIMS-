@@ -513,23 +513,29 @@
     <a href="Student_Dashboard.aspx" class="sidebar-link active">
       <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
     </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Academic</div>
+
     <a href="MyCourses.aspx" class="sidebar-link">
       <i class="fa-solid fa-book-open nav-icon"></i> My Courses
     </a>
     <a href="Attendance.aspx" class="sidebar-link">
       <i class="fa-solid fa-calendar-check nav-icon"></i> Attendance
     </a>
-      <a href="Student_Enrollment.aspx" class="sidebar-link">
+    <a href="Student_Enrollment.aspx" class="sidebar-link">
       <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
-    </a>
-      <a href="Student_Payment.aspx" class="sidebar-link">
-        <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
     </a>
     <a href="Results.aspx" class="sidebar-link">
       <i class="fa-solid fa-chart-line nav-icon"></i> Results
     </a>
     <a href="AcademicHistory.aspx" class="sidebar-link">
       <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
+
+    <a href="Student_Payment.aspx" class="sidebar-link">
+      <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
     </a>
 
     <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
@@ -584,7 +590,7 @@
       </div>
     </div>
     <div class="topbar-right">
-      <a href="Notifications.aspx" class="topbar-icon-btn" title="Notifications">
+      <a href="Notification.aspx" class="topbar-icon-btn" title="Notifications">
         <i class="fa-solid fa-bell"></i>
         <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot dashboard-hidden-badge" Visible="false" style="display:none !important;" />
       </a>
