@@ -27,6 +27,7 @@ namespace Student_Information_Management_System__SIMS_.Student
                 LoadCourseHeader();
                 LoadCourseMaterials();
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
+                CheckUnreadNotifications();
             }
         }
 
@@ -43,7 +44,7 @@ namespace Student_Information_Management_System__SIMS_.Student
 
         private string CurrentStudentId
         {
-            get { return Session["StudentId"]?.ToString() ?? ""; }
+            get { return SessionHelper.GetProfileId(Session); }
         }
 
         private void LoadCourseHeader()
@@ -116,7 +117,7 @@ namespace Student_Information_Management_System__SIMS_.Student
             if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
             {
                 Repeater rptFiles = (Repeater)e.Item.FindControl("rptFiles");
-            CRITICAL: HiddenField hfMaterialId = (HiddenField)e.Item.FindControl("hfMaterialId");
+                HiddenField hfMaterialId = (HiddenField)e.Item.FindControl("hfMaterialId");
 
                 // Legacy Column References
                 HiddenField hfLegacyFileName = (HiddenField)e.Item.FindControl("hfLegacyFileName");
@@ -127,7 +128,7 @@ namespace Student_Information_Management_System__SIMS_.Student
                 {
                     // Check modern structural table CourseMaterialFiles
                     string sqlFiles = @"
-                        SELECT FileName, FilePath, FileType, FileSizeKB 
+                        SELECT FileId, FileName, FilePath, FileType, FileSizeKB
                         FROM CourseMaterialFiles 
                         WHERE MaterialId = @MaterialId 
                         ORDER BY UploadedAt ASC";
@@ -145,11 +146,13 @@ namespace Student_Information_Management_System__SIMS_.Student
                     {
                         // Fallback fallback: Check if old schema columns contain file entries
                         DataTable dtFallback = new DataTable();
+                        dtFallback.Columns.Add("FileId");
                         dtFallback.Columns.Add("FileName");
                         dtFallback.Columns.Add("FilePath");
                         dtFallback.Columns.Add("FileSizeKB");
 
                         DataRow dr = dtFallback.NewRow();
+                        dr["FileId"] = "";
                         dr["FileName"] = hfLegacyFileName.Value;
                         dr["FilePath"] = hfLegacyFilePath.Value;
                         dr["FileSizeKB"] = !string.IsNullOrEmpty(hfLegacyFileSize.Value) ? hfLegacyFileSize.Value : "0";
@@ -160,6 +163,16 @@ namespace Student_Information_Management_System__SIMS_.Student
                     }
                 }
             }
+        }
+
+        protected string GetDownloadUrl(object fileId, object filePath)
+        {
+            string id = Convert.ToString(fileId);
+            if (!string.IsNullOrWhiteSpace(id))
+                return "DownloadCourseMaterial.aspx?fileId=" + Server.UrlEncode(id);
+
+            string path = Convert.ToString(filePath);
+            return string.IsNullOrWhiteSpace(path) ? "#" : ResolveUrl(path);
         }
 
         // Click handler actions for Tab selection layout changes
@@ -187,16 +200,30 @@ namespace Student_Information_Management_System__SIMS_.Student
             string session = GetSessionParam();
             string studentId = CurrentStudentId;
 
-            string assignmentSql = @"
-                SELECT MaterialId, Title, MaterialType FROM CourseMaterials
-                WHERE CourseId = @CourseId AND Session = @Session AND MaterialType IN ('Assignment', 'Final Exam')
-                ORDER BY CreatedAt ASC";
+            string sql = @"
+                SELECT
+                    COALESCE(NULLIF(g.Title, ''), cm.Title, g.Type) AS Assessment,
+                    g.Type,
+                    COALESCE(g.MarksObtained, g.DraftMarksObtained) AS Marks,
+                    g.MaxMarks,
+                    g.WeightPercentage
+                FROM Grades g
+                LEFT JOIN CourseMaterials cm
+                    ON cm.CourseId = g.CourseId
+                   AND cm.MaterialId = g.MaterialId
+                   AND cm.Session = @Session
+                WHERE g.StudentId = @StudentId
+                  AND g.CourseId = @CourseId
+                ORDER BY ISNULL(cm.CreatedAt, g.SubmittedAt) ASC, g.Type ASC";
 
-            DataTable assignments = DatabaseHelper.ExecuteQuery(assignmentSql, new[] {
-                new SqlParameter("@CourseId", courseId), new SqlParameter("@Session", session)
+            DataTable grades = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
+                new SqlParameter("@StudentId", studentId),
+                new SqlParameter("@CourseId", courseId),
+                new SqlParameter("@Session", session)
             });
 
-            if (assignments == null || assignments.Rows.Count == 0)
+            if (grades == null || grades.Rows.Count == 0)
             {
                 pnlNoGrades.Visible = true;
                 gvStudentGrades.Visible = false;
@@ -204,78 +231,131 @@ namespace Student_Information_Management_System__SIMS_.Student
             }
 
             DataTable table = new DataTable();
-            table.Columns.Add("Student ID");
-            table.Columns.Add("Student Name");
+            table.Columns.Add("Assessment");
+            table.Columns.Add("Type");
+            table.Columns.Add("Marks");
+            table.Columns.Add("Max Marks");
+            table.Columns.Add("Weight");
+            table.Columns.Add("Final Mark");
 
-            foreach (DataRow a in assignments.Rows)
+            decimal totalFinalMark = 0m;
+            bool hasFinalMark = false;
+
+            foreach (DataRow gradeRow in grades.Rows)
             {
-                table.Columns.Add(a["Title"].ToString());
-            }
+                decimal? finalMark = CalculateWeightedFinalMark(
+                    gradeRow["Marks"],
+                    gradeRow["MaxMarks"],
+                    gradeRow["WeightPercentage"]);
 
-            DataRow row = table.NewRow();
-            row["Student ID"] = studentId;
-            row["Student Name"] = Session["StudentName"]?.ToString() ?? "Student";
-
-            bool marksExist = false;
-
-            foreach (DataRow a in assignments.Rows)
-            {
-                string gradeType = (a["MaterialType"].ToString() == "Final Exam") ? "Exam" : "Assignment";
-
-                object mark = DatabaseHelper.ExecuteScalar(@"
-                    SELECT MarksObtained FROM Grades
-                    WHERE StudentId = @StudentId AND CourseId = @CourseId AND Type = @Type AND MaterialId = @MaterialId",
-                    new[] {
-                        new SqlParameter("@StudentId", studentId),
-                        new SqlParameter("@CourseId", courseId),
-                        new SqlParameter("@Type", gradeType),
-                        new SqlParameter("@MaterialId", a["MaterialId"])
-                    });
-
-                if (mark != null && mark != DBNull.Value)
-                {
-                    row[a["Title"].ToString()] = mark.ToString();
-                    marksExist = true;
-                }
-                else
-                {
-                    row[a["Title"].ToString()] = "-";
-                }
-            }
-
-            if (marksExist)
-            {
+                DataRow row = table.NewRow();
+                row["Assessment"] = gradeRow["Assessment"].ToString();
+                row["Type"] = gradeRow["Type"].ToString();
+                row["Marks"] = FormatGradeValue(gradeRow["Marks"]);
+                row["Max Marks"] = FormatGradeValue(gradeRow["MaxMarks"]);
+                row["Weight"] = FormatWeight(gradeRow["WeightPercentage"]);
+                row["Final Mark"] = FormatFinalMark(finalMark);
                 table.Rows.Add(row);
-                gvStudentGrades.DataSource = table;
-                gvStudentGrades.DataBind();
-                gvStudentGrades.Visible = true;
-                pnlNoGrades.Visible = false;
+
+                if (finalMark.HasValue)
+                {
+                    totalFinalMark += finalMark.Value;
+                    hasFinalMark = true;
+                }
             }
-            else
+
+            DataRow finalRow = table.NewRow();
+            finalRow["Assessment"] = "Final Mark";
+            finalRow["Type"] = "";
+            finalRow["Marks"] = "";
+            finalRow["Max Marks"] = "";
+            finalRow["Weight"] = "";
+            finalRow["Final Mark"] = hasFinalMark ? totalFinalMark.ToString("0.##") + "%" : "-";
+            table.Rows.Add(finalRow);
+
+            gvStudentGrades.DataSource = table;
+            gvStudentGrades.DataBind();
+            gvStudentGrades.Visible = true;
+            pnlNoGrades.Visible = false;
+        }
+
+        private string FormatGradeValue(object value)
+        {
+            if (value == null || value == DBNull.Value)
+                return "-";
+
+            return Convert.ToDecimal(value).ToString("0.##");
+        }
+
+        private string FormatWeight(object value)
+        {
+            if (value == null || value == DBNull.Value)
+                return "-";
+
+            return Convert.ToDecimal(value).ToString("0.##") + "%";
+        }
+
+        private decimal? CalculateWeightedFinalMark(object marks, object maxMarks, object weight)
+        {
+            if (marks == null || marks == DBNull.Value ||
+                maxMarks == null || maxMarks == DBNull.Value ||
+                weight == null || weight == DBNull.Value)
+                return null;
+
+            decimal max = Convert.ToDecimal(maxMarks);
+            if (max <= 0)
+                return null;
+
+            return Convert.ToDecimal(marks) / max * Convert.ToDecimal(weight);
+        }
+
+        private string FormatFinalMark(decimal? value)
+        {
+            return value.HasValue ? value.Value.ToString("0.##") + "%" : "-";
+        }
+
+        protected void gvStudentGrades_RowDataBound(object sender, GridViewRowEventArgs e)
+        {
+            if (e.Row.RowType != DataControlRowType.DataRow || e.Row.Cells.Count == 0)
+                return;
+
+            if (e.Row.Cells[0].Text != "Final Mark")
+                return;
+
+            e.Row.Font.Bold = true;
+            e.Row.Style["background"] = "#fff8e1";
+
+            foreach (TableCell cell in e.Row.Cells)
             {
-                pnlNoGrades.Visible = true;
-                gvStudentGrades.Visible = false;
+                cell.Style["border-top"] = "2px solid #e8a838";
             }
         }
 
         private void LoadSidebarUserInfo()
         {
-            // Get student info from session
-            string studentId = Session["StudentId"]?.ToString();
-            string studentName = Session["StudentName"]?.ToString();
+            string studentName = SessionHelper.GetFullName(Session);
 
-            if (!string.IsNullOrEmpty(studentName))
-            {
-                lblSidebarName.Text = Server.HtmlEncode(studentName);
-                lblAvatarInitial.Text = studentName.Substring(0, 1).ToUpper();
-            }
+            if (string.IsNullOrWhiteSpace(studentName))
+                studentName = "Student";
+
+            lblSidebarName.Text = Server.HtmlEncode(studentName);
+            lblAvatarInitial.Text = studentName.Length > 0 ? studentName.Substring(0, 1).ToUpper() : "S";
+        }
+
+        private void CheckUnreadNotifications()
+        {
+            int userId = SessionHelper.GetUserId(Session);
+            object count = DatabaseHelper.ExecuteScalar(
+                "SELECT COUNT(*) FROM Notifications WHERE UserId = @Uid AND IsRead = 0",
+                new[] { new SqlParameter("@Uid", userId) });
+
+            pnlNotifBadge.Visible = (count != null && Convert.ToInt32(count) > 0);
         }
 
         protected void lbLogout_Click(object sender, EventArgs e)
         {
-            Session.Clear();
-            Session.Abandon();
-            Response.Redirect("~/Login.aspx");
+            SessionHelper.Logout(Session);
+            Response.Redirect("~/Login.aspx", false);
         }
     }
 }

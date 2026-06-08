@@ -115,6 +115,13 @@
     <Compile Include="Student\CourseDetails.aspx.designer.cs">
       <DependentUpon>CourseDetails.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Student\DownloadCourseMaterial.aspx.cs">
+      <DependentUpon>DownloadCourseMaterial.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Student\DownloadCourseMaterial.aspx.designer.cs">
+      <DependentUpon>DownloadCourseMaterial.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Student\MyCourses.aspx.cs">
       <DependentUpon>MyCourses.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -221,6 +228,7 @@
     <Content Include="Student\Attendance.aspx" />
     <Content Include="Student\Contacts.aspx" />
     <Content Include="Student\CourseDetails.aspx" />
+    <Content Include="Student\DownloadCourseMaterial.aspx" />
     <Content Include="Student\MyCourses.aspx" />
     <Content Include="Student\MyProfile.aspx" />
     <Content Include="Student\Notification.aspx" />
