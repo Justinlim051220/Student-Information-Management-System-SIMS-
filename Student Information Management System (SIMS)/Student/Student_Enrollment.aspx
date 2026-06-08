@@ -205,12 +205,6 @@
         display: block !important;
     }
 
-
-    .notif-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;}
-    .notif-dot{position:absolute;top:-3px;right:-5px;width:10px;height:10px;background:#ef4444;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 2px rgba(239,68,68,.14);z-index:5;}
-    .sidebar-link.notif-link{position:relative;}
-    .sidebar-link .sidebar-notif-dot{position:absolute;top:14px;right:18px;width:9px;height:9px;background:#ef4444;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 2px rgba(239,68,68,.14);}
-
   </style>
 </head>
 <body>
@@ -259,9 +253,8 @@
 
     <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
 
-    <a href="Notification.aspx" class="sidebar-link notif-link">
+    <a href="Notification.aspx" class="sidebar-link">
       <i class="fa-solid fa-bell nav-icon"></i> Notifications
-      <asp:Panel ID="pnlSidebarNotifBadge" runat="server" CssClass="sidebar-notif-dot" Visible="false" />
     </a>
     <a href="Contacts.aspx" class="sidebar-link">
       <i class="fa-solid fa-address-book nav-icon"></i> Contacts
@@ -299,10 +292,7 @@
     <div><div class="topbar-title">Enrollment</div><div class="topbar-date"><asp:Label ID="lblDate" runat="server" /></div></div>
     <div class="topbar-right">
       <a href="Notification.aspx" class="topbar-icon-btn" title="Notifications">
-        <span class="notif-wrap">
-          <i class="fa-solid fa-bell"></i>
-          <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="notif-dot" Visible="false" />
-        </span>
+        <i class="fa-solid fa-bell"></i>
       </a>
       <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile">
         <i class="fa-solid fa-circle-user"></i>

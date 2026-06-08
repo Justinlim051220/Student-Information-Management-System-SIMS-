@@ -28,7 +28,6 @@ namespace Student_Information_Management_System__SIMS_
                 lblStudentNameTop.Text = fullName;
                 lblStudentIdTop.Text = studentId;
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
-                LoadNotificationBadge();
 
                 LoadStudentInfo(studentId);
                 LoadOpenSessions();
@@ -227,8 +226,6 @@ namespace Student_Information_Management_System__SIMS_
 
         private int GetSemesterForSelectedSession(string studentId, string session)
         {
-            // If the student has already enrolled anything in this same session, reuse that session semester.
-            // This prevents Semester from increasing for every course added within the same session.
             string existingSessionSemesterSql = @"
                 SELECT TOP 1 Semester
                 FROM Enrollment
@@ -248,22 +245,19 @@ namespace Student_Information_Management_System__SIMS_
                 return Convert.ToInt32(existingSemester);
             }
 
-            // For a new session, move to the next semester only once.
             int currentSemester = 1;
             int.TryParse(hfSemester.Value, out currentSemester);
             if (currentSemester < 1) currentSemester = 1;
 
-            string previousDifferentSessionSql = @"
+            string completedSessionSql = @"
                 SELECT COUNT(DISTINCT Session)
                 FROM Enrollment
                 WHERE StudentId = @StudentId
-                  AND Session <> @Session
                   AND Status NOT IN ('Dropped', 'Drop Rejected', 'Enrollment Rejected')";
 
-            int previousSessionCount = Convert.ToInt32(DatabaseHelper.ExecuteScalar(previousDifferentSessionSql, new[]
+            int previousSessionCount = Convert.ToInt32(DatabaseHelper.ExecuteScalar(completedSessionSql, new[]
             {
-                new SqlParameter("@StudentId", studentId),
-                new SqlParameter("@Session", session)
+                new SqlParameter("@StudentId", studentId)
             }));
 
             if (previousSessionCount > 0)
@@ -291,21 +285,15 @@ namespace Student_Information_Management_System__SIMS_
 
         private void MarkPreviousSessionsCompleted(string studentId, string currentSession)
         {
-            // Once a student successfully enrolls into a newer/different session,
-            // older still-current enrollment records are moved to Completed.
-            // This keeps only the latest enrolled session as the student's current enrollment.
-            string sql = @"
-                UPDATE Enrollment
-                SET Status = 'Completed'
-                WHERE StudentId = @StudentId
-                  AND Session <> @CurrentSession
-                  AND Status IN ('Active', 'Pending', 'Enrollment Pending', 'Drop Pending')";
-
-            DatabaseHelper.ExecuteNonQuery(sql, new[]
-            {
-                new SqlParameter("@StudentId", studentId),
-                new SqlParameter("@CurrentSession", currentSession)
-            });
+            // IMPORTANT:
+            // Do NOT update Enrollment.Status to 'Completed'.
+            // Lecturer course namelists, grade entry and marks viewing normally depend on
+            // Enrollment.Status = 'Active'. If we physically change old rows to Completed,
+            // lecturers can no longer see students in previous course records.
+            //
+            // The Student Enrollment page will still DISPLAY previous sessions as
+            // "Completed" through the DisplayStatus CASE expression inside LoadEnrolledCourses().
+            // This keeps the UI clean without breaking lecturer/admin academic records.
         }
 
         private decimal CreatePendingPaymentForEnrollment(int enrollmentId, string studentId, int courseId, string session)
@@ -733,34 +721,6 @@ namespace Student_Information_Management_System__SIMS_
             ShowMessage("Enrollment list refreshed successfully.", "success");
         }
 
-
-        private int CurrentUserId
-        {
-            get { return SessionHelper.GetUserId(Session); }
-        }
-
-        private void LoadNotificationBadge()
-        {
-            object count = DatabaseHelper.ExecuteScalar(
-                @"SELECT COUNT(*)
-                  FROM Notifications
-                  WHERE UserId = @UserId
-                    AND IsRead = 0",
-                new[] { new SqlParameter("@UserId", CurrentUserId) });
-
-            bool hasUnread = count != null && Convert.ToInt32(count) > 0;
-
-            // Sidebar badge and topbar badge are optional controls.
-            if (pnlSidebarNotifBadge != null)
-            {
-                pnlSidebarNotifBadge.Visible = hasUnread;
-            }
-
-            if (pnlNotifBadge != null)
-            {
-                pnlNotifBadge.Visible = hasUnread;
-            }
-        }
 
         private void ShowPaymentMessage(string message)
         {
