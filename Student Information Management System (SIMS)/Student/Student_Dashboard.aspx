@@ -528,9 +528,6 @@
     <a href="Results.aspx" class="sidebar-link">
       <i class="fa-solid fa-chart-line nav-icon"></i> Results
     </a>
-    <a href="AcademicHistory.aspx" class="sidebar-link">
-      <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History
-    </a>
 
     <div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
 
