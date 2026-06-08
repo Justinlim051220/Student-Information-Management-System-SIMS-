@@ -1,5 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Notification.aspx.cs"
-    Inherits="Student_Information_Management_System__SIMS_.Notifications" %>
+    Inherits="Student_Information_Management_System__SIMS_.Notification" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -32,9 +32,23 @@
             margin:0;
         }
 
+        .student-page-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-card);
+            padding: 26px 28px 30px;
+            margin-bottom: 24px;
+        }
+
+        .student-page-card .notification-header {
+            margin-bottom: 22px;
+            padding-bottom: 22px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
         .notif-stats {
             display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+            grid-template-columns:repeat(2,minmax(240px,1fr));
             gap:18px;
             margin-bottom:24px;
         }
@@ -78,18 +92,63 @@
         }
 
         .filter-card {
-            background:var(--white);
-            border-radius:var(--radius-md);
-            box-shadow:var(--shadow-card);
-            padding:20px;
-            margin-bottom:24px;
+            background: transparent;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 0;
+            margin-bottom: 22px;
+        }
+
+        .filter-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 900;
+            margin-bottom: 16px;
+        }
+
+        .filter-title i {
+            color: var(--orange-main);
         }
 
         .filter-bar {
             display:grid;
-            grid-template-columns:1fr 190px auto auto;
-            gap:14px;
+            grid-template-columns:1.3fr 1fr;
+            gap:24px;
             align-items:end;
+        }
+
+        .filter-actions {
+            display:flex;
+            align-items:center;
+            gap:12px;
+            margin-top:18px;
+        }
+
+        .mark-read-row {
+            margin-top: 22px;
+        }
+
+        .mark-read-row .btn {
+            width: 100%;
+            min-height: 46px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            border-radius: 10px;
+        }
+
+        .topbar-profile-img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 12px rgba(15,23,42,.12);
         }
 
         .filter-group label {
@@ -499,6 +558,53 @@
         .system-dialog .modal-cancel:hover { background: #fff8e1; }
         .system-dialog .modal-submit:hover { background: #d99a2e; border-color: #d99a2e; }
 
+
+
+        /* ===== Standard top-right icons same as Student Dashboard ===== */
+        .topbar-right {
+            display:flex;
+            align-items:center;
+            gap:12px;
+        }
+
+        .topbar-icon-btn {
+            position:relative;
+            width:44px;
+            height:44px;
+            border-radius:50%;
+            background:#f4f6fb;
+            color:#111827;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            text-decoration:none;
+            font-size:19px;
+            border:1px solid #edf0f5;
+            transition:all .18s ease;
+        }
+
+        .topbar-icon-btn:hover {
+            background:#fff8e8;
+            color:var(--orange-main);
+            transform:translateY(-1px);
+        }
+
+        .topbar-icon-btn .badge-dot {
+            position:absolute;
+            top:3px;
+            right:3px;
+            width:10px;
+            height:10px;
+            border-radius:50%;
+            background:#ff6b00;
+            border:2px solid #fff;
+        }
+
+        .topbar-hidden-server-avatar {
+            display:none !important;
+            visibility:hidden !important;
+        }
+
         @media(max-width:900px) {
             .main-wrapper {
                 margin-left:0;
@@ -508,7 +614,8 @@
         }
 
         @media(max-width:1000px) {
-            .filter-bar {
+            .filter-bar,
+            .notif-stats {
                 grid-template-columns:1fr;
             }
         }
@@ -536,6 +643,8 @@
             <a href="Student_Dashboard.aspx" class="sidebar-link">
                 <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
             </a>
+
+            <div class="sidebar-section-label" style="margin-top:12px;">Academic</div>
             <a href="MyCourses.aspx" class="sidebar-link">
                 <i class="fa-solid fa-book-open nav-icon"></i> My Courses
             </a>
@@ -545,14 +654,16 @@
             <a href="Student_Enrollment.aspx" class="sidebar-link">
                 <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
             </a>
-            <a href="Student_Payment.aspx" class="sidebar-link">
-                <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
-            </a>
             <a href="Results.aspx" class="sidebar-link">
                 <i class="fa-solid fa-chart-line nav-icon"></i> Results
             </a>
             <a href="AcademicHistory.aspx" class="sidebar-link">
                 <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History
+            </a>
+
+            <div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
+            <a href="Student_Payment.aspx" class="sidebar-link">
+                <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
             </a>
 
             <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
@@ -571,11 +682,13 @@
 
         <div class="sidebar-footer">
             <div class="sidebar-user">
-                <div class="user-avatar sidebar-photo-avatar">
-                    <asp:Image ID="imgSidebarAvatar" runat="server"
-                        ImageUrl="~/ProfilePicture/default-profile.png"
-                        CssClass="sidebar-avatar-img" />
+                <div class="user-avatar">
+                    <i class="fa-solid fa-circle-user"></i>
                 </div>
+                <!-- Kept hidden only so existing code-behind references will not break. -->
+                <asp:Image ID="imgSidebarAvatar" runat="server"
+                    ImageUrl="~/ProfilePicture/default-profile.png"
+                    CssClass="topbar-hidden-server-avatar" />
 
                 <div class="user-info">
                     <div class="user-name">
@@ -605,24 +718,20 @@
                     <i class="fa-solid fa-bell"></i>
                     <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
                 </a>
-                <a href="MyProfile.aspx" class="topbar-profile">
-                    <span><asp:Label ID="lblTopbarInitial" runat="server" Text="A" /></span>
+
+                <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile">
+                    <i class="fa-solid fa-circle-user"></i>
                 </a>
+
+                <!-- Kept hidden only so existing code-behind references will not break. -->
+                <asp:Label ID="lblTopbarInitial" runat="server" Text="A" Style="display:none;" />
+                <asp:Image ID="imgTopbarAvatar" runat="server"
+                    ImageUrl="~/ProfilePicture/default-profile.png"
+                    CssClass="topbar-hidden-server-avatar" />
             </div>
         </div>
 
         <div class="content-area">
-            <div class="notification-header">
-                <div>
-                    <h2 class="page-title">Notifications</h2>
-                    <p class="page-subtitle">Review payment approval updates and important student messages.</p>
-                </div>
-                <asp:Button ID="btnMarkAllRead" runat="server"
-                    Text="Mark All as Read"
-                    CssClass="btn btn-primary"
-                    OnClick="btnMarkAllRead_Click" />
-            </div>
-
             <div class="notif-stats">
                 <div class="notif-stat-card">
                     <div class="notif-stat-icon"><i class="fa-solid fa-bell"></i></div>
@@ -641,36 +750,59 @@
                 </div>
             </div>
 
-            <div class="filter-card">
-                <div class="filter-bar">
-                    <div class="filter-group">
-                        <label>Search Notification</label>
-                        <asp:TextBox ID="txtSearch" runat="server"
-                            CssClass="filter-input"
-                            placeholder="Search title or message..." />
+            <div class="student-page-card">
+                <div class="notification-header">
+                    <div>
+                        <h2 class="page-title">Notifications</h2>
+                        <p class="page-subtitle">Review payment approval updates and important student messages.</p>
+                    </div>
+                </div>
+
+                <div class="filter-card">
+                    <div class="filter-title">
+                        <i class="fa-solid fa-filter"></i>
+                        <span>Notification Filter</span>
                     </div>
 
-                    <div class="filter-group">
-                        <label>Status</label>
-                        <asp:DropDownList ID="ddlStatusFilter" runat="server"
-                            CssClass="filter-select"
-                            AutoPostBack="true"
-                            OnSelectedIndexChanged="Filter_Changed">
-                            <asp:ListItem Text="All" Value="" />
-                            <asp:ListItem Text="Unread" Value="Unread" />
-                            <asp:ListItem Text="Read" Value="Read" />
-                        </asp:DropDownList>
+                    <div class="filter-bar">
+                        <div class="filter-group">
+                            <label>Search</label>
+                            <asp:TextBox ID="txtSearch" runat="server"
+                                CssClass="filter-input"
+                                placeholder="Search notification title or message..." />
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <asp:DropDownList ID="ddlStatusFilter" runat="server"
+                                CssClass="filter-select"
+                                AutoPostBack="true"
+                                OnSelectedIndexChanged="Filter_Changed">
+                                <asp:ListItem Text="All Notifications" Value="" />
+                                <asp:ListItem Text="Unread" Value="Unread" />
+                                <asp:ListItem Text="Read" Value="Read" />
+                            </asp:DropDownList>
+                        </div>
                     </div>
 
-                    <asp:Button ID="btnSearch" runat="server"
-                        Text="Search"
+                    <div class="filter-actions">
+                        <asp:Button ID="btnSearch" runat="server"
+                            Text="Search"
+                            CssClass="btn btn-primary"
+                            OnClick="btnSearch_Click" />
+
+                        <asp:Button ID="btnClear" runat="server"
+                            Text="Clear"
+                            CssClass="btn btn-secondary"
+                            OnClick="btnClear_Click" />
+                    </div>
+                </div>
+
+                <div class="mark-read-row">
+                    <asp:Button ID="btnMarkAllRead" runat="server"
+                        Text="Mark All as Read"
                         CssClass="btn btn-primary"
-                        OnClick="btnSearch_Click" />
-
-                    <asp:Button ID="btnClear" runat="server"
-                        Text="Clear"
-                        CssClass="btn btn-secondary"
-                        OnClick="btnClear_Click" />
+                        OnClick="btnMarkAllRead_Click" />
                 </div>
             </div>
 

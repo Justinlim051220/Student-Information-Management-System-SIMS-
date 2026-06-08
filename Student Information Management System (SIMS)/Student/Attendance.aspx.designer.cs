@@ -11,7 +11,7 @@ namespace Student_Information_Management_System__SIMS_.Student
 {
 
 
-    public partial class MyCourses
+    public partial class Attendance
     {
 
         /// <summary>
@@ -76,15 +76,6 @@ namespace Student_Information_Management_System__SIMS_.Student
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.HyperLink lnkAcademicHistory;
-
-        /// <summary>
-        /// lnkPayment control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.HyperLink lnkPayment;
 
         /// <summary>
         /// lnkNotifications control.
@@ -177,22 +168,22 @@ namespace Student_Information_Management_System__SIMS_.Student
         protected global::System.Web.UI.WebControls.Label lblMessage;
 
         /// <summary>
-        /// ddlFilterSession control.
+        /// ddlCourse control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.DropDownList ddlFilterSession;
+        protected global::System.Web.UI.WebControls.DropDownList ddlCourse;
 
         /// <summary>
-        /// ddlFilterSemester control.
+        /// ddlSession control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.DropDownList ddlFilterSemester;
+        protected global::System.Web.UI.WebControls.DropDownList ddlSession;
 
         /// <summary>
         /// btnSearch control.
@@ -204,22 +195,49 @@ namespace Student_Information_Management_System__SIMS_.Student
         protected global::System.Web.UI.WebControls.Button btnSearch;
 
         /// <summary>
-        /// lblTotal control.
+        /// pnlAttendanceList control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblTotal;
+        protected global::System.Web.UI.WebControls.Panel pnlAttendanceList;
 
         /// <summary>
-        /// rptCourses control.
+        /// lblAttendancePercentage control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Repeater rptCourses;
+        protected global::System.Web.UI.WebControls.Label lblAttendancePercentage;
+
+        /// <summary>
+        /// lblPresentCount control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblPresentCount;
+
+        /// <summary>
+        /// lblAbsentCount control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblAbsentCount;
+
+        /// <summary>
+        /// rptAttendance control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Repeater rptAttendance;
 
         /// <summary>
         /// pnlEmpty control.
@@ -229,14 +247,5 @@ namespace Student_Information_Management_System__SIMS_.Student
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Panel pnlEmpty;
-
-        /// <summary>
-        /// btnConfirmLogout control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.LinkButton btnConfirmLogout;
     }
 }

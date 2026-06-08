@@ -8,7 +8,7 @@ using SIMS.Helpers;
 
 namespace Student_Information_Management_System__SIMS_
 {
-    public partial class Notifications : Page
+    public partial class Notification : Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
