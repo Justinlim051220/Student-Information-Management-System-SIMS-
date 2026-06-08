@@ -500,7 +500,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             switch (type.ToLower())
             {
                 case "success":
-                    title = "✅ Success";
+                    title = "Success";
                     break;
 
                 case "danger":
