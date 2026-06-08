@@ -20,6 +20,7 @@ namespace Student_Information_Management_System__SIMS_.Student
                 LoadSidebarUserInfo();
                 LoadFilters();
                 LoadEnrolledCourses();
+                CheckUnreadNotifications();
             }
         }
 
@@ -30,8 +31,21 @@ namespace Student_Information_Management_System__SIMS_.Student
             if (string.IsNullOrWhiteSpace(studentName))
                 studentName = "Student";
 
+            string initial = studentName.Length > 0 ? studentName.Substring(0, 1).ToUpper() : "S";
+
             lblSidebarName.Text = studentName;
-            lblAvatarInitial.Text = studentName.Substring(0, 1).ToUpper();
+            lblAvatarInitial.Text = initial;
+        }
+
+        private void CheckUnreadNotifications()
+        {
+            int userId = SessionHelper.GetUserId(Session);
+            object count = DatabaseHelper.ExecuteScalar(
+                "SELECT COUNT(*) FROM Notifications WHERE UserId = @Uid AND IsRead = 0",
+                new[] { new SqlParameter("@Uid", userId) });
+
+            bool hasUnread = (count != null && Convert.ToInt32(count) > 0);
+            pnlNotifBadge.Visible = hasUnread;
         }
 
         private void LoadFilters()

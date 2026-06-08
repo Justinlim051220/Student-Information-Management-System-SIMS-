@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Attendance.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Attendance" %>
+﻿﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Attendance.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Attendance" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -242,6 +242,122 @@
         .user-role {
             margin-top: 2px;
         }
+
+        /* ===== Standard Student logout dialog - same as Dashboard ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(30,30,40,.60);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 18px;
+        }
+
+        .system-dialog .modal-box {
+            width: 100%;
+            max-width: 400px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,.28);
+            text-align: center;
+            overflow: hidden;
+            animation: studentModalPop .18s ease-out;
+        }
+
+        @keyframes studentModalPop {
+            from { opacity: 0; transform: translateY(10px) scale(.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .system-dialog .modal-head {
+            background: #fff;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            border-bottom: 1px solid #ececec;
+            padding: 36px 32px 18px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            gap: 14px;
+        }
+
+        .logout-warning-icon,
+        .prompt-modal .cm-icon-wrap.logout-warning-icon {
+            width: 72px !important;
+            height: 72px !important;
+            margin: 0 auto 16px !important;
+            padding: 0 !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            color: #f59e0b !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1 !important;
+            box-shadow: none !important;
+            font-family: inherit !important;
+        }
+
+        .logout-warning-icon i,
+        .prompt-modal .cm-icon-wrap.logout-warning-icon i {
+            color: #f59e0b !important;
+            font-size: 56px !important;
+            line-height: 1 !important;
+            display: block !important;
+        }
+
+        .system-dialog .modal-body {
+            padding: 18px 32px 28px;
+            color: #555;
+            font-size: .97rem;
+            line-height: 1.65;
+        }
+
+        .system-dialog .modal-actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            padding: 0 32px 28px;
+        }
+
+        .system-dialog .modal-cancel,
+        .system-dialog .modal-submit {
+            min-width: 110px;
+            padding: 10px 32px;
+            border-radius: 50px;
+            font-size: .95rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all .18s ease;
+            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .system-dialog .modal-cancel {
+            background: transparent;
+            border: 2px solid #e8a838;
+            color: #e8a838;
+        }
+
+        .system-dialog .modal-submit {
+            background: #e8a838;
+            border: 2px solid #e8a838;
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(232,168,56,.22);
+        }
+
+        .system-dialog .modal-cancel:hover { background: #fff8e1; }
+        .system-dialog .modal-submit:hover { background: #d99a2e; border-color: #d99a2e; }
+
     </style>
 </head>
 
@@ -264,6 +380,8 @@
                 <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
             </asp:HyperLink>
 
+            <div class="sidebar-section-label" style="margin-top:12px;">Academic</div>
+
             <asp:HyperLink ID="lnkMyCourses" runat="server" NavigateUrl="~/Student/MyCourses.aspx" CssClass="sidebar-link">
                 <i class="fa-solid fa-book-open nav-icon"></i> My Courses
             </asp:HyperLink>
@@ -279,14 +397,15 @@
             <asp:HyperLink ID="lnkResults" runat="server" NavigateUrl="~/Student/Results.aspx" CssClass="sidebar-link">
                 <i class="fa-solid fa-chart-line nav-icon"></i> Results
             </asp:HyperLink>
+<div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
 
-            <asp:HyperLink ID="lnkAcademicHistory" runat="server" NavigateUrl="~/Student/AcademicHistory.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History
+            <asp:HyperLink ID="lnkPayment" runat="server" NavigateUrl="~/Student/Student_Payment.aspx" CssClass="sidebar-link">
+                <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
             </asp:HyperLink>
 
             <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
 
-            <asp:HyperLink ID="lnkNotifications" runat="server" NavigateUrl="~/Student/Notifications.aspx" CssClass="sidebar-link">
+            <asp:HyperLink ID="lnkNotifications" runat="server" NavigateUrl="~/Student/Notification.aspx" CssClass="sidebar-link">
                 <i class="fa-solid fa-bell nav-icon"></i> Notifications
                 <asp:Panel ID="pnlSidebarNotifBadge" runat="server" CssClass="badge-dot" Visible="false" style="margin-left:auto;" />
             </asp:HyperLink>
@@ -331,12 +450,12 @@
             </div>
 
             <div class="topbar-right">
-                <a href="Notifications.aspx" class="topbar-icon-btn" title="Notifications">
+                <a href="Notification.aspx" class="topbar-icon-btn" title="Notifications">
                     <i class="fa-solid fa-bell"></i>
                     <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
                 </a>
 
-                <a href="Profile.aspx" class="topbar-icon-btn" title="My Profile">
+                <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile">
                     <i class="fa-solid fa-circle-user"></i>
                 </a>
             </div>
@@ -444,6 +563,28 @@
         </div>
     </div>
 
+
+    <!-- ================================================================
+         LOGOUT MODAL - same UI as Student Dashboard
+         ================================================================ -->
+    <div id="logoutModal" class="modal-overlay system-dialog">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div class="logout-warning-icon">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <span>Log Out</span>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to log out?
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="modal-cancel" onclick="hideLogoutModal();">Cancel</button>
+                <a href="../Login.aspx" class="modal-submit">Log Out</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Custom Alert Modal Structure -->
     <div id="customModalOverlay">
         <div id="customModal">
@@ -462,6 +603,15 @@
     </div>
 
     <script>
+
+        function showLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'flex';
+        }
+
+        function hideLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+        }
+
         var SVG_TICK =
             '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">' +
             '<polyline points="20 6 9 17 4 12"/>' +

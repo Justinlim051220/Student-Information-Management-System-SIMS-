@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Results.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Results" %>
+﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Results.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Results" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -169,17 +169,13 @@
             <asp:HyperLink ID="lnkResults" runat="server" NavigateUrl="~/Student/Results.aspx" CssClass="sidebar-link active">
                 <i class="fa-solid fa-chart-line nav-icon"></i> Results
             </asp:HyperLink>
-            <asp:HyperLink ID="lnkAcademicHistory" runat="server" NavigateUrl="~/Student/AcademicHistory.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History
-            </asp:HyperLink>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
+<div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
             <asp:HyperLink ID="lnkPayment" runat="server" NavigateUrl="~/Student/Student_Payment.aspx" CssClass="sidebar-link">
                 <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
             </asp:HyperLink>
 
             <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-            <asp:HyperLink ID="lnkNotifications" runat="server" NavigateUrl="~/Student/Notifications.aspx" CssClass="sidebar-link">
+            <asp:HyperLink ID="lnkNotifications" runat="server" NavigateUrl="~/Student/Notification.aspx" CssClass="sidebar-link">
                 <i class="fa-solid fa-bell nav-icon"></i> Notifications
                 <asp:Panel ID="pnlSidebarNotifBadge" runat="server" CssClass="badge-dot" Visible="false" style="margin-left:auto;" />
             </asp:HyperLink>
@@ -219,7 +215,7 @@
                 <div class="topbar-date"><asp:Label ID="lblDate" runat="server" /></div>
             </div>
             <div class="topbar-right">
-                <a href="Notifications.aspx" class="topbar-icon-btn" title="Notifications">
+                <a href="Notification.aspx" class="topbar-icon-btn" title="Notifications">
                     <i class="fa-solid fa-bell"></i>
                     <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
                 </a>
@@ -229,8 +225,8 @@
 
         <div class="page-content">
             <div class="page-header">
-                <h1>My Academic Transcripts</h1>
-                <p>Filter your grading metrics by academic cycles or view complete summary tallies.</p>
+                <h1>My Academic Results</h1>
+                <p>Select an academic session and semester to view published results. Results only appear after all course marks are finalized.</p>
             </div>
 
             <div class="card" style="margin-bottom:24px;">
@@ -244,7 +240,7 @@
                         <div class="filter-item">
                             <label>Semester</label>
                             <asp:DropDownList ID="ddlSemester" runat="server" CssClass="form-control">
-                                <asp:ListItem Text="All Semesters" Value="" />
+                                <asp:ListItem Text="-- Select Semester --" Value="" />
                                 <asp:ListItem Text="Semester 1" Value="1" />
                                 <asp:ListItem Text="Semester 2" Value="2" />
                                 <asp:ListItem Text="Semester 3" Value="3" />
@@ -261,22 +257,22 @@
 
             <asp:Panel ID="pnlResults" runat="server" CssClass="card">
                 <div class="card-header">
-                    <span class="card-title">Grade Performance Sheet</span>
+                    <span class="card-title">Published Result Sheet</span>
                 </div>
 
                 <div class="card-body">
                     <div class="summary-flex">
                         <div class="summary-box">
                             <i class="fa-solid fa-graduation-cap"></i>
-                            Calculated GPA: &nbsp;<asp:Label ID="lblGPA" runat="server" CssClass="metric-value" Text="0.00" />
+                            GPA: &nbsp;<asp:Label ID="lblGPA" runat="server" CssClass="metric-value" Text="0.00" />
                         </div>
                         <div class="summary-box">
                             <i class="fa-solid fa-calculator"></i>
-                            Calculated CGPA: &nbsp;<asp:Label ID="lblCGPA" runat="server" CssClass="metric-value" Text="0.00" style="color: #137333;" />
+                            CGPA: &nbsp;<asp:Label ID="lblCGPA" runat="server" CssClass="metric-value" Text="0.00" style="color: #137333;" />
                         </div>
                         <div class="summary-box">
                             <i class="fa-solid fa-award"></i>
-                            Total Earned Credits: &nbsp;<asp:Label ID="lblTotalCredits" runat="server" CssClass="metric-value" Text="0" />
+                            Total Credits: &nbsp;<asp:Label ID="lblTotalCredits" runat="server" CssClass="metric-value" Text="0" />
                         </div>
                     </div>
 
@@ -288,8 +284,8 @@
                                         <th>No.</th>
                                         <th>Module Code & Name</th>
                                         <th>Credit Hours</th>
-                                        <th>Overall Score (%)</th>
-                                        <th>Letter Grade</th>
+                                        <th>Final Mark (%)</th>
+                                        <th>Grade</th>
                                         <th>Outcome</th>
                                     </tr>
                                 </thead>
@@ -300,17 +296,11 @@
                                 <td><%# Container.ItemIndex + 1 %></td>
                                 <td><%# Eval("CourseDisplay") %></td>
                                 <td><%# Eval("Credits") %></td>
-                                <td><%# Eval("FinalPercentage") != DBNull.Value ? string.Format("{0:0.0}%", Eval("FinalPercentage")) : "-" %></td>
-                                <td><strong><%# Eval("CalculatedGrade") %></strong></td>
+                                <td><%# string.Format("{0:0.0}%", Eval("FinalMark")) %></td>
+                                <td><strong><%# Eval("Grade") %></strong></td>
                                 <td>
-                                    <span class='<%# 
-                                        Eval("CalculatedGrade").ToString() == "In Progress (IP)" ? "grade-badge grade-pending" : 
-                                        (Eval("CalculatedGrade").ToString() != "F" ? "grade-badge grade-pass" : "grade-badge grade-fail") 
-                                    %>'>
-                                        <%# 
-                                            Eval("CalculatedGrade").ToString() == "In Progress (IP)" ? "PENDING" : 
-                                            (Eval("CalculatedGrade").ToString() != "F" ? "PASS" : "FAIL") 
-                                        %>
+                                    <span class='<%# Eval("Grade").ToString() != "F" ? "grade-badge grade-pass" : "grade-badge grade-fail" %>'>
+                                        <%# Eval("Grade").ToString() != "F" ? "PASS" : "FAIL" %>
                                     </span>
                                 </td>
                             </tr>
@@ -323,8 +313,8 @@
 
                     <asp:Panel ID="pnlEmpty" runat="server" CssClass="empty-state" Visible="false">
                         <i class="fa-solid fa-folder-open"></i>
-                        <h3>No grade results published</h3>
-                        <p>No verified grade records found for the chosen selection parameter combinations.</p>
+                        <h3>Results Not Available Yet</h3>
+                        <p>Some course marks have not been finalized by lecturers, or no active course was found for this session and semester.</p>
                     </asp:Panel>
                 </div>
            </asp:Panel>

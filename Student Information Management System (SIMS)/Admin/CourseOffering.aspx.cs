@@ -80,18 +80,18 @@ namespace Student_Information_Management_System__SIMS_.Admin
             string totalSql = @"
                 SELECT COUNT(*)
                 FROM (
-                    SELECT Session, ProgrammeId, Semester, Status
+                    SELECT Session, ProgrammeId, Status
                     FROM CourseOffering
-                    GROUP BY Session, ProgrammeId, Semester, Status
+                    GROUP BY Session, ProgrammeId, Status
                 ) groupedOfferings";
 
             string openSql = @"
                 SELECT COUNT(*)
                 FROM (
-                    SELECT Session, ProgrammeId, Semester, Status
+                    SELECT Session, ProgrammeId, Status
                     FROM CourseOffering
                     WHERE Status = 'Open'
-                    GROUP BY Session, ProgrammeId, Semester, Status
+                    GROUP BY Session, ProgrammeId, Status
                 ) groupedOfferings";
 
             lblTotalOfferings.Text = Convert.ToString(DatabaseHelper.ExecuteScalar(totalSql)) ?? "0";
@@ -104,19 +104,17 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 SELECT
                     co.Session,
                     co.ProgrammeId,
-                    co.Semester,
                     co.Status,
                     p.ProgrammeCode,
                     p.ProgrammeName,
                     COUNT(*) AS CourseCount,
-                    co.Session + '||' + CAST(co.ProgrammeId AS VARCHAR(20)) + '||' + CAST(co.Semester AS VARCHAR(10)) + '||' + co.Status AS GroupKey,
+                    co.Session + '||' + CAST(co.ProgrammeId AS VARCHAR(20)) + '||' + co.Status AS GroupKey,
                     STUFF((
                         SELECT '<br />' + c2.CourseCode + ' - ' + c2.CourseName
                         FROM CourseOffering co2
                         INNER JOIN Courses c2 ON co2.CourseId = c2.CourseId
                         WHERE co2.Session = co.Session
                           AND co2.ProgrammeId = co.ProgrammeId
-                          AND co2.Semester = co.Semester
                           AND co2.Status = co.Status
                         ORDER BY c2.CourseCode
                         FOR XML PATH(''), TYPE
@@ -126,8 +124,8 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 INNER JOIN Courses c ON co.CourseId = c.CourseId
                 WHERE (@Search = '' OR c.CourseCode LIKE '%' + @Search + '%' OR c.CourseName LIKE '%' + @Search + '%' OR p.ProgrammeCode LIKE '%' + @Search + '%' OR co.Session LIKE '%' + @Search + '%')
                   AND (@Status = '' OR co.Status = @Status)
-                GROUP BY co.Session, co.ProgrammeId, co.Semester, co.Status, p.ProgrammeCode, p.ProgrammeName
-                ORDER BY co.Session, p.ProgrammeCode, co.Semester, co.Status";
+                GROUP BY co.Session, co.ProgrammeId, co.Status, p.ProgrammeCode, p.ProgrammeName
+                ORDER BY co.Session, p.ProgrammeCode, co.Status";
 
             SqlParameter[] p =
             {
@@ -178,17 +176,9 @@ namespace Student_Information_Management_System__SIMS_.Admin
         {
             if (string.IsNullOrWhiteSpace(ddlSession.SelectedValue) ||
                 string.IsNullOrWhiteSpace(ddlProgramme.SelectedValue) ||
-                string.IsNullOrWhiteSpace(ddlSemester.SelectedValue) ||
                 string.IsNullOrWhiteSpace(ddlStatus.SelectedValue))
             {
                 ShowMessage("⚠ Warning", "Please fill in all required fields.");
-                return false;
-            }
-
-            int semester;
-            if (!int.TryParse(ddlSemester.SelectedValue, out semester) || semester < 1)
-            {
-                ShowMessage("⚠ Warning", "Please select a valid semester.");
                 return false;
             }
 
@@ -216,7 +206,6 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 WHERE Session = @Session
                   AND ProgrammeId = @ProgrammeId
                   AND CourseId = @CourseId
-                  AND Semester = @Semester
                   AND OfferingId <> @OfferingId";
 
             SqlParameter[] p = BuildParameters(currentOfferingId, courseId);
@@ -251,20 +240,17 @@ namespace Student_Information_Management_System__SIMS_.Admin
 
             string oldSession = oldKey[0];
             int oldProgrammeId = int.Parse(oldKey[1]);
-            int oldSemester = int.Parse(oldKey[2]);
-            string oldStatus = oldKey[3];
+            string oldStatus = oldKey[2];
 
             // Remove the old grouped offering first, then insert the selected courses as the new group.
             string deleteSql = @"DELETE FROM CourseOffering
                                  WHERE Session = @OldSession
                                    AND ProgrammeId = @OldProgrammeId
-                                   AND Semester = @OldSemester
                                    AND Status = @OldStatus";
             SqlParameter[] deleteParams =
             {
                 new SqlParameter("@OldSession", oldSession),
                 new SqlParameter("@OldProgrammeId", oldProgrammeId),
-                new SqlParameter("@OldSemester", oldSemester),
                 new SqlParameter("@OldStatus", oldStatus)
             };
             DatabaseHelper.ExecuteNonQuery(deleteSql, deleteParams);
@@ -280,7 +266,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 new SqlParameter("@Session", ddlSession.SelectedValue),
                 new SqlParameter("@ProgrammeId", int.Parse(ddlProgramme.SelectedValue)),
                 new SqlParameter("@CourseId", courseId),
-                new SqlParameter("@Semester", int.Parse(ddlSemester.SelectedValue)),
+                new SqlParameter("@Semester", 1),
                 new SqlParameter("@Status", ddlStatus.SelectedValue),
                 new SqlParameter("@OfferingId", offeringId)
             };
@@ -308,14 +294,12 @@ namespace Student_Information_Management_System__SIMS_.Admin
             string sql = @"SELECT * FROM CourseOffering
                            WHERE Session = @Session
                              AND ProgrammeId = @ProgrammeId
-                             AND Semester = @Semester
                              AND Status = @Status";
             SqlParameter[] p =
             {
                 new SqlParameter("@Session", key[0]),
                 new SqlParameter("@ProgrammeId", int.Parse(key[1])),
-                new SqlParameter("@Semester", int.Parse(key[2])),
-                new SqlParameter("@Status", key[3])
+                new SqlParameter("@Status", key[2])
             };
 
             DataTable dt = DatabaseHelper.ExecuteQuery(sql, p);
@@ -333,12 +317,11 @@ namespace Student_Information_Management_System__SIMS_.Admin
             foreach (ListItem item in cblCourses.Items)
                 item.Selected = dt.AsEnumerable().Any(r => r["CourseId"].ToString() == item.Value);
 
-            ddlSemester.SelectedValue = key[2];
-            ddlStatus.SelectedValue = key[3];
+            ddlStatus.SelectedValue = key[2];
 
             lblFormTitle.Text = "Edit Course Offering Group";
             btnSave.Text = "Update Selected Courses";
-            lblCourseHint.Text = "Edit mode: tick all courses that should be open for this session/programme/semester.";
+            lblCourseHint.Text = "Edit mode: tick all courses that should be open for this session/programme.";
             ShowMessage("Edit Mode", "Course offering group loaded. You can update the selected courses now.");
         }
 
@@ -346,12 +329,12 @@ namespace Student_Information_Management_System__SIMS_.Admin
         {
             if (string.IsNullOrWhiteSpace(groupKey)) return null;
             string[] parts = groupKey.Split(new[] { "||" }, StringSplitOptions.None);
-            return parts.Length == 4 ? parts : null;
+            return parts.Length == 3 ? parts : null;
         }
 
         private void ShowDeleteConfirmation(string groupKey)
         {
-            string message = "Are you sure you want to delete this course offering group? This will delete all courses under the same session/programme/semester/status group.";
+            string message = "Are you sure you want to delete this course offering group? This will delete all courses under the same session/programme/status group.";
             string script = string.Format("showMessageModal('⚠ Confirm Delete', '{0}', true, '{1}');",
                 HttpUtility.JavaScriptStringEncode(message),
                 HttpUtility.JavaScriptStringEncode(groupKey));
@@ -372,14 +355,12 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 string sql = @"DELETE FROM CourseOffering
                                WHERE Session = @Session
                                  AND ProgrammeId = @ProgrammeId
-                                 AND Semester = @Semester
                                  AND Status = @Status";
                 SqlParameter[] p =
                 {
                     new SqlParameter("@Session", key[0]),
                     new SqlParameter("@ProgrammeId", int.Parse(key[1])),
-                    new SqlParameter("@Semester", int.Parse(key[2])),
-                    new SqlParameter("@Status", key[3])
+                    new SqlParameter("@Status", key[2])
                 };
                 DatabaseHelper.ExecuteNonQuery(sql, p);
 
@@ -405,7 +386,6 @@ namespace Student_Information_Management_System__SIMS_.Admin
             ddlSession.SelectedIndex = 0;
             ddlProgramme.SelectedIndex = 0;
             LoadCoursesByProgramme();
-            ddlSemester.SelectedIndex = 0;
             ddlStatus.SelectedValue = "Open";
             lblFormTitle.Text = "Add Course Offering";
             btnSave.Text = "Save Selected Courses";

@@ -48,6 +48,7 @@
     .course-code{font-weight:900;color:var(--orange-dark);}
     .status-badge{display:inline-flex;padding:4px 11px;border-radius:var(--radius-pill);font-size:11px;font-weight:900;}
     .status-active{background:rgba(46,204,113,.14);color:#1a7a40;}
+    .status-completed{background:rgba(52,152,219,.12);color:#1f5f8b;}
     .status-pending{background:rgba(245,166,35,.16);color:#a86405;}
     .status-dropped{background:rgba(149,165,166,.16);color:#5d6d7e;}
     .status-rejected{background:rgba(231,76,60,.12);color:#b03a2e;}
@@ -58,6 +59,13 @@
     .drop-note{font-size:12px;color:var(--text-muted);line-height:1.5;margin-top:10px;}
     .table-card .card-head{align-items:flex-start;}
     .table-subtitle{font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px;}
+    .enrollment-list-tools{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px;padding:14px 16px;background:#fffaf2;border:1px solid rgba(245,166,35,.22);border-radius:16px;}
+    .enrollment-filter-group{min-width:230px;}
+    .enrollment-filter-label{display:block;font-size:12px;font-weight:900;color:var(--text-muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.04em;}
+    .enrollment-filter-select{width:100%;height:42px;border:1.5px solid var(--border-mid);border-radius:999px;background:#fff;padding:0 14px;font-family:var(--font-primary);font-size:13px;font-weight:800;color:var(--text-primary);outline:none;}
+    .enrollment-filter-select:focus{border-color:var(--orange-main);box-shadow:0 0 0 3px rgba(245,166,35,.12);}
+    .enrollment-filter-note{font-size:12px;color:var(--text-muted);font-weight:700;line-height:1.45;max-width:460px;}
+
     .empty-row{text-align:center;color:var(--text-muted);padding:28px!important;}
     .sidebar-user{margin-bottom:18px;align-items:flex-start;}.user-info{padding-top:4px;}.user-name{margin-bottom:4px;}.user-role{margin-top:2px;}
     .modal-overlay{position:fixed;inset:0;background:rgba(10,18,32,.45);display:none;align-items:center;justify-content:center;z-index:9999;padding:18px;}
@@ -206,42 +214,90 @@
 <asp:HiddenField ID="hfDropSession" runat="server" />
 
 <div class="sidebar" id="sidebar">
+
   <div class="sidebar-brand">
-    <img src="../Images/Logo_Dashboard.png" alt="ONTI SIMS" class="brand-logo" />
-    <div class="brand-text"><div class="brand-name">SIMS</div><div class="brand-sub">Student Portal</div></div>
+    <img src="~/Images/Logo_Dashboard.png" runat="server" alt="ONTI SIMS" class="brand-logo" />
+    <div class="brand-text">
+      <div class="brand-name">SIMS</div>
+      <div class="brand-sub">Student Portal</div>
+    </div>
   </div>
 
   <nav class="sidebar-nav">
     <div class="sidebar-section-label">Main</div>
-    <a href="Student_Dashboard.aspx" class="sidebar-link"><i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard</a>
-    <a href="MyCourses.aspx" class="sidebar-link"><i class="fa-solid fa-book-open nav-icon"></i> My Courses</a>
-    <a href="Attendance.aspx" class="sidebar-link"><i class="fa-solid fa-calendar-check nav-icon"></i> Attendance</a>
-      <a href="Student_Enrollment.aspx" class="sidebar-link active"><i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment</a>
-      <a href="Student_Payment.aspx" class="sidebar-link"><i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment</a>
-    <a href="Results.aspx" class="sidebar-link"><i class="fa-solid fa-chart-line nav-icon"></i> Results</a>
-    <a href="AcademicHistory.aspx" class="sidebar-link"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History</a>
+
+    <a href="Student_Dashboard.aspx" class="sidebar-link">
+      <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Academic</div>
+
+    <a href="MyCourses.aspx" class="sidebar-link">
+      <i class="fa-solid fa-book-open nav-icon"></i> My Courses
+    </a>
+    <a href="Attendance.aspx" class="sidebar-link">
+      <i class="fa-solid fa-calendar-check nav-icon"></i> Attendance
+    </a>
+    <a href="Student_Enrollment.aspx" class="sidebar-link active">
+      <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
+    </a>
+    <a href="Results.aspx" class="sidebar-link">
+      <i class="fa-solid fa-chart-line nav-icon"></i> Results
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
+
+    <a href="Student_Payment.aspx" class="sidebar-link">
+      <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
+    </a>
 
     <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-    <a href="Notification.aspx" class="sidebar-link"><i class="fa-solid fa-bell nav-icon"></i> Notifications</a>
-    <a href="Contacts.aspx" class="sidebar-link"><i class="fa-solid fa-address-book nav-icon"></i> Contacts</a>
+
+    <a href="Notification.aspx" class="sidebar-link">
+      <i class="fa-solid fa-bell nav-icon"></i> Notifications
+    </a>
+    <a href="Contacts.aspx" class="sidebar-link">
+      <i class="fa-solid fa-address-book nav-icon"></i> Contacts
+    </a>
 
     <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
-    <a href="MyProfile.aspx" class="sidebar-link"><i class="fa-solid fa-circle-user nav-icon"></i> My Profile</a>
+
+    <a href="MyProfile.aspx" class="sidebar-link">
+      <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
+    </a>
   </nav>
 
   <div class="sidebar-footer">
     <div class="sidebar-user">
-      <div class="user-avatar"><asp:Label ID="lblAvatarInitial" runat="server" Text="S" /></div>
-      <div class="user-info"><div class="user-name"><asp:Label ID="lblSidebarName" runat="server" Text="Student" /></div><div class="user-role">Student</div></div>
+      <div class="user-avatar">
+        <asp:Label ID="lblAvatarInitial" runat="server" Text="S" />
+      </div>
+      <div class="user-info">
+        <div class="user-name">
+          <asp:Label ID="lblSidebarName" runat="server" Text="Student" />
+        </div>
+        <div class="user-role">Student</div>
+      </div>
     </div>
-    <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link" OnClientClick="showLogoutModal(); return false;"><i class="fa-solid fa-right-from-bracket"></i> Log Out</asp:LinkButton>
+    <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link"
+      OnClientClick="showLogoutModal(); return false;">
+      <i class="fa-solid fa-right-from-bracket"></i> Log Out
+    </asp:LinkButton>
   </div>
+
 </div>
 
 <div class="main-wrapper">
   <div class="topbar">
     <div><div class="topbar-title">Enrollment</div><div class="topbar-date"><asp:Label ID="lblDate" runat="server" /></div></div>
-    <div class="topbar-right"><a href="Notification.aspx" class="topbar-icon-btn" title="Notifications"><i class="fa-solid fa-bell"></i></a><a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile"><i class="fa-solid fa-circle-user"></i></a></div>
+    <div class="topbar-right">
+      <a href="Notification.aspx" class="topbar-icon-btn" title="Notifications">
+        <i class="fa-solid fa-bell"></i>
+      </a>
+      <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile">
+        <i class="fa-solid fa-circle-user"></i>
+      </a>
+    </div>
   </div>
 
   <div class="page-content">
@@ -272,7 +328,7 @@
           <div class="info-line"><span class="info-label">Programme</span><span class="info-value"><asp:Label ID="lblProgramme" runat="server" /></span></div>
           <div class="info-line"><span class="info-label">Current Semester</span><span class="info-value"><asp:Label ID="lblSemester" runat="server" /></span></div>
           <div class="info-line"><span class="info-label">Open Sessions</span><span class="info-value"><asp:Label ID="lblOpenSessionCount" runat="server" Text="0" /></span></div>
-          <div class="helper-text">Courses are filtered by your programme, your current semester, and admin-open course offerings only.</div>
+          <div class="helper-text">Courses are filtered by your programme and admin-open course offerings only.</div>
         </div>
       </div>
 
@@ -309,11 +365,30 @@
     <div class="table-card" style="margin-top:22px;">
       <div class="card-head">
         <div>
-          <div class="card-title"><i class="fa-solid fa-list-check"></i> My Current Enrollments</div>
-          <div class="table-subtitle">Use Request Drop to send a subject drop request to admin. The subject is not removed until admin approves it.</div>
+          <div class="card-title"><i class="fa-solid fa-list-check"></i> My Course Enrollment</div>
+          <div class="table-subtitle">The latest session is shown by default. Older sessions are shown as completed under Enrollment History.</div>
         </div>
       </div>
       <div class="card-body">
+        <div class="enrollment-list-tools">
+          <div class="enrollment-filter-group">
+            <label class="enrollment-filter-label" for="enrollmentView">Enrollment View</label>
+            <select id="enrollmentView" name="enrollmentView" class="enrollment-filter-select">
+              <option value="Current" <%= GetEnrollmentViewSelected("Current") %>>Current Session Only</option>
+              <option value="History" <%= GetEnrollmentViewSelected("History") %>>Previous Session History</option>
+              <option value="Active" <%= GetEnrollmentViewSelected("Active") %>>Active Only</option>
+              <option value="Pending" <%= GetEnrollmentViewSelected("Pending") %>>Pending Only</option>
+              <option value="Drop Pending" <%= GetEnrollmentViewSelected("Drop Pending") %>>Drop Requests</option>
+              <option value="Dropped" <%= GetEnrollmentViewSelected("Dropped") %>>Dropped Courses</option>
+              <option value="Rejected" <%= GetEnrollmentViewSelected("Rejected") %>>Rejected Records</option>
+              <option value="All" <%= GetEnrollmentViewSelected("All") %>>All Enrollment Records</option>
+            </select>
+          </div>
+          <div class="enrollment-filter-note">
+            Default view shows only the latest enrolled session. Previous sessions are kept under history.
+          </div>
+          <asp:Button ID="btnApplyEnrollmentFilter" runat="server" Text="Apply Filter" CssClass="btn-outline-custom" OnClick="btnRefresh_Click" />
+        </div>
         <div class="table-wrapper">
       <asp:GridView ID="gvEnrolled" runat="server" AutoGenerateColumns="False" CssClass="data-table student-enrollment-table" GridLines="None" EmptyDataText="No enrolled course yet.">
         <Columns>
@@ -323,15 +398,15 @@
           <asp:BoundField DataField="Session" HeaderText="Session" />
           <asp:TemplateField HeaderText="Status">
             <ItemTemplate>
-              <span class='status-badge <%# GetStatusCss(Eval("Status")) %>'><%# Eval("Status") %></span>
+              <span class='status-badge <%# GetStatusCss(Eval("DisplayStatus")) %>'><%# Eval("DisplayStatus") %></span>
             </ItemTemplate>
           </asp:TemplateField>
           <asp:BoundField DataField="EnrollmentDate" HeaderText="Date" DataFormatString="{0:dd MMM yyyy}" />
           <asp:TemplateField HeaderText="Action">
             <ItemTemplate>
               <asp:LinkButton ID="btnRequestDrop" runat="server"
-                CssClass='<%# CanRequestDrop(Eval("Status")) ? "action-btn action-drop" : "action-btn action-disabled" %>'
-                Enabled='<%# CanRequestDrop(Eval("Status")) %>'
+                CssClass='<%# CanRequestDrop(Eval("DisplayStatus")) ? "action-btn action-drop" : "action-btn action-disabled" %>'
+                Enabled='<%# CanRequestDrop(Eval("DisplayStatus")) %>'
                 OnClientClick='<%# GetDropClientClick(Eval("EnrollmentId"), Eval("CourseId"), Eval("Session"), Eval("CourseCode"), Eval("CourseName")) %>'>
                 <i class="fa-solid fa-circle-minus"></i> Request Drop
               </asp:LinkButton>

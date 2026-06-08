@@ -524,49 +524,81 @@
 <form id="form1" runat="server">
 
 <div class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-        <img src="~/Images/Logo_Dashboard.png" runat="server" alt="ONTI SIMS" class="brand-logo" />
-        <div class="brand-text">
-            <div class="brand-name">SIMS</div>
-            <div class="brand-sub">Student Portal</div>
-        </div>
+
+  <!-- Brand -->
+  <div class="sidebar-brand">
+    <img src="~/Images/Logo_Dashboard.png" runat="server" alt="ONTI SIMS" class="brand-logo" />
+    <div class="brand-text">
+      <div class="brand-name">SIMS</div>
+      <div class="brand-sub">Student Portal</div>
     </div>
+  </div>
 
-    <nav class="sidebar-nav">
-        <div class="sidebar-section-label">Main</div>
-        <a href="Student_Dashboard.aspx" class="sidebar-link"><i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard</a>
-        <a href="MyCourses.aspx" class="sidebar-link"><i class="fa-solid fa-book-open nav-icon"></i> My Courses</a>
-        <a href="Attendance.aspx" class="sidebar-link"><i class="fa-solid fa-calendar-check nav-icon"></i> Attendance</a>
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Main</div>
 
-        <a href="Student_Enrollment.aspx" class="sidebar-link"><i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment</a>
-        <a href="Student_Payment.aspx" class="sidebar-link active"><i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment</a>
+    <a href="Student_Dashboard.aspx" class="sidebar-link">
+      <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
+    </a>
 
-        <a href="Results.aspx" class="sidebar-link"><i class="fa-solid fa-chart-line nav-icon"></i> Results</a>
-        <a href="AcademicHistory.aspx" class="sidebar-link"><i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History</a>
+    <div class="sidebar-section-label" style="margin-top:12px;">Academic</div>
 
-        <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-        <a href="Notifications.aspx" class="sidebar-link"><i class="fa-solid fa-bell nav-icon"></i> Notifications</a>
-        <a href="Contacts.aspx" class="sidebar-link"><i class="fa-solid fa-address-book nav-icon"></i> Contacts</a>
+    <a href="MyCourses.aspx" class="sidebar-link">
+      <i class="fa-solid fa-book-open nav-icon"></i> My Courses
+    </a>
+    <a href="Attendance.aspx" class="sidebar-link">
+      <i class="fa-solid fa-calendar-check nav-icon"></i> Attendance
+    </a>
+    <a href="Student_Enrollment.aspx" class="sidebar-link">
+      <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
+    </a>
+    <a href="Results.aspx" class="sidebar-link">
+      <i class="fa-solid fa-chart-line nav-icon"></i> Results
+    </a>
 
-        <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
-        <a href="MyProfile.aspx" class="sidebar-link"><i class="fa-solid fa-circle-user nav-icon"></i> My Profile</a>
-    </nav>
+    <div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
 
-    <div class="sidebar-footer">
-        <div class="sidebar-user">
-            <div class="user-avatar" id="divSidebarInitial" runat="server">
-                <asp:Label ID="lblAvatarInitial" runat="server" Text="S" />
-            </div>
-            <div class="user-info">
-                <div class="user-name"><asp:Label ID="lblSidebarName" runat="server" Text="Student" /></div>
-                <div class="user-role">Student</div>
-            </div>
+    <a href="Student_Payment.aspx" class="sidebar-link active">
+      <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
+
+    <a href="Notification.aspx" class="sidebar-link">
+      <i class="fa-solid fa-bell nav-icon"></i> Notifications
+    </a>
+    <a href="Contacts.aspx" class="sidebar-link">
+      <i class="fa-solid fa-address-book nav-icon"></i> Contacts
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
+
+    <a href="MyProfile.aspx" class="sidebar-link">
+      <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
+    </a>
+  </nav>
+
+  <!-- Sidebar user footer -->
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="user-avatar">
+        <asp:Label ID="lblAvatarInitial" runat="server" Text="S" />
+      </div>
+      <div class="user-info">
+        <div class="user-name">
+          <asp:Label ID="lblSidebarName" runat="server" Text="Student" />
         </div>
-        <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link" OnClientClick="showLogoutModal(); return false;">
-            <i class="fa-solid fa-right-from-bracket"></i> Log Out
-        </asp:LinkButton>
+        <div class="user-role">Student</div>
+      </div>
     </div>
-</div>
+    <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link"
+      OnClientClick="showLogoutModal(); return false;">
+      <i class="fa-solid fa-right-from-bracket"></i> Log Out
+    </asp:LinkButton>
+  </div>
+
+</div><!-- /sidebar -->
 
 <div class="main-wrapper">
     <div class="topbar">
@@ -575,7 +607,7 @@
             <div class="topbar-date"><asp:Label ID="lblDate" runat="server" Text="" /></div>
         </div>
         <div class="topbar-right">
-            <a href="Notifications.aspx" class="topbar-icon-btn" title="Notifications"><i class="fa-solid fa-bell"></i></a>
+            <a href="Notification.aspx" class="topbar-icon-btn" title="Notifications"><i class="fa-solid fa-bell"></i></a>
             <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile"><i class="fa-solid fa-circle-user"></i></a>
         </div>
     </div>
