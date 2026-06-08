@@ -102,18 +102,9 @@
                         <asp:Label ID="lblCourseHint" runat="server" CssClass="field-hint" Text="Open the dropdown and tick one or more courses for the selected session." />
                     </div>
 
-                    <div class="form-group">
-                        <label>Semester <span style="color:red">*</span></label>
-                        <asp:DropDownList ID="ddlSemester" runat="server" CssClass="form-control">
-                            <asp:ListItem Value="">-- Select Semester --</asp:ListItem>
-                            <asp:ListItem Value="1">Semester 1</asp:ListItem>
-                            <asp:ListItem Value="2">Semester 2</asp:ListItem>
-                            <asp:ListItem Value="3">Semester 3</asp:ListItem>
-                            <asp:ListItem Value="4">Semester 4</asp:ListItem>
-                            <asp:ListItem Value="5">Semester 5</asp:ListItem>
-                            <asp:ListItem Value="6">Semester 6</asp:ListItem>
-                        </asp:DropDownList>
-                    </div>
+                    <asp:DropDownList ID="ddlSemester" runat="server" CssClass="form-control" Style="display:none;">
+                        <asp:ListItem Value="1" Selected="True">Semester 1</asp:ListItem>
+                    </asp:DropDownList>
                 </div>
 
                 <div class="grid-2">
@@ -170,7 +161,6 @@
                         <Columns>
                             <asp:BoundField DataField="Session" HeaderText="Session" />
                             <asp:BoundField DataField="ProgrammeCode" HeaderText="Programme" />
-                            <asp:BoundField DataField="Semester" HeaderText="Semester" />
                             <asp:TemplateField HeaderText="Courses">
                                 <ItemTemplate>
                                     <div class="courses-summary">

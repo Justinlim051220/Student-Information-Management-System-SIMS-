@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Attendance.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Attendance" %>
+﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Attendance.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Attendance" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -264,6 +264,8 @@
                 <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
             </asp:HyperLink>
 
+            <div class="sidebar-section-label" style="margin-top:12px;">Academic</div>
+
             <asp:HyperLink ID="lnkMyCourses" runat="server" NavigateUrl="~/Student/MyCourses.aspx" CssClass="sidebar-link">
                 <i class="fa-solid fa-book-open nav-icon"></i> My Courses
             </asp:HyperLink>
@@ -279,14 +281,15 @@
             <asp:HyperLink ID="lnkResults" runat="server" NavigateUrl="~/Student/Results.aspx" CssClass="sidebar-link">
                 <i class="fa-solid fa-chart-line nav-icon"></i> Results
             </asp:HyperLink>
+<div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
 
-            <asp:HyperLink ID="lnkAcademicHistory" runat="server" NavigateUrl="~/Student/AcademicHistory.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History
+            <asp:HyperLink ID="lnkPayment" runat="server" NavigateUrl="~/Student/Student_Payment.aspx" CssClass="sidebar-link">
+                <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
             </asp:HyperLink>
 
             <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
 
-            <asp:HyperLink ID="lnkNotifications" runat="server" NavigateUrl="~/Student/Notifications.aspx" CssClass="sidebar-link">
+            <asp:HyperLink ID="lnkNotifications" runat="server" NavigateUrl="~/Student/Notification.aspx" CssClass="sidebar-link">
                 <i class="fa-solid fa-bell nav-icon"></i> Notifications
                 <asp:Panel ID="pnlSidebarNotifBadge" runat="server" CssClass="badge-dot" Visible="false" style="margin-left:auto;" />
             </asp:HyperLink>
@@ -331,12 +334,12 @@
             </div>
 
             <div class="topbar-right">
-                <a href="Notifications.aspx" class="topbar-icon-btn" title="Notifications">
+                <a href="Notification.aspx" class="topbar-icon-btn" title="Notifications">
                     <i class="fa-solid fa-bell"></i>
                     <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
                 </a>
 
-                <a href="Profile.aspx" class="topbar-icon-btn" title="My Profile">
+                <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile">
                     <i class="fa-solid fa-circle-user"></i>
                 </a>
             </div>

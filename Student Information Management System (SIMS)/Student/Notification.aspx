@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Notification.aspx.cs"
+﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Notification.aspx.cs"
     Inherits="Student_Information_Management_System__SIMS_.Notification" %>
 
 <!DOCTYPE html>
@@ -605,6 +605,21 @@
             visibility:hidden !important;
         }
 
+
+        .sender-info {
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            font-size:13px;
+            color:#6b7280;
+            font-weight:700;
+            margin-top:6px;
+        }
+
+        .sender-info i {
+            color:#9ca3af;
+            font-size:12px;
+        }
         @media(max-width:900px) {
             .main-wrapper {
                 margin-left:0;
@@ -656,9 +671,6 @@
             </a>
             <a href="Results.aspx" class="sidebar-link">
                 <i class="fa-solid fa-chart-line nav-icon"></i> Results
-            </a>
-            <a href="AcademicHistory.aspx" class="sidebar-link">
-                <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History
             </a>
 
             <div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
@@ -819,12 +831,17 @@
                             <div class="notification-main">
                                 <div class="notification-top">
                                     <span class="notification-title"><%# Eval("Title") %></span>
-                                    <%# Convert.ToBoolean(Eval("IsRead")) ? "" : "<span class='notification-badge'>NEW</span>" %>
+                                    <%# Eval("ItemType").ToString() == "Announcement" ? "<span class='notification-badge'>ANNOUNCEMENT</span>" : (Convert.ToBoolean(Eval("IsRead")) ? "" : "<span class='notification-badge'>NEW</span>") %>
                                 </div>
 
                                 <div class="notification-meta">
                                     <i class="fa-regular fa-clock"></i>
                                     <%# Convert.ToDateTime(Eval("CreatedAt")).ToString("dd MMM yyyy, hh:mm tt") %>
+                                </div>
+
+                                <div class="sender-info">
+                                    <i class="fa-solid fa-user-pen"></i>
+                                    From: <%# Eval("SenderDisplay") %>
                                 </div>
 
                                 <div class="notification-content"><%# Eval("Message") %></div>
@@ -836,7 +853,7 @@
                                     CommandName="MarkRead"
                                     CommandArgument='<%# Eval("NotificationId") %>'
                                     ToolTip="Mark as read"
-                                    Visible='<%# !Convert.ToBoolean(Eval("IsRead")) %>'>
+                                    Visible='<%# Eval("ItemType").ToString() == "Notification" && !Convert.ToBoolean(Eval("IsRead")) %>'>
                                     <i class="fa-solid fa-check"></i>
                                 </asp:LinkButton>
 
@@ -845,12 +862,13 @@
                                     CommandName="MarkUnread"
                                     CommandArgument='<%# Eval("NotificationId") %>'
                                     ToolTip="Mark as unread"
-                                    Visible='<%# Convert.ToBoolean(Eval("IsRead")) %>'>
+                                    Visible='<%# Eval("ItemType").ToString() == "Notification" && Convert.ToBoolean(Eval("IsRead")) %>'>
                                     <i class="fa-regular fa-envelope"></i>
                                 </asp:LinkButton>
 
                                 <asp:LinkButton ID="btnDelete" runat="server"
                                     CssClass="icon-btn delete"
+                                    Visible='<%# Eval("ItemType").ToString() == "Notification" %>'
                                     CommandName="DeleteNotification"
                                     CommandArgument='<%# Eval("NotificationId") %>'
                                     ToolTip="Delete">

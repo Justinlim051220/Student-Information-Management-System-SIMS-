@@ -51,6 +51,15 @@ namespace Student_Information_Management_System__SIMS_
         protected global::System.Web.UI.WebControls.HiddenField hfDropSession;
 
         /// <summary>
+        /// pnlSidebarNotifBadge control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlSidebarNotifBadge;
+
+        /// <summary>
         /// lblAvatarInitial control.
         /// </summary>
         /// <remarks>
@@ -85,6 +94,15 @@ namespace Student_Information_Management_System__SIMS_
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label lblDate;
+
+        /// <summary>
+        /// pnlNotifBadge control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlNotifBadge;
 
         /// <summary>
         /// pnlMessage control.
@@ -256,6 +274,15 @@ namespace Student_Information_Management_System__SIMS_
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnRefresh;
+
+        /// <summary>
+        /// btnApplyEnrollmentFilter control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnApplyEnrollmentFilter;
 
         /// <summary>
         /// gvEnrolled control.

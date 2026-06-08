@@ -46,23 +46,73 @@ namespace Student_Information_Management_System__SIMS_
         private void LoadNotifications()
         {
             string sql = @"
-                SELECT 
+                ;WITH StudentProgramme AS
+                (
+                    SELECT ProgrammeId
+                    FROM StudentDetails
+                    WHERE UserId = @UserId
+                ),
+                InboxItems AS
+                (
+                    SELECT 
+                        n.NotificationId,
+                        'Notification' AS ItemType,
+                        n.Title,
+                        CONVERT(VARCHAR(MAX), n.Message) AS Message,
+                        n.IsRead,
+                        n.CreatedAt,
+                        CASE 
+                            WHEN n.Title LIKE '%payment%' OR n.Message LIKE '%payment%' THEN 'Admin'
+                            WHEN n.Title LIKE '%approved%' OR n.Title LIKE '%rejected%' THEN 'Admin'
+                            WHEN n.Title LIKE '%enrol%' OR n.Title LIKE '%enroll%' THEN 'System'
+                            ELSE 'System'
+                        END AS SenderDisplay
+                    FROM Notifications n
+                    WHERE n.UserId = @UserId
+
+                    UNION ALL
+
+                    SELECT
+                        -a.AnnouncementId AS NotificationId,
+                        'Announcement' AS ItemType,
+                        a.Title,
+                        CONVERT(VARCHAR(MAX), a.Content) AS Message,
+                        CAST(1 AS BIT) AS IsRead,
+                        a.CreatedAt,
+                        CASE 
+                            WHEN u.Role = 1 THEN 'Admin - ' + ISNULL(h.FirstName + ' ' + h.LastName, u.Email)
+                            WHEN u.Role = 2 THEN 'Lecturer - ' + ISNULL(ld.FirstName + ' ' + ld.LastName, u.Email)
+                            ELSE ISNULL(u.Email, 'System')
+                        END AS SenderDisplay
+                    FROM Announcements a
+                    INNER JOIN Users u ON u.UserId = a.PostedByUserId
+                    LEFT JOIN HoPDetails h ON h.UserId = u.UserId
+                    LEFT JOIN LecturerDetails ld ON ld.UserId = u.UserId
+                    WHERE a.TargetRole IN ('Student', 'All')
+                      AND (
+                            a.ProgrammeId IS NULL
+                            OR a.ProgrammeId IN (SELECT ProgrammeId FROM StudentProgramme)
+                          )
+                )
+                SELECT
                     NotificationId,
+                    ItemType,
                     Title,
-                    CONVERT(VARCHAR(MAX), Message) AS Message,
+                    Message,
                     IsRead,
-                    CreatedAt
-                FROM Notifications
-                WHERE UserId = @UserId
-                  AND (
+                    CreatedAt,
+                    SenderDisplay
+                FROM InboxItems
+                WHERE (
                         @Search = ''
                         OR Title LIKE '%' + @Search + '%'
-                        OR CONVERT(VARCHAR(MAX), Message) LIKE '%' + @Search + '%'
+                        OR Message LIKE '%' + @Search + '%'
+                        OR SenderDisplay LIKE '%' + @Search + '%'
                       )
                   AND (
                         @Status = ''
-                        OR (@Status = 'Unread' AND IsRead = 0)
-                        OR (@Status = 'Read' AND IsRead = 1)
+                        OR (@Status = 'Unread' AND ItemType = 'Notification' AND IsRead = 0)
+                        OR (@Status = 'Read' AND (ItemType = 'Announcement' OR IsRead = 1))
                       )
                 ORDER BY IsRead ASC, CreatedAt DESC";
 

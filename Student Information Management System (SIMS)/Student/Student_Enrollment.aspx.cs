@@ -28,6 +28,7 @@ namespace Student_Information_Management_System__SIMS_
                 lblStudentNameTop.Text = fullName;
                 lblStudentIdTop.Text = studentId;
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
+                LoadNotificationBadge();
 
                 LoadStudentInfo(studentId);
                 LoadOpenSessions();
@@ -69,13 +70,25 @@ namespace Student_Information_Management_System__SIMS_
         {
             ddlSession.Items.Clear();
 
+            if (string.IsNullOrWhiteSpace(hfProgrammeId.Value))
+            {
+                ddlSession.Items.Insert(0, new ListItem("-- Programme Not Found --", ""));
+                lblOpenSessionCount.Text = "0";
+                return;
+            }
+
             string sql = @"
                 SELECT DISTINCT Session
                 FROM CourseOffering
                 WHERE Status = 'Open'
+                  AND ProgrammeId = @ProgrammeId
                 ORDER BY Session";
 
-            DataTable dt = DatabaseHelper.ExecuteQuery(sql);
+            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
+                new SqlParameter("@ProgrammeId", int.Parse(hfProgrammeId.Value))
+            });
+
             ddlSession.DataSource = dt;
             ddlSession.DataTextField = "Session";
             ddlSession.DataValueField = "Session";
@@ -95,8 +108,7 @@ namespace Student_Information_Management_System__SIMS_
             ddlCourse.Items.Clear();
 
             if (string.IsNullOrWhiteSpace(ddlSession.SelectedValue) ||
-                string.IsNullOrWhiteSpace(hfProgrammeId.Value) ||
-                string.IsNullOrWhiteSpace(hfSemester.Value))
+                string.IsNullOrWhiteSpace(hfProgrammeId.Value))
             {
                 ddlCourse.Items.Insert(0, new ListItem("-- Select Session First --", ""));
                 return;
@@ -112,7 +124,6 @@ namespace Student_Information_Management_System__SIMS_
                 WHERE co.Status = 'Open'
                   AND co.Session = @Session
                   AND co.ProgrammeId = @ProgrammeId
-                  AND co.Semester = @Semester
                   AND NOT EXISTS (
                       SELECT 1
                       FROM Enrollment e
@@ -127,7 +138,6 @@ namespace Student_Information_Management_System__SIMS_
             {
                 new SqlParameter("@Session", ddlSession.SelectedValue),
                 new SqlParameter("@ProgrammeId", int.Parse(hfProgrammeId.Value)),
-                new SqlParameter("@Semester", int.Parse(hfSemester.Value)),
                 new SqlParameter("@StudentId", studentId)
             };
 
@@ -160,12 +170,12 @@ namespace Student_Information_Management_System__SIMS_
 
             int courseId = int.Parse(ddlCourse.SelectedValue);
             string session = ddlSession.SelectedValue;
-            int semester = int.Parse(hfSemester.Value);
             int programmeId = int.Parse(hfProgrammeId.Value);
+            int semester = GetSemesterForSelectedSession(studentId, session);
 
-            if (!IsOfferingOpen(courseId, session, programmeId, semester))
+            if (!IsOfferingOpen(courseId, session, programmeId))
             {
-                ShowMessage("This course is not open for your programme, semester, or session.", "error");
+                ShowMessage("This course is not open for your programme or selected session.", "error");
                 LoadAvailableCourses();
                 return;
             }
@@ -175,7 +185,10 @@ namespace Student_Information_Management_System__SIMS_
 
             if (saveResult == "Inserted")
             {
+                MarkPreviousSessionsCompleted(studentId, session);
                 decimal pendingAmount = CreatePendingPaymentForEnrollment(enrollmentId, studentId, courseId, session);
+                UpdateStudentCurrentSemester(studentId, semester);
+                LoadStudentInfo(studentId);
                 NotifyAdminsStudentEnrollment(studentId, courseId, session, semester, "New Student Enrollment");
                 ShowPaymentMessage("Enrollment completed successfully. Your tuition fee for this subject is RM " + pendingAmount.ToString("N2") + ". Please go to the Payment page to upload your receipt.");
             }
@@ -192,7 +205,7 @@ namespace Student_Information_Management_System__SIMS_
             LoadEnrolledCourses(studentId);
         }
 
-        private bool IsOfferingOpen(int courseId, string session, int programmeId, int semester)
+        private bool IsOfferingOpen(int courseId, string session, int programmeId)
         {
             string sql = @"
                 SELECT COUNT(*)
@@ -200,20 +213,100 @@ namespace Student_Information_Management_System__SIMS_
                 WHERE CourseId = @CourseId
                   AND Session = @Session
                   AND ProgrammeId = @ProgrammeId
-                  AND Semester = @Semester
                   AND Status = 'Open'";
 
             object result = DatabaseHelper.ExecuteScalar(sql, new[]
             {
                 new SqlParameter("@CourseId", courseId),
                 new SqlParameter("@Session", session),
-                new SqlParameter("@ProgrammeId", programmeId),
-                new SqlParameter("@Semester", semester)
+                new SqlParameter("@ProgrammeId", programmeId)
             });
 
             return result != null && Convert.ToInt32(result) > 0;
         }
 
+        private int GetSemesterForSelectedSession(string studentId, string session)
+        {
+            // If the student has already enrolled anything in this same session, reuse that session semester.
+            // This prevents Semester from increasing for every course added within the same session.
+            string existingSessionSemesterSql = @"
+                SELECT TOP 1 Semester
+                FROM Enrollment
+                WHERE StudentId = @StudentId
+                  AND Session = @Session
+                  AND Status NOT IN ('Dropped', 'Drop Rejected', 'Enrollment Rejected')
+                ORDER BY EnrollmentId DESC";
+
+            object existingSemester = DatabaseHelper.ExecuteScalar(existingSessionSemesterSql, new[]
+            {
+                new SqlParameter("@StudentId", studentId),
+                new SqlParameter("@Session", session)
+            });
+
+            if (existingSemester != null && existingSemester != DBNull.Value)
+            {
+                return Convert.ToInt32(existingSemester);
+            }
+
+            // For a new session, move to the next semester only once.
+            int currentSemester = 1;
+            int.TryParse(hfSemester.Value, out currentSemester);
+            if (currentSemester < 1) currentSemester = 1;
+
+            string previousDifferentSessionSql = @"
+                SELECT COUNT(DISTINCT Session)
+                FROM Enrollment
+                WHERE StudentId = @StudentId
+                  AND Session <> @Session
+                  AND Status NOT IN ('Dropped', 'Drop Rejected', 'Enrollment Rejected')";
+
+            int previousSessionCount = Convert.ToInt32(DatabaseHelper.ExecuteScalar(previousDifferentSessionSql, new[]
+            {
+                new SqlParameter("@StudentId", studentId),
+                new SqlParameter("@Session", session)
+            }));
+
+            if (previousSessionCount > 0)
+            {
+                currentSemester = Math.Min(currentSemester + 1, 6);
+            }
+
+            return currentSemester;
+        }
+
+        private void UpdateStudentCurrentSemester(string studentId, int semester)
+        {
+            string sql = @"
+                UPDATE StudentDetails
+                SET CurrentSemester = @Semester
+                WHERE StudentId = @StudentId
+                  AND ISNULL(CurrentSemester, 1) < @Semester";
+
+            DatabaseHelper.ExecuteNonQuery(sql, new[]
+            {
+                new SqlParameter("@Semester", semester),
+                new SqlParameter("@StudentId", studentId)
+            });
+        }
+
+        private void MarkPreviousSessionsCompleted(string studentId, string currentSession)
+        {
+            // Once a student successfully enrolls into a newer/different session,
+            // older still-current enrollment records are moved to Completed.
+            // This keeps only the latest enrolled session as the student's current enrollment.
+            string sql = @"
+                UPDATE Enrollment
+                SET Status = 'Completed'
+                WHERE StudentId = @StudentId
+                  AND Session <> @CurrentSession
+                  AND Status IN ('Active', 'Pending', 'Enrollment Pending', 'Drop Pending')";
+
+            DatabaseHelper.ExecuteNonQuery(sql, new[]
+            {
+                new SqlParameter("@StudentId", studentId),
+                new SqlParameter("@CurrentSession", currentSession)
+            });
+        }
 
         private decimal CreatePendingPaymentForEnrollment(int enrollmentId, string studentId, int courseId, string session)
         {
@@ -251,8 +344,7 @@ namespace Student_Information_Management_System__SIMS_
             string activeSql = @"
                 SELECT TOP 1 Status
                 FROM Enrollment
-                WHERE EnrollmentId = @EnrollmentId
-                  AND StudentId = @StudentId
+                WHERE StudentId = @StudentId
                   AND CourseId = @CourseId
                   AND Session = @Session
                   AND Status NOT IN ('Dropped', 'Drop Rejected', 'Enrollment Rejected')
@@ -260,7 +352,6 @@ namespace Student_Information_Management_System__SIMS_
 
             object statusObj = DatabaseHelper.ExecuteScalar(activeSql, new[]
             {
-                new SqlParameter("@EnrollmentId", enrollmentId),
                 new SqlParameter("@StudentId", studentId),
                 new SqlParameter("@CourseId", courseId),
                 new SqlParameter("@Session", session)
@@ -289,16 +380,131 @@ namespace Student_Information_Management_System__SIMS_
 
         private void LoadEnrolledCourses(string studentId)
         {
+            string view = GetEnrollmentViewFilter();
+
+            string statusCondition;
+            switch (view)
+            {
+                case "Active":
+                    statusCondition = " AND e.Session = @LatestSession AND e.Status = 'Active' ";
+                    break;
+
+                case "Pending":
+                    statusCondition = " AND e.Session = @LatestSession AND e.Status = 'Pending' ";
+                    break;
+
+                case "Drop Pending":
+                    statusCondition = " AND e.Session = @LatestSession AND e.Status = 'Drop Pending' ";
+                    break;
+
+                case "Dropped":
+                    statusCondition = " AND e.Status = 'Dropped' ";
+                    break;
+
+                case "Rejected":
+                    statusCondition = " AND e.Status IN ('Drop Rejected', 'Enrollment Rejected', 'Rejected') ";
+                    break;
+
+                case "History":
+                    statusCondition = " AND (e.Status = 'Completed' OR (@LatestSession IS NOT NULL AND e.Session <> @LatestSession)) ";
+                    break;
+
+                case "All":
+                    statusCondition = "";
+                    break;
+
+                case "Current":
+                default:
+                    statusCondition = " AND e.Session = @LatestSession AND e.Status IN ('Active', 'Pending', 'Drop Pending') ";
+                    break;
+            }
+
             string sql = @"
-                SELECT e.EnrollmentId, e.CourseId, c.CourseCode, c.CourseName, c.Credits, e.Session, e.Semester, e.Status, e.EnrollmentDate
+                DECLARE @LatestSession VARCHAR(50);
+
+                SELECT TOP 1 @LatestSession = Session
+                FROM Enrollment
+                WHERE StudentId = @StudentId
+                  AND Status IN ('Active', 'Pending', 'Drop Pending')
+                ORDER BY EnrollmentDate DESC, EnrollmentId DESC;
+
+                IF @LatestSession IS NULL
+                BEGIN
+                    SELECT TOP 1 @LatestSession = Session
+                    FROM Enrollment
+                    WHERE StudentId = @StudentId
+                    ORDER BY EnrollmentDate DESC, EnrollmentId DESC;
+                END;
+
+                SELECT 
+                    e.EnrollmentId,
+                    e.CourseId,
+                    c.CourseCode,
+                    c.CourseName,
+                    c.Credits,
+                    e.Session,
+                    e.Semester,
+                    e.Status,
+                    CASE
+                        WHEN e.Status = 'Completed' THEN 'Completed'
+                        WHEN @LatestSession IS NOT NULL
+                             AND e.Session <> @LatestSession
+                             AND e.Status IN ('Active', 'Pending', 'Drop Pending') THEN 'Completed'
+                        ELSE e.Status
+                    END AS DisplayStatus,
+                    e.EnrollmentDate
                 FROM Enrollment e
                 INNER JOIN Courses c ON c.CourseId = e.CourseId
-                WHERE e.StudentId = @StudentId
-                  AND e.Status NOT IN ('Dropped', 'Drop Rejected', 'Enrollment Rejected')
-                ORDER BY e.EnrollmentDate DESC, c.CourseCode";
+                WHERE e.StudentId = @StudentId "
+                + statusCondition + @"
+                ORDER BY 
+                    CASE WHEN e.Session = @LatestSession THEN 0 ELSE 1 END,
+                    e.EnrollmentDate DESC,
+                    CASE 
+                        WHEN e.Status = 'Active' THEN 1
+                        WHEN e.Status = 'Pending' THEN 2
+                        WHEN e.Status = 'Drop Pending' THEN 3
+                        WHEN e.Status = 'Completed' THEN 4
+                        WHEN e.Status = 'Dropped' THEN 5
+                        ELSE 6
+                    END,
+                    c.CourseCode";
 
             gvEnrolled.DataSource = DatabaseHelper.ExecuteQuery(sql, new[] { new SqlParameter("@StudentId", studentId) });
             gvEnrolled.DataBind();
+        }
+
+        protected string GetEnrollmentViewSelected(string value)
+        {
+            return string.Equals(GetEnrollmentViewFilter(), value, StringComparison.OrdinalIgnoreCase)
+                ? "selected=\"selected\""
+                : "";
+        }
+
+        private string GetEnrollmentViewFilter()
+        {
+            string view = Request.Form["enrollmentView"];
+
+            if (string.IsNullOrWhiteSpace(view))
+            {
+                return "Current";
+            }
+
+            switch (view)
+            {
+                case "Current":
+                case "History":
+                case "Active":
+                case "Pending":
+                case "Drop Pending":
+                case "Dropped":
+                case "Rejected":
+                case "All":
+                    return view;
+
+                default:
+                    return "Current";
+            }
         }
 
 
@@ -391,8 +597,7 @@ namespace Student_Information_Management_System__SIMS_
                 SET Status = 'Drop Pending',
                     DropReason = @DropReason,
                     DropRequestedAt = GETDATE()
-                WHERE EnrollmentId = @EnrollmentId
-                  AND StudentId = @StudentId
+                WHERE StudentId = @StudentId
                   AND CourseId = @CourseId
                   AND Session = @Session
                   AND Status = 'Active'";
@@ -493,6 +698,8 @@ namespace Student_Information_Management_System__SIMS_
             {
                 case "Active":
                     return "status-active";
+                case "Completed":
+                    return "status-completed";
                 case "Enrollment Pending":
                 case "Drop Pending":
                     return "status-pending";
@@ -526,6 +733,34 @@ namespace Student_Information_Management_System__SIMS_
             ShowMessage("Enrollment list refreshed successfully.", "success");
         }
 
+
+        private int CurrentUserId
+        {
+            get { return SessionHelper.GetUserId(Session); }
+        }
+
+        private void LoadNotificationBadge()
+        {
+            object count = DatabaseHelper.ExecuteScalar(
+                @"SELECT COUNT(*)
+                  FROM Notifications
+                  WHERE UserId = @UserId
+                    AND IsRead = 0",
+                new[] { new SqlParameter("@UserId", CurrentUserId) });
+
+            bool hasUnread = count != null && Convert.ToInt32(count) > 0;
+
+            // Sidebar badge and topbar badge are optional controls.
+            if (pnlSidebarNotifBadge != null)
+            {
+                pnlSidebarNotifBadge.Visible = hasUnread;
+            }
+
+            if (pnlNotifBadge != null)
+            {
+                pnlNotifBadge.Visible = hasUnread;
+            }
+        }
 
         private void ShowPaymentMessage(string message)
         {
