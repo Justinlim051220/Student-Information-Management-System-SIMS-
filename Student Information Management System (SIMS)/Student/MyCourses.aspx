@@ -70,7 +70,6 @@
         .user-info { padding-top: 4px; }
         .user-name { margin-bottom: 4px; }
         .user-role { margin-top: 2px; }
-
         /* ===== Synchronized Logout Modal Styles from Dashboard ===== */
         .modal-overlay {
           position: fixed;
@@ -191,50 +190,46 @@
 
   <nav class="sidebar-nav">
     <div class="sidebar-section-label">Main</div>
-    <asp:HyperLink ID="lnkDashboard" runat="server" NavigateUrl="~/Student/Student_Dashboard.aspx" CssClass="sidebar-link">
+    <a href="Student_Dashboard.aspx" class="sidebar-link">
       <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
-    </asp:HyperLink>
+    </a>
 
     <div class="sidebar-section-label" style="margin-top:12px;">Academic</div>
-    <asp:HyperLink ID="lnkMyCourses" runat="server" NavigateUrl="~/Student/MyCourses.aspx" CssClass="sidebar-link active">
+    <a href="MyCourses.aspx" class="sidebar-link active">
       <i class="fa-solid fa-book-open nav-icon"></i> My Courses
-    </asp:HyperLink>
-    <asp:HyperLink ID="lnkAttendance" runat="server" NavigateUrl="~/Student/Attendance.aspx" CssClass="sidebar-link">
+    </a>
+    <a href="Attendance.aspx" class="sidebar-link">
       <i class="fa-solid fa-calendar-check nav-icon"></i> Attendance
-    </asp:HyperLink>
-    <asp:HyperLink ID="lnkEnrollment" runat="server" NavigateUrl="~/Student/Student_Enrollment.aspx" CssClass="sidebar-link">
+    </a>
+    <a href="Student_Enrollment.aspx" class="sidebar-link">
       <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
-    </asp:HyperLink>
-    <asp:HyperLink ID="lnkResults" runat="server" NavigateUrl="~/Student/Results.aspx" CssClass="sidebar-link">
+    </a>
+    <a href="Results.aspx" class="sidebar-link">
       <i class="fa-solid fa-chart-line nav-icon"></i> Results
-    </asp:HyperLink>
-    <asp:HyperLink ID="lnkAcademicHistory" runat="server" NavigateUrl="~/Student/AcademicHistory.aspx" CssClass="sidebar-link">
-      <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History
-    </asp:HyperLink>
+    </a>
 
     <div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
-    <asp:HyperLink ID="lnkPayment" runat="server" NavigateUrl="~/Student/Student_Payment.aspx" CssClass="sidebar-link">
+    <a href="Student_Payment.aspx" class="sidebar-link">
       <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
-    </asp:HyperLink>
+    </a>
 
     <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-    <asp:HyperLink ID="lnkNotifications" runat="server" NavigateUrl="~/Student/Notification.aspx" CssClass="sidebar-link">
+    <a href="Notification.aspx" class="sidebar-link">
       <i class="fa-solid fa-bell nav-icon"></i> Notifications
-      <asp:Panel ID="pnlSidebarNotifBadge" runat="server" CssClass="badge-dot" Visible="false" style="margin-left:auto;" />
-    </asp:HyperLink>
-    <asp:HyperLink ID="lnkContacts" runat="server" NavigateUrl="~/Student/Contacts.aspx" CssClass="sidebar-link">
+    </a>
+    <a href="Contacts.aspx" class="sidebar-link">
       <i class="fa-solid fa-address-book nav-icon"></i> Contacts
-    </asp:HyperLink>
+    </a>
 
     <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
-    <asp:HyperLink ID="lnkProfile" runat="server" NavigateUrl="~/Student/MyProfile.aspx" CssClass="sidebar-link">
+    <a href="MyProfile.aspx" class="sidebar-link">
       <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
-    </asp:HyperLink>
+    </a>
   </nav>
 
   <div class="sidebar-footer">
     <div class="sidebar-user">
-      <div class="user-avatar" style="width: 42px; height: 42px; border-radius: 50%; background: var(--orange-gradient); display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: 800;">
+      <div class="user-avatar">
          <asp:Label ID="lblAvatarInitial" runat="server" Text="S" />
      </div>
       <div class="user-info">
