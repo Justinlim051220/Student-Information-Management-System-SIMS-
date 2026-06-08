@@ -44,6 +44,7 @@ namespace Student_Information_Management_System__SIMS_
 
                 LoadProgramme(studentId);
                 LoadGPA(studentId);
+                LoadCGPA(studentId);
                 LoadAttendance(studentId);
                 LoadEnrolledCourseBadges(studentId);
                 LoadOutstandingFees(studentId);
@@ -76,10 +77,31 @@ namespace Student_Information_Management_System__SIMS_
         // ---------------------------------------------------------------
         private void LoadGPA(string studentId)
         {
+            string checkSql = "SELECT CASE WHEN OBJECT_ID('dbo.Results', 'U') IS NULL THEN 0 ELSE 1 END";
+            object exists = DatabaseHelper.ExecuteScalar(checkSql);
+
+            if (exists != null && exists != DBNull.Value && Convert.ToInt32(exists) == 1)
+            {
+                string resultSql = @"
+                    SELECT TOP 1 CAST(GPA AS DECIMAL(4,2))
+                    FROM Results
+                    WHERE StudentId = @Sid
+                    ORDER BY PublishedAt DESC, ResultId DESC";
+
+                object storedGpa = DatabaseHelper.ExecuteScalar(resultSql,
+                    new[] { new SqlParameter("@Sid", studentId) });
+
+                if (storedGpa != null && storedGpa != DBNull.Value)
+                {
+                    lblGPA.Text = Convert.ToDecimal(storedGpa).ToString("0.00");
+                    return;
+                }
+            }
+
             string sql = @"
                 SELECT ISNULL(
                     CAST(
-                        SUM((g.MarksObtained / g.MaxMarks) * g.WeightPercentage)
+                        SUM((g.MarksObtained / NULLIF(g.MaxMarks, 0)) * g.WeightPercentage)
                         / NULLIF(SUM(g.WeightPercentage), 0)
                     AS DECIMAL(5,2)), NULL)
                 FROM   Grades g
@@ -91,7 +113,34 @@ namespace Student_Information_Management_System__SIMS_
             object result = DatabaseHelper.ExecuteScalar(sql,
                 new[] { new SqlParameter("@Sid", studentId) });
 
-            lblGPA.Text = (result == null || result == DBNull.Value) ? "N/A" : result.ToString();
+            lblGPA.Text = (result == null || result == DBNull.Value) ? "N/A" : Convert.ToDecimal(result).ToString("0.00");
+        }
+
+        // ---------------------------------------------------------------
+        // CGPA from stored Results table. Falls back to N/A when no published
+        // result record exists yet.
+        // ---------------------------------------------------------------
+        private void LoadCGPA(string studentId)
+        {
+            string checkSql = "SELECT CASE WHEN OBJECT_ID('dbo.Results', 'U') IS NULL THEN 0 ELSE 1 END";
+            object exists = DatabaseHelper.ExecuteScalar(checkSql);
+
+            if (exists == null || exists == DBNull.Value || Convert.ToInt32(exists) == 0)
+            {
+                lblCGPA.Text = "N/A";
+                return;
+            }
+
+            string sql = @"
+                SELECT TOP 1 CAST(CGPA AS DECIMAL(4,2))
+                FROM Results
+                WHERE StudentId = @Sid
+                ORDER BY PublishedAt DESC, ResultId DESC";
+
+            object result = DatabaseHelper.ExecuteScalar(sql,
+                new[] { new SqlParameter("@Sid", studentId) });
+
+            lblCGPA.Text = (result == null || result == DBNull.Value) ? "N/A" : Convert.ToDecimal(result).ToString("0.00");
         }
 
         // ---------------------------------------------------------------
@@ -293,7 +342,7 @@ namespace Student_Information_Management_System__SIMS_
         // ---------------------------------------------------------------
         // Show success/error feedback above the enrollment table.
         // ---------------------------------------------------------------
-        
+
 
         // ---------------------------------------------------------------
         // Logout.
@@ -303,5 +352,19 @@ namespace Student_Information_Management_System__SIMS_
             SessionHelper.Logout(Session);
             Response.Redirect("~/Login.aspx", false);
         }
+
+        private void LoadNotificationBadge()
+        {
+            try
+            {
+                object count = DatabaseHelper.ExecuteScalar(
+                    @"SELECT COUNT(*) FROM Notifications WHERE UserId=@UserId AND IsRead=0",
+                    new[] { new SqlParameter("@UserId", SessionHelper.GetUserId(Session)) });
+
+                pnlNotifBadge.Visible = count != null && Convert.ToInt32(count) > 0;
+            }
+            catch { pnlNotifBadge.Visible = false; }
+        }
+
     }
 }

@@ -34,6 +34,31 @@
       transform: translateY(-3px);
       box-shadow: var(--shadow-elevated);
     }
+    .notif-link{
+    position:relative;
+    }
+
+    .notif-link{
+    position:relative;
+    }
+
+    .notif-dot{
+        position:absolute;
+
+        top:-2px;
+        right:-2px;
+
+        width:10px;
+        height:10px;
+
+        background:#ef4444;
+        border:2px solid #ffffff;
+        border-radius:50%;
+
+        z-index:999;
+    }
+    .notif-wrap{position:relative;display:inline-block;}
+
     .stu-stat-icon {
       width: 48px; height: 48px;
       border-radius: var(--radius-sm);
@@ -487,6 +512,81 @@
         display: block !important;
     }
 
+
+
+    /* ===== Professional dashboard upgrade ===== */
+    .dashboard-hero {
+      background: linear-gradient(135deg, #fff7ed 0%, #ffffff 58%, #fff3d6 100%);
+      border: 1px solid rgba(245,166,35,.20);
+      border-radius: 24px;
+      box-shadow: 0 16px 38px rgba(15,23,42,.08);
+      padding: 24px;
+      margin-bottom: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+    }
+    .hero-left { display:flex; align-items:center; gap:16px; min-width:0; }
+    .hero-avatar {
+      width:70px; height:70px; border-radius:22px;
+      background:var(--orange-gradient);
+      color:#fff; display:flex; align-items:center; justify-content:center;
+      font-size:28px; font-weight:900; box-shadow:var(--shadow-orange);
+      flex-shrink:0;
+    }
+    .hero-kicker { font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:var(--orange-dark); }
+    .hero-name { font-family:var(--font-accent); font-size:28px; line-height:1.1; font-weight:900; color:var(--text-primary); margin-top:4px; }
+    .hero-meta { margin-top:8px; display:flex; gap:10px; flex-wrap:wrap; color:var(--text-secondary); font-size:13px; font-weight:700; }
+    .hero-pill { background:#fff; border:1px solid #f2e2c5; border-radius:999px; padding:6px 12px; }
+    .hero-actions { display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .hero-action {
+      display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+      padding:11px 16px; border-radius:999px; font-weight:900; font-size:13px;
+      border:1.5px solid #f2c46f; color:#9a5a00; background:#fff;
+      transition:.18s ease;
+    }
+    .hero-action.primary { background:var(--orange-gradient); color:#fff; border-color:transparent; box-shadow:var(--shadow-orange); }
+    .hero-action:hover { transform:translateY(-2px); }
+
+    .student-profile-topbar { display:none; }
+    .stu-stats-grid { grid-template-columns: repeat(5, minmax(170px, 1fr)); gap:18px; }
+    @media (max-width: 1250px){ .stu-stats-grid { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); } }
+    .stu-stat-card {
+      border:1px solid #edf0f6;
+      background:linear-gradient(180deg,#fff 0%,#fffaf3 100%);
+      min-height:150px;
+      position:relative;
+      overflow:hidden;
+    }
+    .stu-stat-card:after {
+      content:""; position:absolute; right:-28px; top:-28px; width:92px; height:92px;
+      background:rgba(245,166,35,.10); border-radius:50%;
+    }
+    .stu-stat-icon { border-radius:18px; }
+    .stu-stat-label { font-weight:900; }
+    .stat-caption { color:var(--text-muted); font-size:12px; font-weight:700; margin-top:2px; }
+    .quick-actions-card {
+      background:var(--bg-card); border-radius:var(--radius-md); box-shadow:var(--shadow-card);
+      border:1px solid #edf0f6; padding:22px; margin-bottom:28px;
+    }
+    .section-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; }
+    .section-title { font-size:16px; font-weight:900; color:var(--text-primary); display:flex; align-items:center; gap:9px; }
+    .section-title i { color:var(--orange-main); }
+    .quick-actions-grid { display:grid; grid-template-columns:repeat(4,minmax(160px,1fr)); gap:14px; }
+    @media (max-width: 850px){ .quick-actions-grid { grid-template-columns:repeat(2,1fr); } .dashboard-hero{align-items:flex-start;flex-direction:column;} .hero-actions{justify-content:flex-start;} }
+    .quick-action-tile {
+      display:flex; align-items:center; gap:12px; text-decoration:none; padding:16px;
+      border-radius:18px; border:1px solid #edf0f6; background:#fff; transition:.18s ease;
+    }
+    .quick-action-tile:hover { transform:translateY(-2px); box-shadow:0 14px 30px rgba(15,23,42,.08); border-color:#f2c46f; }
+    .quick-action-icon { width:42px; height:42px; border-radius:15px; background:#fff3d6; color:#d97706; display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .quick-action-text strong { display:block; color:var(--text-primary); font-size:14px; font-weight:900; }
+    .quick-action-text span { color:var(--text-muted); font-size:12px; font-weight:700; }
+    .charts-row { grid-template-columns: 1fr 1fr 360px; }
+    .chart-card { border:1px solid #edf0f6; }
+    .announcement-card { background:linear-gradient(135deg,#f59e0b,#f97316); }
+
   </style>
 </head>
 <body>
@@ -588,8 +688,8 @@
     </div>
     <div class="topbar-right">
       <a href="Notification.aspx" class="topbar-icon-btn" title="Notifications">
-        <i class="fa-solid fa-bell"></i>
-        <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot dashboard-hidden-badge" Visible="false" style="display:none !important;" />
+        <span class="notif-wrap"><i class="fa-solid fa-bell"></i><asp:Panel ID="pnlNotifBadge" runat="server" CssClass="notif-dot" Visible="false" /></span>
+        <asp:Panel ID="Panel1" runat="server" CssClass="badge-dot dashboard-hidden-badge" Visible="false" style="display:none !important;" />
       </a>
       <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile">
         <i class="fa-solid fa-circle-user"></i>
@@ -600,78 +700,98 @@
   <!-- Page content -->
   <div class="page-content">
 
-    <!-- Student profile bar -->
-    <div class="student-profile-topbar">
-      <div class="stu-avatar">
-        <asp:Label ID="lblTopbarInitial" runat="server" Text="S" />
+    <!-- Professional student summary hero -->
+    <div class="dashboard-hero">
+      <div class="hero-left">
+        <div class="hero-avatar">
+          <asp:Label ID="lblTopbarInitial" runat="server" Text="S" />
+        </div>
+        <div>
+          <div class="hero-kicker">Student Academic Portal</div>
+          <div class="hero-name">
+            Welcome back, <asp:Label ID="lblStudentName" runat="server" Text="Student" />
+          </div>
+          <div class="hero-meta">
+            <span class="hero-pill"><i class="fa-solid fa-id-card"></i> <asp:Label ID="lblStudentId" runat="server" Text="" /></span>
+            <span class="hero-pill"><i class="fa-solid fa-building-columns"></i> <asp:Label ID="lblProgramme" runat="server" Text="" /></span>
+          </div>
+        </div>
       </div>
-      <div class="stu-profile-info">
-        <div class="stu-profile-name">
-          <asp:Label ID="lblStudentName" runat="server" Text="" />
-        </div>
-        <div class="stu-profile-id">
-          <asp:Label ID="lblStudentId" runat="server" Text="" />
-        </div>
-        <div class="stu-profile-prog">
-          <asp:Label ID="lblProgramme" runat="server" Text="" />
-        </div>
+      <div class="hero-actions">
+        <a href="Student_Enrollment.aspx" class="hero-action primary"><i class="fa-solid fa-clipboard-list"></i> Enroll Course</a>
+        <a href="Student_Payment.aspx" class="hero-action"><i class="fa-solid fa-credit-card"></i> Payment</a>
+        <a href="Results.aspx" class="hero-action"><i class="fa-solid fa-chart-line"></i> Results</a>
       </div>
     </div>
 
-    <!-- Stats cards -->
+    <!-- Professional KPI cards -->
     <div class="stu-stats-grid">
 
-      <!-- Current GPA -->
       <div class="stu-stat-card">
-        <div class="stu-stat-icon">
-          <i class="fa-solid fa-graduation-cap"></i>
-        </div>
+        <div class="stu-stat-icon"><i class="fa-solid fa-graduation-cap"></i></div>
         <div class="stu-stat-label">Current GPA</div>
-        <div class="stu-stat-value">
-          <asp:Label ID="lblGPA" runat="server" Text="0.00" />
-        </div>
+        <div class="stu-stat-value"><asp:Label ID="lblGPA" runat="server" Text="N/A" /></div>
+        <div class="stat-caption">Latest published semester result</div>
       </div>
 
-      <!-- Attendance -->
       <div class="stu-stat-card">
-        <div class="stu-stat-icon">
-          <i class="fa-solid fa-calendar-check"></i>
-        </div>
+        <div class="stu-stat-icon"><i class="fa-solid fa-ranking-star"></i></div>
+        <div class="stu-stat-label">CGPA</div>
+        <div class="stu-stat-value"><asp:Label ID="lblCGPA" runat="server" Text="N/A" /></div>
+        <div class="stat-caption">Overall academic performance</div>
+      </div>
+
+      <div class="stu-stat-card">
+        <div class="stu-stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
         <div class="stu-stat-label">Attendance</div>
-        <div class="stu-stat-value">
-          <asp:Label ID="lblAttendance" runat="server" Text="0.00" />%
-        </div>
+        <div class="stu-stat-value"><asp:Label ID="lblAttendance" runat="server" Text="0.00" />%</div>
+        <div class="stat-caption">Across enrolled courses</div>
       </div>
 
-      <!-- Enrolled Courses -->
       <div class="stu-stat-card">
-        <div class="stu-stat-icon">
-          <i class="fa-solid fa-book-open"></i>
-        </div>
+        <div class="stu-stat-icon"><i class="fa-solid fa-book-open"></i></div>
         <div class="stu-stat-label">Enrolled Courses</div>
         <div class="course-badge-list">
           <asp:Repeater ID="rptEnrolledCourses" runat="server">
-            <ItemTemplate>
-              <span class="course-badge"><%# Eval("CourseCode") %></span>
-            </ItemTemplate>
+            <ItemTemplate><span class="course-badge"><%# Eval("CourseCode") %></span></ItemTemplate>
           </asp:Repeater>
-          <asp:Label ID="lblNoCourses" runat="server" Text="None"
-            Style="color:var(--text-muted);font-size:13px;" Visible="false" />
+          <asp:Label ID="lblNoCourses" runat="server" Text="None" Style="color:var(--text-muted);font-size:13px;" Visible="false" />
         </div>
       </div>
 
-      <!-- Outstanding Fees -->
       <div class="stu-stat-card">
-        <div class="stu-stat-icon">
-          <i class="fa-solid fa-sack-dollar"></i>
-        </div>
+        <div class="stu-stat-icon"><i class="fa-solid fa-wallet"></i></div>
         <div class="stu-stat-label">Outstanding Fees</div>
-        <div class="stu-stat-value neutral">
-          RM <asp:Label ID="lblFees" runat="server" Text="00.00" />
-        </div>
+        <div class="stu-stat-value neutral">RM <asp:Label ID="lblFees" runat="server" Text="00.00" /></div>
+        <div class="stat-caption">Pending finance action</div>
       </div>
 
-    </div><!-- /stu-stats-grid -->
+    </div>
+
+    <!-- Quick action tiles -->
+    <div class="quick-actions-card">
+      <div class="section-head">
+        <div class="section-title"><i class="fa-solid fa-bolt"></i> Quick Actions</div>
+      </div>
+      <div class="quick-actions-grid">
+        <a href="Student_Enrollment.aspx" class="quick-action-tile">
+          <div class="quick-action-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+          <div class="quick-action-text"><strong>Enrollment</strong><span>Register next session courses</span></div>
+        </a>
+        <a href="MyCourses.aspx" class="quick-action-tile">
+          <div class="quick-action-icon"><i class="fa-solid fa-book-open"></i></div>
+          <div class="quick-action-text"><strong>My Courses</strong><span>View course materials</span></div>
+        </a>
+        <a href="Results.aspx" class="quick-action-tile">
+          <div class="quick-action-icon"><i class="fa-solid fa-square-poll-vertical"></i></div>
+          <div class="quick-action-text"><strong>Results</strong><span>Check GPA and CGPA</span></div>
+        </a>
+        <a href="Student_Payment.aspx" class="quick-action-tile">
+          <div class="quick-action-icon"><i class="fa-solid fa-credit-card"></i></div>
+          <div class="quick-action-text"><strong>Payment</strong><span>Upload payment receipt</span></div>
+        </a>
+      </div>
+    </div>
 
     <!-- Charts + Announcements row -->
     <div class="charts-row">
