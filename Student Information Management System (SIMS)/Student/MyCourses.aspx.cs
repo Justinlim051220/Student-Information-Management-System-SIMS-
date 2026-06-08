@@ -5,9 +5,9 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using SIMS.Helpers;
 
-namespace Student_Information_Management_System__SIMS_
+namespace Student_Information_Management_System__SIMS_.Student
 {
-    public partial class MyCourses : Page
+    public partial class MyCourses : System.Web.UI.Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -15,130 +15,138 @@ namespace Student_Information_Management_System__SIMS_
 
             if (!IsPostBack)
             {
-                lblDate.Text = DateTime.Now.ToString("dd MMMM yyyy");
-                LoadStudentSidebarProfile();
-                PopulateSessionDropdown();
+                lblDate.Text = DateTime.Now.ToString("dd MMM yyyy");
+
+                LoadSidebarUserInfo();
+                LoadFilters();
                 LoadEnrolledCourses();
             }
         }
 
-        private string CurrentStudentId
+        private void LoadSidebarUserInfo()
         {
-            get
+            string studentName = SessionHelper.GetFullName(Session);
+
+            if (string.IsNullOrWhiteSpace(studentName))
+                studentName = "Student";
+
+            lblSidebarName.Text = studentName;
+            lblAvatarInitial.Text = studentName.Substring(0, 1).ToUpper();
+        }
+
+        private void LoadFilters()
+        {
+            ddlFilterSession.Items.Clear();
+            ddlFilterSession.Items.Add(new ListItem("All Sessions", ""));
+
+            ddlFilterSemester.Items.Clear();
+            ddlFilterSemester.Items.Add(new ListItem("All Semesters", ""));
+
+            try
             {
                 string studentId = SessionHelper.GetProfileId(Session);
 
-                if (!string.IsNullOrWhiteSpace(studentId))
-                    return studentId;
+                string sessionSql = @"
+                    SELECT DISTINCT Session
+                    FROM Enrollment
+                    WHERE StudentId = @StudentId
+                    ORDER BY Session DESC";
 
-                // Backward-compatible fallback for older login/session code.
-                if (Session["StudentId"] != null && !string.IsNullOrWhiteSpace(Session["StudentId"].ToString()))
-                    return Session["StudentId"].ToString();
+                DataTable sessionDt = DatabaseHelper.ExecuteQuery(
+                    sessionSql,
+                    new[] { new SqlParameter("@StudentId", studentId) });
 
-                if (Session["StudentID"] != null && !string.IsNullOrWhiteSpace(Session["StudentID"].ToString()))
-                    return Session["StudentID"].ToString();
+                foreach (DataRow row in sessionDt.Rows)
+                {
+                    ddlFilterSession.Items.Add(new ListItem(row["Session"].ToString(), row["Session"].ToString()));
+                }
 
-                Response.Redirect("~/Login.aspx", true);
-                return string.Empty;
+                string semesterSql = @"
+                    SELECT DISTINCT Semester
+                    FROM Enrollment
+                    WHERE StudentId = @StudentId
+                    ORDER BY Semester";
+
+                DataTable semesterDt = DatabaseHelper.ExecuteQuery(
+                    semesterSql,
+                    new[] { new SqlParameter("@StudentId", studentId) });
+
+                foreach (DataRow row in semesterDt.Rows)
+                {
+                    string semester = row["Semester"].ToString();
+                    ddlFilterSemester.Items.Add(new ListItem("Semester " + semester, semester));
+                }
             }
-        }
-
-        private void LoadStudentSidebarProfile()
-        {
-            string fullName = SessionHelper.GetFullName(Session);
-            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName) ? "Student" : fullName;
-
-            string studentId = CurrentStudentId;
-
-            string sql = @"
-                SELECT ProfilePicture
-                FROM StudentDetails
-                WHERE StudentId = @StudentId";
-
-            object pic = DatabaseHelper.ExecuteScalar(sql,
-                new[] { new SqlParameter("@StudentId", studentId) });
-
-            if (pic != null && pic != DBNull.Value && !string.IsNullOrWhiteSpace(pic.ToString()))
-                imgSidebarAvatar.ImageUrl = pic.ToString();
-        }
-
-        private void PopulateSessionDropdown()
-        {
-            ddlFilterSession.Items.Clear();
-            ddlFilterSession.Items.Add(new ListItem("All Academic Sessions", ""));
-
-            string sql = @"
-                SELECT DISTINCT Session
-                FROM Enrollment
-                WHERE StudentId = @StudentId
-                ORDER BY Session DESC";
-
-            DataTable dt = DatabaseHelper.ExecuteQuery(sql,
-                new[] { new SqlParameter("@StudentId", CurrentStudentId) });
-
-            foreach (DataRow row in dt.Rows)
+            catch
             {
-                string session = Convert.ToString(row["Session"]);
-                if (!string.IsNullOrWhiteSpace(session) && ddlFilterSession.Items.FindByValue(session) == null)
-                    ddlFilterSession.Items.Add(new ListItem(session, session));
+                // Prevent page crash if filters fail
             }
         }
 
         private void LoadEnrolledCourses()
         {
-            lblMessage.Visible = false;
+            string studentId = SessionHelper.GetProfileId(Session);
 
             string sql = @"
-                SELECT  c.CourseId,
-                        c.CourseCode,
-                        c.CourseName,
-                        c.Credits,
-                        e.Session,
-                        e.Semester,
-                        e.Status
+                SELECT
+                    c.CourseId,
+                    c.CourseCode,
+                    c.CourseName,
+                    e.Session,
+                    e.Semester
                 FROM Enrollment e
                 INNER JOIN Courses c ON c.CourseId = e.CourseId
                 WHERE e.StudentId = @StudentId
-                  AND e.Status IN ('Active', 'Completed', 'Drop Pending', 'Drop Rejected')";
+                  AND e.Status <> 'Dropped'";
 
-            if (!string.IsNullOrWhiteSpace(ddlFilterSession.SelectedValue))
+            if (!string.IsNullOrEmpty(ddlFilterSession.SelectedValue))
+            {
                 sql += " AND e.Session = @Session";
+            }
 
-            if (!string.IsNullOrWhiteSpace(ddlFilterSemester.SelectedValue))
+            if (!string.IsNullOrEmpty(ddlFilterSemester.SelectedValue))
+            {
                 sql += " AND e.Semester = @Semester";
+            }
 
             sql += " ORDER BY e.Session DESC, e.Semester ASC, c.CourseCode ASC";
 
             var parameters = new System.Collections.Generic.List<SqlParameter>
             {
-                new SqlParameter("@StudentId", CurrentStudentId)
+                new SqlParameter("@StudentId", studentId)
             };
 
-            if (!string.IsNullOrWhiteSpace(ddlFilterSession.SelectedValue))
-                parameters.Add(new SqlParameter("@Session", ddlFilterSession.SelectedValue));
-
-            if (!string.IsNullOrWhiteSpace(ddlFilterSemester.SelectedValue))
-                parameters.Add(new SqlParameter("@Semester", ddlFilterSemester.SelectedValue));
-
-            try
+            if (!string.IsNullOrEmpty(ddlFilterSession.SelectedValue))
             {
-                DataTable dt = DatabaseHelper.ExecuteQuery(sql, parameters.ToArray());
+                parameters.Add(new SqlParameter("@Session", ddlFilterSession.SelectedValue));
+            }
 
-                lblTotal.Text = dt.Rows.Count.ToString();
+            if (!string.IsNullOrEmpty(ddlFilterSemester.SelectedValue))
+            {
+                parameters.Add(new SqlParameter("@Semester", ddlFilterSemester.SelectedValue));
+            }
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(sql, parameters.ToArray());
+
+            if (dt.Rows.Count > 0)
+            {
                 rptCourses.DataSource = dt;
                 rptCourses.DataBind();
 
-                rptCourses.Visible = dt.Rows.Count > 0;
-                pnlEmpty.Visible = dt.Rows.Count == 0;
+                rptCourses.Visible = true;
+                pnlEmpty.Visible = false;
+
+                lblTotal.Text = dt.Rows.Count.ToString();
             }
-            catch (Exception ex)
+            else
             {
                 rptCourses.Visible = false;
                 pnlEmpty.Visible = true;
+
                 lblTotal.Text = "0";
-                ShowMessage("Unable to load your courses. " + ex.Message, "alert-danger");
             }
         }
+
 
         protected void ddlFilterSession_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -155,18 +163,10 @@ namespace Student_Information_Management_System__SIMS_
             LoadEnrolledCourses();
         }
 
-        private void ShowMessage(string msg, string cssClass)
+        protected void lbLogout_Click(object sender, EventArgs e)
         {
-            lblMessage.Text = msg;
-            lblMessage.CssClass = "alert " + cssClass;
-            lblMessage.Visible = true;
-        }
-
-        protected void btnConfirmLogout_Click(object sender, EventArgs e)
-        {
-            Session.Clear();
-            Session.Abandon();
-            Response.Redirect("~/Login.aspx");
+            SessionHelper.Logout(Session);
+            Response.Redirect("~/Login.aspx", false);
         }
     }
 }
