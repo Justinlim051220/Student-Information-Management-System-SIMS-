@@ -1,9 +1,13 @@
+
 -- =============================================
 -- SIMS - Student Information Management System
 -- =============================================
--- Tidied formatting version. Logic preserved from the uploaded script.
+
 CREATE DATABASE SIMS;
+
+
 USE SIMS;
+
 
 -- =============================================
 -- TABLE 1: Users
@@ -22,7 +26,8 @@ CREATE TABLE Users (
     CONSTRAINT CK_Users_Role CHECK (Role IN (1, 2, 3))
 );
 
-SELECT * FROM Users;
+select * from Users;
+
 
 -- =============================================
 -- TABLE 2: HoPDetails
@@ -40,11 +45,11 @@ CREATE TABLE HoPDetails (
     CONSTRAINT FK_HoPDetails_Users FOREIGN KEY (UserId) REFERENCES Users(UserId)
 );
 
--- New Added for Credit Hour, 29/5, Justin
+-- New Aded for Credit Hour, 29/5, Justin
 
 IF COL_LENGTH('HoPDetails', 'ProfilePicture') IS NULL
 BEGIN
-ALTER TABLE HoPDetails
+    ALTER TABLE HoPDetails
     ADD ProfilePicture VARCHAR(255) NULL;
 END;
 
@@ -65,15 +70,17 @@ CREATE TABLE Programmes (
     CONSTRAINT FK_Programmes_HoP FOREIGN KEY (HoPId) REFERENCES HoPDetails(HoPId)
 );
 
-SELECT * FROM Programmes;
+select * from Programmes;
 
--- New Added for Credit Hour, 29/5, Justin
+
+-- New Aded for Credit Hour, 29/5, Justin
 
 IF COL_LENGTH('Programmes', 'CreditHour') IS NULL
 BEGIN
-ALTER TABLE Programmes
+    ALTER TABLE Programmes
     ADD CreditHour INT NOT NULL CONSTRAINT DF_Programmes_CreditHour DEFAULT (0);
 END;
+
 
 -- =============================================
 -- TABLE 4: LecturerDetails
@@ -98,8 +105,9 @@ CREATE TABLE LecturerDetails (
     CONSTRAINT FK_LecturerDetails_Programme FOREIGN KEY (ProgrammeId) REFERENCES Programmes(ProgrammeId)
 );
 
-SELECT * FROM LecturerDetails;
-SELECT * FROM Results;
+
+select * from LecturerDetails;
+select * from Results;
 
 -- =============================================
 -- TABLE 5: StudentDetails
@@ -123,21 +131,21 @@ CREATE TABLE StudentDetails (
     CONSTRAINT FK_StudentDetails_Programme FOREIGN KEY (ProgrammeId) REFERENCES Programmes(ProgrammeId)
 );
 
--- New Added 29/5 - For Student Portal Enrollment side
+--New added 29/5 - For Student Portal Enrollment side
 IF COL_LENGTH('StudentDetails', 'CurrentSemester') IS NULL
 BEGIN
-ALTER TABLE StudentDetails
+    ALTER TABLE StudentDetails
     ADD CurrentSemester INT NOT NULL CONSTRAINT DF_StudentDetails_CurrentSemester DEFAULT 1;
 END;
 GO
 
 /* 2. Safety check for semester value. */
 IF NOT EXISTS (
-SELECT 1 FROM sys.check_constraints
+    SELECT 1 FROM sys.check_constraints
     WHERE name = 'CK_StudentDetails_CurrentSemester'
 )
 BEGIN
-ALTER TABLE StudentDetails
+    ALTER TABLE StudentDetails
     ADD CONSTRAINT CK_StudentDetails_CurrentSemester CHECK (CurrentSemester >= 1);
 END;
 
@@ -158,14 +166,15 @@ CREATE TABLE Courses (
     CONSTRAINT FK_Courses_Programme FOREIGN KEY (ProgrammeId) REFERENCES Programmes(ProgrammeId)
 );
 
--- New Added Table for Course Materials, By Jason 30/5
+-- New Added Table for Course Materails, By Jason 30/5 
+
 CREATE TABLE CourseMaterials (
     MaterialId INT IDENTITY(1,1) NOT NULL,
     CourseId INT NOT NULL,
     Session VARCHAR(15) NOT NULL,
     LecturerId VARCHAR(20) NOT NULL,
     Title VARCHAR(200) NOT NULL,
-    MaterialType VARCHAR(50) NULL,
+    MaterialType VARCHAR(50) NULL, 
     Description VARCHAR(MAX) NULL,
     FileName VARCHAR(255) NOT NULL,
     FilePath VARCHAR(500) NOT NULL,
@@ -177,21 +186,26 @@ CREATE TABLE CourseMaterials (
     CONSTRAINT FK_CourseMaterials_Course FOREIGN KEY (CourseId) REFERENCES Courses(CourseId),
     CONSTRAINT FK_CourseMaterials_Lecturer FOREIGN KEY (LecturerId) REFERENCES LecturerDetails(LecturerId)
 );
+
+
 ALTER TABLE CourseMaterials ALTER COLUMN FileName VARCHAR(255) NULL;
 ALTER TABLE CourseMaterials ALTER COLUMN FilePath VARCHAR(500) NULL;
 ALTER TABLE CourseMaterials ALTER COLUMN FileType VARCHAR(100) NULL;
 ALTER TABLE CourseMaterials ALTER COLUMN FileSizeKB INT NULL;
 
-SELECT * FROM Grades;
-TRUNCATE TABLE Grades;
-SELECT * FROM Enrollment;
 
--- Jason Update (3/6)
+select * from Grades;
+TRUNCATE TABLE Grades;
+select * from Enrollment;
+
+
+
+--Jason Update (3/6)
 -- Add percentage weight for Assignment / Final Exam materials.
 -- Run this once on your SIMS database.
 IF COL_LENGTH('CourseMaterials', 'WeightPercentage') IS NULL
 BEGIN
-ALTER TABLE CourseMaterials
+    ALTER TABLE CourseMaterials
     ADD WeightPercentage DECIMAL(5,2) NULL;
 END;
 GO
@@ -206,12 +220,16 @@ CREATE TABLE CourseMaterialFiles (
     UploadedAt DATETIME NOT NULL DEFAULT GETDATE(),
 
     CONSTRAINT PK_CourseMaterialFiles PRIMARY KEY (FileId),
-    CONSTRAINT FK_CourseMaterialFiles_Material
+    CONSTRAINT FK_CourseMaterialFiles_Material 
         FOREIGN KEY (MaterialId) REFERENCES CourseMaterials(MaterialId)
         ON DELETE CASCADE
 );
+
+
 ALTER TABLE CourseMaterials ALTER COLUMN FileName NVARCHAR(255) NULL;
 ALTER TABLE CourseMaterialFiles ALTER COLUMN FileName NVARCHAR(255) NOT NULL;
+
+
 
 ---
 
@@ -235,12 +253,12 @@ CREATE TABLE Enrollment (
     CONSTRAINT CK_Enrollment_Semester CHECK (Semester >= 1)
 );
 
-SELECT * FROM Enrollment;
+select * from Enrollment;
 
--- New Added Alter Table Enrollment, 31/5 By Justin
+--New added Alter Table Enrollment, 31/5 By Justin
 
 /* =========================================================
-UPDATE ENROLLMENT STATUS FOR DROP REQUEST FLOW
+   UPDATE ENROLLMENT STATUS FOR DROP REQUEST FLOW
    ========================================================= */
 
 -- 1. Drop old CHECK constraint
@@ -269,7 +287,7 @@ ADD
     DropReviewedBy VARCHAR(20) NULL;
 ----------------------------------------------
 
-SELECT * FROM Enrollment;
+select * from Enrollment;
 
 -- =============================================
 -- TABLE 8: LecturerCourse
@@ -309,15 +327,16 @@ CREATE TABLE Attendance (
     CONSTRAINT CK_Attendance_Status CHECK (Status IN ('Present', 'Absent', 'Late'))
 );
 
-SELECT * FROM Attendance;
 
-    -- New Added by Yin jia - 31/5
+select * from Attendance;
+
+    --New added by Yin jia - 31/5
     -- =============================================
     -- TABLE 10: Grades
     -- Assessment marks per student per course
     -- Composite PK: StudentId + CourseId + Type
     -- =============================================
-CREATE TABLE Grades (
+    CREATE TABLE Grades (
         StudentId           VARCHAR(20)     NOT NULL,
         CourseId            INT             NOT NULL,
         MaterialId          INT             NOT NULL DEFAULT 0,
@@ -347,7 +366,7 @@ CREATE TABLE Grades (
             CHECK (Type IN ('Assignment', 'Quiz', 'Exam'))
     );
 
-SELECT * FROM Grades;
+select * from Grades;
 
 -- =============================================
 -- TABLE 11: Fees
@@ -366,6 +385,7 @@ CREATE TABLE Fees (
     CONSTRAINT FK_Fees_Student FOREIGN KEY (StudentId) REFERENCES StudentDetails(StudentId),
     CONSTRAINT CK_Fees_Status CHECK (Status IN ('Paid', 'Pending', 'Overdue'))
 );
+
 
 -- =============================================
 -- TABLE 12: Announcements
@@ -389,7 +409,7 @@ CREATE TABLE Announcements (
     CONSTRAINT CK_Announcements_TargetRole CHECK (TargetRole IN ('All', 'Student', 'Lecturer'))
 );
 
-SELECT * FROM Announcements;
+select * from Announcements;
 
 -- =============================================
 -- TABLE 13: Notifications
@@ -406,6 +426,7 @@ CREATE TABLE Notifications (
     CONSTRAINT PK_Notifications PRIMARY KEY (NotificationId),
     CONSTRAINT FK_Notifications_User FOREIGN KEY (UserId) REFERENCES Users(UserId)
 );
+
 CREATE TABLE CourseFees (
         CourseFeeId INT NOT NULL IDENTITY(1,1),
         CourseId INT NOT NULL,
@@ -419,21 +440,24 @@ CREATE TABLE CourseFees (
         CONSTRAINT CK_CourseFees_Amount CHECK (Amount >= 0)
     );
 
+
     --Justin Update CourseFee Table (3/6)
 IF COL_LENGTH('Fees', 'PaymentReceiptPath') IS NULL
 BEGIN
-ALTER TABLE Fees
+    ALTER TABLE Fees
     ADD PaymentReceiptPath VARCHAR(255) NULL;
 END
 GO
 
 IF COL_LENGTH('Fees', 'PaymentReceiptUploadedAt') IS NULL
 BEGIN
-ALTER TABLE Fees
+    ALTER TABLE Fees
     ADD PaymentReceiptUploadedAt DATETIME NULL;
 END
 
-SELECT * FROM Fees;
+select * from Fees;
+
+
 
    /* =========================================================
    SIMS PATCH: Allow one lecturer to belong to multiple programmes
@@ -442,45 +466,45 @@ SELECT * FROM Fees;
 --3/6 （Justin)
    IF COL_LENGTH('Fees', 'PaymentId') IS NULL
 BEGIN
-ALTER TABLE Fees
+    ALTER TABLE Fees
     ADD PaymentId INT IDENTITY(1,1) NOT NULL;
 END
 GO
 
 IF NOT EXISTS (
-SELECT 1
+    SELECT 1
     FROM sys.indexes
     WHERE name = 'UQ_Fees_PaymentId'
       AND object_id = OBJECT_ID('Fees')
 )
 BEGIN
-CREATE UNIQUE INDEX UQ_Fees_PaymentId ON Fees(PaymentId);
+    CREATE UNIQUE INDEX UQ_Fees_PaymentId ON Fees(PaymentId);
 END
 GO
 
 IF COL_LENGTH('Fees', 'PaymentReceiptPath') IS NULL
 BEGIN
-ALTER TABLE Fees
+    ALTER TABLE Fees
     ADD PaymentReceiptPath VARCHAR(255) NULL;
 END
 GO
 
 IF COL_LENGTH('Fees', 'PaymentReceiptUploadedAt') IS NULL
 BEGIN
-ALTER TABLE Fees
+    ALTER TABLE Fees
     ADD PaymentReceiptUploadedAt DATETIME NULL;
 END
 GO
 
 /* If your Fees.Status constraint does not allow Rejected yet, run this too. */
 IF EXISTS (
-SELECT 1
+    SELECT 1
     FROM sys.check_constraints
     WHERE name = 'CK_Fees_Status'
       AND parent_object_id = OBJECT_ID('Fees')
 )
 BEGIN
-ALTER TABLE Fees DROP CONSTRAINT CK_Fees_Status;
+    ALTER TABLE Fees DROP CONSTRAINT CK_Fees_Status;
 END
 GO
 
@@ -493,7 +517,7 @@ GO
 /* 1. Junction table: one lecturer can have many programmes */
 IF OBJECT_ID('dbo.LecturerProgramme', 'U') IS NULL
 BEGIN
-CREATE TABLE LecturerProgramme (
+    CREATE TABLE LecturerProgramme (
         LecturerId  VARCHAR(20) NOT NULL,
         ProgrammeId INT         NOT NULL,
         AssignedDate DATE       NOT NULL DEFAULT GETDATE(),
@@ -513,7 +537,7 @@ SELECT LecturerId, ProgrammeId
 FROM LecturerDetails ld
 WHERE ld.ProgrammeId IS NOT NULL
   AND NOT EXISTS (
-SELECT 1
+      SELECT 1
       FROM LecturerProgramme lp
       WHERE lp.LecturerId = ld.LecturerId
         AND lp.ProgrammeId = ld.ProgrammeId
@@ -521,14 +545,14 @@ SELECT 1
 
   /* =============================================================
    SIMS Enrollment + Fees Patch
-   USE CourseFees as price master.
-   USE Fees as student invoice/payment status.
+   Use CourseFees as price master.
+   Use Fees as student invoice/payment status.
    CourseFees does NOT need Status.
    ============================================================= */
 
   IF OBJECT_ID('CourseFees', 'U') IS NULL
 BEGIN
-CREATE TABLE CourseFees (
+    CREATE TABLE CourseFees (
         CourseFeeId INT NOT NULL IDENTITY(1,1),
         CourseId INT NOT NULL,
         Session VARCHAR(15) NOT NULL,
@@ -546,7 +570,7 @@ GO
 /* Your ManageFees page has Reject button, so Fees.Status needs Rejected. */
 IF EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'CK_Fees_Status')
 BEGIN
-ALTER TABLE Fees DROP CONSTRAINT CK_Fees_Status;
+    ALTER TABLE Fees DROP CONSTRAINT CK_Fees_Status;
 END;
 GO
 
@@ -554,11 +578,11 @@ ALTER TABLE Fees ADD CONSTRAINT CK_Fees_Status
 CHECK (Status IN ('Paid', 'Pending', 'Overdue', 'Rejected'));
 GO
 
-SELECT * FROM Users;
-SELECT * FROM HopDetails;
-SELECT * FROM Programmes;
+Select * from Users;
+select * from HopDetails;
+select * from Programmes;
 
--- New Added in 29/5 for Session Enrollment
+--New Added in 29/5 for Session Enrollment
 -- =========================================================
 -- SIMS SQL Patch: Course Offering
 -- Purpose: Admin controls which course is open for which
@@ -567,7 +591,7 @@ SELECT * FROM Programmes;
 
 IF OBJECT_ID('dbo.CourseOffering', 'U') IS NULL
 BEGIN
-CREATE TABLE CourseOffering (
+    CREATE TABLE CourseOffering (
         OfferingId   INT IDENTITY(1,1) NOT NULL,
         Session      VARCHAR(15)       NOT NULL,
         ProgrammeId  INT               NOT NULL,
@@ -584,6 +608,7 @@ CREATE TABLE CourseOffering (
         CONSTRAINT UQ_CourseOffering UNIQUE (Session, ProgrammeId, CourseId, Semester)
     );
 END;
+
 
 /* =============================================================
    SIMS Fees FeeId Insert Fix
@@ -608,6 +633,7 @@ GO
 /* 1) Drop PK on FeeId if it exists, because FeeId must allow insert first */
 DECLARE @FeeIdPkName SYSNAME;
 DECLARE @DropPkSql NVARCHAR(MAX);
+
 SELECT @FeeIdPkName = kc.name
 FROM sys.key_constraints kc
 INNER JOIN sys.index_columns ic
@@ -630,27 +656,27 @@ GO
 /* 2) Make sure FeeId exists */
 IF COL_LENGTH('dbo.Fees', 'FeeId') IS NULL
 BEGIN
-ALTER TABLE dbo.Fees ADD FeeId INT NULL;
+    ALTER TABLE dbo.Fees ADD FeeId INT NULL;
 END;
 GO
 
 /* 3) Make FeeId nullable so old INSERT code can omit it */
 IF EXISTS (
-SELECT 1
+    SELECT 1
     FROM sys.columns
     WHERE object_id = OBJECT_ID('dbo.Fees')
       AND name = 'FeeId'
       AND is_nullable = 0
 )
 BEGIN
-ALTER TABLE dbo.Fees ALTER COLUMN FeeId INT NULL;
+    ALTER TABLE dbo.Fees ALTER COLUMN FeeId INT NULL;
 END;
 GO
 
 /* 4) Backfill existing records: FeeId = PaymentId */
 IF COL_LENGTH('dbo.Fees', 'PaymentId') IS NOT NULL
 BEGIN
-UPDATE dbo.Fees
+    UPDATE dbo.Fees
     SET FeeId = PaymentId
     WHERE FeeId IS NULL;
 END;
@@ -673,7 +699,7 @@ BEGIN
 
     IF COL_LENGTH('dbo.Fees', 'PaymentId') IS NOT NULL
     BEGIN
-UPDATE f
+        UPDATE f
         SET f.FeeId = f.PaymentId
         FROM dbo.Fees f
         INNER JOIN inserted i
@@ -685,7 +711,7 @@ GO
 
 /* 7) Create unique filtered index for FeeId lookup */
 IF EXISTS (
-SELECT 1 FROM sys.indexes
+    SELECT 1 FROM sys.indexes
     WHERE object_id = OBJECT_ID('dbo.Fees')
       AND name = 'IX_Fees_FeeId'
 )
@@ -702,7 +728,7 @@ GO
 /* 8) Recommended: make PaymentId the primary key if it is not already */
 IF COL_LENGTH('dbo.Fees', 'PaymentId') IS NOT NULL
 AND NOT EXISTS (
-SELECT 1
+    SELECT 1
     FROM sys.key_constraints kc
     INNER JOIN sys.index_columns ic
         ON kc.parent_object_id = ic.object_id
@@ -715,7 +741,7 @@ SELECT 1
       AND c.name = 'PaymentId'
 )
 BEGIN
-ALTER TABLE dbo.Fees
+    ALTER TABLE dbo.Fees
     ADD CONSTRAINT PK_Fees_PaymentId
     PRIMARY KEY (PaymentId);
 END;
@@ -734,7 +760,7 @@ GO
 
 ;WITH LatestCurrentSession AS
 (
-SELECT
+    SELECT
         StudentId,
         Session,
         ROW_NUMBER() OVER
@@ -764,7 +790,7 @@ WHERE l.rn = 1
 
 ;WITH LatestCurrentSession AS
 (
-SELECT
+    SELECT
         StudentId,
         Session,
         ROW_NUMBER() OVER
@@ -797,6 +823,7 @@ WHERE l.rn = 1
     The Student Enrollment page will still DISPLAY previous sessions as Completed using UI logic,
     without changing the database status.
 */
+
 UPDATE dbo.Enrollment
 SET Status = 'Active'
 WHERE Status = 'Completed';
@@ -813,7 +840,7 @@ PRINT 'Completed enrollment records have been restored to Active. Student page w
 
 IF OBJECT_ID('dbo.Results', 'U') IS NULL
 BEGIN
-CREATE TABLE dbo.Results (
+    CREATE TABLE dbo.Results (
         ResultId      INT IDENTITY(1,1) NOT NULL,
         StudentId     VARCHAR(20) NOT NULL,
         [Session]     VARCHAR(50) NOT NULL,
@@ -841,16 +868,17 @@ END;
 GO
 
 IF NOT EXISTS (
-SELECT 1
+    SELECT 1
     FROM sys.indexes
     WHERE name = 'UQ_Results_Student_Session_Semester_Course'
       AND object_id = OBJECT_ID('dbo.Results')
 )
 BEGIN
-ALTER TABLE dbo.Results
+    ALTER TABLE dbo.Results
     ADD CONSTRAINT UQ_Results_Student_Session_Semester_Course
     UNIQUE (StudentId, [Session], Semester, CourseId);
 END;
 GO
 
 PRINT 'Results table patch completed successfully.';
+
