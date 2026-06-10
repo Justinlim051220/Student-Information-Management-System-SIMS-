@@ -59,10 +59,10 @@
                             <asp:ListItem Text="Fee Payment Report" Value="FeePayment" />
                             <asp:ListItem Text="Enrollment Statistics Report" Value="Enrollment" />
                             <asp:ListItem Text="Attendance Report" Value="Attendance" />
-                            <asp:ListItem Text="Academic Report (Coming Soon)" Value="Academic" />
+                            <asp:ListItem Text="Academic Report" Value="Academic" />
                         </asp:DropDownList>
                         <asp:Panel ID="pnlAcademicSoon" runat="server" Visible="false" CssClass="coming-soon-note">
-                            Academic Report is coming soon.
+                            Academic Report displays published student results from the Results table.
                         </asp:Panel>
                     </div>
                     <div class="form-group">
