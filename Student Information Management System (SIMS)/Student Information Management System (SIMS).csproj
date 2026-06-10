@@ -94,6 +94,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Lecturer\LecturerSidebar.ascx.cs">
+      <DependentUpon>LecturerSidebar.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Lecturer\LecturerSidebar.ascx.designer.cs">
+      <DependentUpon>LecturerSidebar.ascx</DependentUpon>
+    </Compile>
     <Compile Include="Site.Mobile.Master.cs">
       <DependentUpon>Site.Mobile.Master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -184,6 +191,7 @@
     <Content Include="Lecturer\AtRiskStudents.aspx" />
     <Content Include="Lecturer\Attendance.aspx" />
     <Content Include="Lecturer\CourseStudents.aspx" />
+    <Content Include="Lecturer\LecturerSidebar.ascx" />
     <Content Include="Lecturer\Lecturer_Dashboard.aspx" />
     <Content Include="Lecturer\MyCourses.aspx" />
     <Content Include="Lecturer\Notifications.aspx" />

@@ -15,7 +15,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             if (!IsPostBack)
             {
-                LoadLecturerInfo();
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
 
                 LoadProgrammeFilter();
@@ -46,44 +45,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         private int CurrentUserId
         {
             get { return SessionHelper.GetUserId(Session); }
-        }
-
-        private void LoadLecturerInfo()
-        {
-            string fullName = SessionHelper.GetFullName(Session);
-
-            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName)
-                ? "Lecturer"
-                : fullName;
-
-            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName)
-                ? "Lecturer"
-                : fullName;
-
-            LoadSidebarProfilePicture();
-        }
-
-        private void LoadSidebarProfilePicture()
-        {
-            object result = DatabaseHelper.ExecuteScalar(
-                "SELECT ProfilePicture FROM LecturerDetails WHERE UserId = @UserId",
-                new[]
-                {
-            new SqlParameter("@UserId", CurrentUserId)
-                });
-
-            string picture = result == null || result == DBNull.Value
-                ? ""
-                : result.ToString();
-
-            if (!string.IsNullOrWhiteSpace(picture))
-            {
-                imgSidebarAvatar.ImageUrl = picture;
-            }
-            else
-            {
-                imgSidebarAvatar.ImageUrl = "~/ProfilePicture/default-profile.png";
-            }
         }
 
         private void LoadCourseFilter()
@@ -134,6 +95,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             ddlFilterProgramme.DataBind();
             ddlFilterProgramme.Items.Insert(0, new ListItem("All Programmes", ""));
         }
+
         private void LoadSessionFilter()
         {
             string sql = @"
@@ -218,29 +180,19 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             string session = parts[1];
 
             if (e.CommandName == "MoveTop")
-            {
                 MoveCourse(courseId, session, "TOP");
-            }
             else if (e.CommandName == "MoveUp")
-            {
                 MoveCourse(courseId, session, "UP");
-            }
             else if (e.CommandName == "MoveDown")
-            {
                 MoveCourse(courseId, session, "DOWN");
-            }
             else if (e.CommandName == "MoveBottom")
-            {
                 MoveCourse(courseId, session, "BOTTOM");
-            }
 
             LoadCourses();
         }
 
         private void MoveCourse(string courseId, string session, string direction)
         {
-            // Your LecturerCourse table currently has no SortOrder column.
-            // So this part needs SortOrder to save custom ordering.
             EnsureSortOrderColumn();
 
             string lecturerId = CurrentLecturerId;
@@ -330,11 +282,9 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             if (exists == 0)
             {
-                string alterSql = @"
+                DatabaseHelper.ExecuteNonQuery(@"
                     ALTER TABLE LecturerCourse
-                    ADD SortOrder INT NULL";
-
-                DatabaseHelper.ExecuteNonQuery(alterSql);
+                    ADD SortOrder INT NULL");
             }
         }
 
@@ -436,11 +386,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             pnlNotifBadge.Visible = count != null && Convert.ToInt32(count) > 0;
         }
 
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
-        }
         protected void btnLoadStudents_Click(object sender, EventArgs e)
         {
             LoadRegisteredStudents(
@@ -448,6 +393,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 hfSelectedSession.Value
             );
         }
+
         private void LoadRegisteredStudents(string courseId, string session)
         {
             string sql = @"
