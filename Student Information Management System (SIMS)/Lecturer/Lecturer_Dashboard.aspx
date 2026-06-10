@@ -736,9 +736,9 @@
                 <div class="quick-action-text"><strong>Attendance Report</strong><span>View attendance report</span></div>
             </a>
 
-            <a href="MyCourses.aspx" class="quick-action-tile">
-                <div class="quick-action-icon"><i class="fa-solid fa-book-open"></i></div>
-                <div class="quick-action-text"><strong>My Courses</strong><span>View assigned courses</span></div>
+            <a href="CourseReport.aspx" class="quick-action-tile">
+                <div class="quick-action-icon"><i class="fa-solid fa-chart-column"></i></div>
+                <div class="quick-action-text"><strong>Course Report</strong><span>View course report</span></div>
             </a>
 
             <a href="Announcements.aspx?action=add" class="quick-action-tile">
