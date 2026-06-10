@@ -26,7 +26,6 @@ namespace Student_Information_Management_System__SIMS_
                 LoadAnnouncements();
                 LoadAttendanceSummary();
                 LoadAtRiskStudents();
-                LoadRecentGrades();
                 CheckUnreadNotifications();
             }
         }
@@ -206,38 +205,6 @@ namespace Student_Information_Management_System__SIMS_
             rptAtRiskStudents.DataSource = dt;
             rptAtRiskStudents.DataBind();
         }
-
-        private void LoadRecentGrades()
-        {
-            string lecturerId = GetLecturerId();
-
-            string sql = @"
-                SELECT TOP 8
-                    s.FirstName + ' ' + s.LastName AS FullName,
-                    c.CourseCode,
-                    g.Type,
-                    g.Title,
-                    g.MarksObtained,
-                    g.MaxMarks,
-                    g.Grade,
-                    g.SubmittedAt
-                FROM Grades g
-                INNER JOIN StudentDetails s ON s.StudentId = g.StudentId
-                INNER JOIN Courses c ON c.CourseId = g.CourseId
-                INNER JOIN LecturerCourse lc
-                    ON lc.CourseId = g.CourseId
-                    AND lc.LecturerId = @Lid
-                    AND lc.Session = 'April 2026'
-                WHERE g.SubmittedAt IS NOT NULL
-                ORDER BY g.SubmittedAt DESC";
-
-            DataTable dt = DatabaseHelper.ExecuteQuery(sql,
-                new[] { new System.Data.SqlClient.SqlParameter("@Lid", lecturerId) });
-
-            rptRecentGrades.DataSource = dt;
-            rptRecentGrades.DataBind();
-        }
-
         private void CheckUnreadNotifications()
         {
             int userId = SessionHelper.GetUserId(Session);
