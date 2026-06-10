@@ -27,6 +27,10 @@
             <i class="fa-solid fa-clipboard-check nav-icon"></i> Attendance
         </a>
 
+        <a href="Report.aspx" class="<%= NavClass("Report") %>">
+            <i class="fa-solid fa-chart-column nav-icon"></i> Report
+        </a>
+
         <a href="AtRiskStudents.aspx" class="<%= NavClass("AtRiskStudents") %>">
             <i class="fa-solid fa-triangle-exclamation nav-icon"></i> At-Risk Students
         </a>
