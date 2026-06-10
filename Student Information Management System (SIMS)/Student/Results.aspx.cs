@@ -321,6 +321,10 @@ namespace Student_Information_Management_System__SIMS_.Student
 
         private string GetLetterGrade(decimal score)
         {
+            // Grade distribution used by SIMS:
+            // A+ 90-100, A 80-89, A- 75-79, B+ 70-74, B 65-69,
+            // B- 60-64, C+ 55-59, C 50-54, C- 45-49, D 40-44, F 0-39.
+            if (score >= 90) return "A+";
             if (score >= 80) return "A";
             if (score >= 75) return "A-";
             if (score >= 70) return "B+";
@@ -328,6 +332,8 @@ namespace Student_Information_Management_System__SIMS_.Student
             if (score >= 60) return "B-";
             if (score >= 55) return "C+";
             if (score >= 50) return "C";
+            if (score >= 45) return "C-";
+            if (score >= 40) return "D";
             return "F";
         }
 
@@ -335,14 +341,28 @@ namespace Student_Information_Management_System__SIMS_.Student
         {
             switch (grade)
             {
-                case "A": return 4.00m;
-                case "A-": return 3.67m;
-                case "B+": return 3.33m;
-                case "B": return 3.00m;
-                case "B-": return 2.67m;
-                case "C+": return 2.33m;
-                case "C": return 2.00m;
-                default: return 0.00m;
+                case "A+":
+                case "A":
+                    return 4.00m;
+                case "A-":
+                    return 3.67m;
+                case "B+":
+                    return 3.33m;
+                case "B":
+                    return 3.00m;
+                case "B-":
+                    return 2.67m;
+                case "C+":
+                    return 2.33m;
+                case "C":
+                    return 2.00m;
+                case "C-":
+                    return 1.50m;
+                case "D":
+                    return 1.00m;
+                case "F":
+                default:
+                    return 0.00m;
             }
         }
 
