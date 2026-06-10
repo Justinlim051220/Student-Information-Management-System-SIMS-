@@ -38,6 +38,89 @@
         #customModal .cm-body { font-size:.97rem; line-height:1.65; color:#555; margin-bottom:28px; }
         #customModal .cm-btn { padding:10px 32px; border-radius:50px; font-size:.95rem; font-weight:700; cursor:pointer; transition:all .18s; min-width:110px; background:transparent; border:2px solid #e8a838; color:#e8a838; }
         #customModal .cm-btn:hover { background:#fdf3e0; }
+
+        @media print {
+            @page { size: landscape; margin: 14mm; }
+
+            body {
+                background: #ffffff !important;
+            }
+
+            .sidebar,
+            .topbar,
+            .navbar,
+            .filter-card,
+            .report-actions,
+            #customModalOverlay {
+                display: none !important;
+            }
+
+            .main-wrapper,
+            .content-wrapper,
+            .page-wrapper {
+                margin-left: 0 !important;
+                width: 100% !important;
+                min-height: auto !important;
+                background: #ffffff !important;
+            }
+
+            .page-content {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+            }
+
+            .page-title {
+                text-align: center;
+                margin: 0 0 14px !important;
+            }
+
+            .report-section,
+            .report-header-box,
+            .summary-grid,
+            .section-title,
+            .table-scroll {
+                max-width: 100% !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+
+            .report-header-box {
+                text-align: center;
+                border-left: 0 !important;
+                border-top: 4px solid #e8a838;
+                box-shadow: none !important;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(4, 1fr) !important;
+            }
+
+            .summary-card {
+                box-shadow: none !important;
+                break-inside: avoid;
+            }
+
+            .table-scroll {
+                overflow: visible !important;
+                border: 0 !important;
+            }
+
+            .orange-grid {
+                width: 100% !important;
+                min-width: 0 !important;
+                margin: 0 auto !important;
+                font-size: 10px;
+            }
+
+            .orange-grid th,
+            .orange-grid td {
+                padding: 6px 7px !important;
+                white-space: normal !important;
+            }
+        }
     </style>
 </head>
 <body>
