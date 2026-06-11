@@ -164,6 +164,13 @@
     <Compile Include="Student\Results.aspx.designer.cs">
       <DependentUpon>Results.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Student\StudentSidebar.ascx.cs">
+      <DependentUpon>StudentSidebar.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Student\StudentSidebar.ascx.designer.cs">
+      <DependentUpon>StudentSidebar.ascx</DependentUpon>
+    </Compile>
     <Compile Include="ViewSwitcher.ascx.cs">
       <DependentUpon>ViewSwitcher.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -265,6 +272,7 @@
     <Content Include="Student\MyProfile.aspx" />
     <Content Include="Student\Notification.aspx" />
     <Content Include="Student\Results.aspx" />
+    <Content Include="Student\StudentSidebar.ascx" />
     <Content Include="Student\Student_Dashboard.aspx" />
     <Content Include="Student\Student_Enrollment.aspx" />
     <Content Include="Student\Student_Payment.aspx" />

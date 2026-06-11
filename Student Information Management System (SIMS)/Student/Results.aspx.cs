@@ -16,7 +16,6 @@ namespace Student_Information_Management_System__SIMS_.Student
             if (!IsPostBack)
             {
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
-                LoadStudentMetadata();
                 LoadSessionFilter();
                 ResetResultDisplay("Please select an academic session and semester, then click View Results.");
                 CheckNotificationsBadge();
@@ -42,15 +41,6 @@ namespace Student_Information_Management_System__SIMS_.Student
         private int CurrentUserId
         {
             get { return SessionHelper.GetUserId(Session); }
-        }
-
-        private void LoadStudentMetadata()
-        {
-            string fullName = SessionHelper.GetFullName(Session);
-            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName) ? "Student Account" : fullName;
-
-            if (!string.IsNullOrWhiteSpace(fullName))
-                lblAvatarInitial.Text = fullName.Substring(0, 1).ToUpper();
         }
 
         private void LoadSessionFilter()
@@ -189,7 +179,6 @@ namespace Student_Information_Management_System__SIMS_.Student
 
             decimal gpa = totalCredits > 0 ? Math.Round(totalQualityPoints / totalCredits, 2) : 0;
 
-            // Replace the selected semester result only. This keeps the table clean when lecturers edit marks later.
             DatabaseHelper.ExecuteNonQuery(@"
                 DELETE FROM Results
                 WHERE StudentId = @StudentId
@@ -314,16 +303,11 @@ namespace Student_Information_Management_System__SIMS_.Student
             lblCGPA.Text = "0.00";
             lblTotalCredits.Text = "0";
 
-            // The panel already contains a general empty-state message in the ASPX.
-            // Keeping the custom detail through tooltip avoids adding a new designer control.
             pnlEmpty.ToolTip = message;
         }
 
         private string GetLetterGrade(decimal score)
         {
-            // Grade distribution used by SIMS:
-            // A+ 90-100, A 80-89, A- 75-79, B+ 70-74, B 65-69,
-            // B- 60-64, C+ 55-59, C 50-54, C- 45-49, D 40-44, F 0-39.
             if (score >= 90) return "A+";
             if (score >= 80) return "A";
             if (score >= 75) return "A-";
@@ -369,21 +353,13 @@ namespace Student_Information_Management_System__SIMS_.Student
         private void CheckNotificationsBadge()
         {
             int unreadCount = 0;
+
             object result = DatabaseHelper.ExecuteScalar(
                 "SELECT COUNT(*) FROM Notifications WHERE UserId = @UserId AND IsRead = 0",
                 new[] { new SqlParameter("@UserId", CurrentUserId) });
 
             if (result != null && int.TryParse(result.ToString(), out unreadCount))
-            {
                 pnlNotifBadge.Visible = unreadCount > 0;
-                pnlSidebarNotifBadge.Visible = unreadCount > 0;
-            }
-        }
-
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
         }
     }
 }

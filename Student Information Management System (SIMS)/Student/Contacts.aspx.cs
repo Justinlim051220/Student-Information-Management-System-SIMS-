@@ -15,7 +15,6 @@ namespace Student_Information_Management_System__SIMS_
             if (!IsPostBack)
             {
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
-                LoadStudentInfo();
                 LoadLecturerContacts();
                 CheckUnreadNotifications();
             }
@@ -29,17 +28,6 @@ namespace Student_Information_Management_System__SIMS_
         private string CurrentStudentId
         {
             get { return SessionHelper.GetProfileId(Session); }
-        }
-
-        private void LoadStudentInfo()
-        {
-            string studentName = SessionHelper.GetFullName(Session);
-
-            if (string.IsNullOrWhiteSpace(studentName))
-                studentName = "Student";
-
-            lblSidebarName.Text = studentName;
-            lblAvatarInitial.Text = studentName.Length > 0 ? studentName.Substring(0, 1).ToUpper() : "S";
         }
 
         private void LoadLecturerContacts()
@@ -101,12 +89,6 @@ namespace Student_Information_Management_System__SIMS_
                 new[] { new SqlParameter("@Uid", CurrentUserId) });
 
             pnlNotifBadge.Visible = (count != null && Convert.ToInt32(count) > 0);
-        }
-
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
         }
     }
 }

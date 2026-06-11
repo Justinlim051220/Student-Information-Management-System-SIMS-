@@ -1,5 +1,6 @@
 ﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Notification.aspx.cs"
     Inherits="Student_Information_Management_System__SIMS_.Notification" %>
+<%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -634,6 +635,118 @@
                 grid-template-columns:1fr;
             }
         }
+
+        .logout-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.62);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .logout-modal-card {
+            width: 100%;
+            max-width: 400px;
+            background: #ffffff;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28);
+            text-align: center;
+            font-family: var(--font-primary);
+            animation: logoutPop 0.18s ease-out;
+        }
+
+        @keyframes logoutPop {
+            from { transform: translateY(8px) scale(0.98); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .logout-modal-top {
+            padding: 36px 32px 20px;
+        }
+
+        .logout-warning-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            color: #f59e0b;
+            font-size: 56px;
+            line-height: 1;
+        }
+
+        .logout-warning-icon i {
+            color: #f59e0b;
+        }
+
+        .logout-title {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .logout-message {
+            margin: 0;
+            padding: 20px 32px;
+            border-top: 1px solid var(--border-light);
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .logout-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 18px 28px 28px;
+        }
+
+        .logout-btn {
+            min-width: 118px;
+            height: 44px;
+            border-radius: 999px;
+            font-family: var(--font-primary);
+            font-size: 14px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .logout-btn-cancel {
+            border: 2px solid var(--orange-main);
+            background: #ffffff;
+            color: var(--orange-main);
+        }
+
+        .logout-btn-cancel:hover {
+            background: #fff7ed;
+            transform: translateY(-1px);
+        }
+
+        .logout-btn-confirm {
+            border: 2px solid transparent;
+            background: var(--orange-gradient);
+            color: #ffffff !important;
+            box-shadow: var(--shadow-orange);
+        }
+
+        .logout-btn-confirm:hover {
+            transform: translateY(-1px);
+            color: #ffffff !important;
+}
     </style>
 </head>
 
@@ -644,77 +757,7 @@
     <asp:HiddenField ID="hfDeleteTarget" runat="server" />
     <asp:HiddenField ID="hfReadTarget" runat="server" />
 
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <img src="~/Images/Logo_Dashboard.png" runat="server" alt="ONTI SIMS" class="brand-logo" />
-            <div class="brand-text">
-                <div class="brand-name">SIMS</div>
-                <div class="brand-sub">Student Portal</div>
-            </div>
-        </div>
-
-        <nav class="sidebar-nav">
-            <div class="sidebar-section-label">Main</div>
-            <a href="Student_Dashboard.aspx" class="sidebar-link">
-                <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Academic</div>
-            <a href="MyCourses.aspx" class="sidebar-link">
-                <i class="fa-solid fa-book-open nav-icon"></i> My Courses
-            </a>
-            <a href="Attendance.aspx" class="sidebar-link">
-                <i class="fa-solid fa-calendar-check nav-icon"></i> Attendance
-            </a>
-            <a href="Student_Enrollment.aspx" class="sidebar-link">
-                <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
-            </a>
-            <a href="Results.aspx" class="sidebar-link">
-                <i class="fa-solid fa-chart-line nav-icon"></i> Results
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
-            <a href="Student_Payment.aspx" class="sidebar-link">
-                <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-            <a href="Notification.aspx" class="sidebar-link active">
-                <i class="fa-solid fa-bell nav-icon"></i> Notifications
-            </a>
-            <a href="Contacts.aspx" class="sidebar-link">
-                <i class="fa-solid fa-address-book nav-icon"></i> Contacts
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
-            <a href="MyProfile.aspx" class="sidebar-link">
-                <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-user">
-                <div class="user-avatar">
-                    <i class="fa-solid fa-circle-user"></i>
-                </div>
-                <!-- Kept hidden only so existing code-behind references will not break. -->
-                <asp:Image ID="imgSidebarAvatar" runat="server"
-                    ImageUrl="~/ProfilePicture/default-profile.png"
-                    CssClass="topbar-hidden-server-avatar" />
-
-                <div class="user-info">
-                    <div class="user-name">
-                        <asp:Label ID="lblSidebarName" runat="server" Text="Student" />
-                    </div>
-                    <div class="user-role">Student</div>
-                </div>
-            </div>
-
-            <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link" OnClientClick="showLogoutModal(); return false;">
-                <i class="fa-solid fa-right-from-bracket"></i> Log Out
-            </asp:LinkButton>
-        </div>
-    </div>
+    <uc:StudentSidebar ID="StudentSidebar1" runat="server" />
 
     <div class="main-wrapper">
         <div class="topbar">
@@ -883,20 +926,6 @@
     </div>
 
 
-    <div id="logoutModal" class="modal-overlay system-dialog">
-        <div class="modal-box">
-            <div class="modal-head">
-                <div class="logout-warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                <span>Log Out</span>
-            </div>
-            <div class="modal-body">Are you sure you want to log out from the Student Portal?</div>
-            <div class="modal-actions">
-                <button type="button" class="modal-cancel" onclick="hideLogoutModal()">Cancel</button>
-                <asp:LinkButton ID="lbLogoutModalConfirm" runat="server" CssClass="modal-submit" OnClick="lbLogout_Click">Log Out</asp:LinkButton>
-            </div>
-        </div>
-    </div>
-
     <div id="customModalOverlay">
         <div id="customModal">
             <div class="cm-icon-wrap" id="cmIconWrap">
@@ -912,22 +941,36 @@
         </div>
     </div>
 
-    <asp:LinkButton ID="lbLogoutConfirmed" runat="server" Style="display:none;" OnClick="lbLogout_Click" />
 
     <asp:Button ID="btnReadConfirmed" runat="server" Style="display:none;" OnClick="btnReadConfirmed_Click" />
     <asp:Button ID="btnDeleteConfirmed" runat="server" Style="display:none;" OnClick="btnDeleteConfirmed_Click" />
 
     <script>
-        function showLogoutModal() { document.getElementById('logoutModal').classList.add('active'); }
-        function hideLogoutModal() { document.getElementById('logoutModal').classList.remove('active'); }
+        function showLogoutModal() {
+            var modal = document.getElementById('logoutModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function hideLogoutModal() {
+            var modal = document.getElementById('logoutModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function hideLogoutModalOnBackdrop(event) {
+            if (event.target && event.target.id === 'logoutModal') {
+                hideLogoutModal();
+            }
+        }
 
         function iconSvg(type) {
             if (type === 'delete' || type === 'error') {
                 return '<svg viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
             }
+
             if (type === 'warning') {
                 return '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>';
             }
+
             return '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
         }
 
@@ -947,28 +990,28 @@
 
         function showDeleteConfirm(id) {
             document.getElementById('<%= hfDeleteTarget.ClientID %>').value = id;
-            document.getElementById('cmTitle').innerHTML = 'Confirm Delete';
-            document.getElementById('cmBody').innerHTML = 'Are you sure you want to delete this notification?';
-            document.getElementById('cmIcon').innerHTML = iconSvg('delete');
-            document.getElementById('cmCancelBtn').style.display = '';
-            document.getElementById('cmOkBtn').style.display = '';
-            document.getElementById('cmOkBtn').onclick = function () {
-                closeMessageModal();
-                document.getElementById('<%= btnDeleteConfirmed.ClientID %>').click();
-            };
-            document.getElementById('customModalOverlay').classList.add('active');
-        }
+        document.getElementById('cmTitle').innerHTML = 'Confirm Delete';
+        document.getElementById('cmBody').innerHTML = 'Are you sure you want to delete this notification?';
+        document.getElementById('cmIcon').innerHTML = iconSvg('delete');
+        document.getElementById('cmCancelBtn').style.display = '';
+        document.getElementById('cmOkBtn').style.display = '';
+        document.getElementById('cmOkBtn').onclick = function () {
+            closeMessageModal();
+            document.getElementById('<%= btnDeleteConfirmed.ClientID %>').click();
+        };
+        document.getElementById('customModalOverlay').classList.add('active');
+    }
 
-        function showReadConfirm(id) {
-            document.getElementById('<%= hfReadTarget.ClientID %>').value = id;
-            document.getElementById('cmTitle').innerHTML = 'Mark as Read';
-            document.getElementById('cmBody').innerHTML = 'Mark this notification as read?';
-            document.getElementById('cmIcon').innerHTML = iconSvg('success');
-            document.getElementById('cmCancelBtn').style.display = '';
-            document.getElementById('cmOkBtn').style.display = '';
-            document.getElementById('cmOkBtn').onclick = function () {
-                closeMessageModal();
-                document.getElementById('<%= btnReadConfirmed.ClientID %>').click();
+    function showReadConfirm(id) {
+        document.getElementById('<%= hfReadTarget.ClientID %>').value = id;
+        document.getElementById('cmTitle').innerHTML = 'Mark as Read';
+        document.getElementById('cmBody').innerHTML = 'Mark this notification as read?';
+        document.getElementById('cmIcon').innerHTML = iconSvg('success');
+        document.getElementById('cmCancelBtn').style.display = '';
+        document.getElementById('cmOkBtn').style.display = '';
+        document.getElementById('cmOkBtn').onclick = function () {
+            closeMessageModal();
+            document.getElementById('<%= btnReadConfirmed.ClientID %>').click();
             };
             document.getElementById('customModalOverlay').classList.add('active');
         }

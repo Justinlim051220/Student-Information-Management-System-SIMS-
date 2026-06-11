@@ -11,13 +11,11 @@ namespace Student_Information_Management_System__SIMS_.Student
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Assures only authenticated students view this workspace
             SessionHelper.RequireStudent(Session, Response);
 
             if (!IsPostBack)
             {
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
-                LoadStudentMetadata();
                 LoadEnrolledCoursesFilter();
                 LoadEnrolledSessionsFilter();
                 LoadAttendanceRecords();
@@ -44,18 +42,6 @@ namespace Student_Information_Management_System__SIMS_.Student
         private int CurrentUserId
         {
             get { return SessionHelper.GetUserId(Session); }
-        }
-
-        private void LoadStudentMetadata()
-        {
-            string fullName = SessionHelper.GetFullName(Session);
-            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName) ? "Student Account" : fullName;
-
-            // Set avatar initial from full name
-            if (!string.IsNullOrWhiteSpace(fullName))
-            {
-                lblAvatarInitial.Text = fullName.Substring(0, 1).ToUpper();
-            }
         }
 
         private void LoadEnrolledCoursesFilter()
@@ -156,11 +142,7 @@ namespace Student_Information_Management_System__SIMS_.Student
 
             if (result != null && int.TryParse(result.ToString(), out unreadCount))
             {
-                if (unreadCount > 0)
-                {
-                    pnlNotifBadge.Visible = true;
-                    pnlSidebarNotifBadge.Visible = true;
-                }
+                pnlNotifBadge.Visible = unreadCount > 0;
             }
         }
 
@@ -172,12 +154,6 @@ namespace Student_Information_Management_System__SIMS_.Student
         protected void btnSearch_Click(object sender, EventArgs e)
         {
             LoadAttendanceRecords();
-        }
-
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
         }
     }
 }

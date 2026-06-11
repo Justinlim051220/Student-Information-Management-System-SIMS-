@@ -75,10 +75,6 @@ namespace Student_Information_Management_System__SIMS_
                 ddlGender.SelectedValue = gender;
 
             lblFullName.Text = txtFirstName.Text + " " + txtLastName.Text;
-            lblSidebarName.Text = lblFullName.Text;
-            lblAvatarInitial.Text = !string.IsNullOrWhiteSpace(lblFullName.Text)
-                ? lblFullName.Text.Substring(0, 1).ToUpper()
-                : "S";
 
             string picture = row["ProfilePicture"].ToString();
 
@@ -163,6 +159,7 @@ namespace Student_Information_Management_System__SIMS_
             });
 
             LoadProfile();
+            StudentSidebar1.RefreshSidebar();
 
             ShowMessage(
                 "Success",
@@ -242,12 +239,6 @@ namespace Student_Information_Management_System__SIMS_
                 new[] { new SqlParameter("@Uid", CurrentUserId) });
 
             pnlNotifBadge.Visible = (count != null && Convert.ToInt32(count) > 0);
-        }
-
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
         }
     }
 }
