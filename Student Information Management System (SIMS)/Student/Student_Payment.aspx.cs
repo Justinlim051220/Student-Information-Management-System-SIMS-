@@ -1,5 +1,5 @@
-﻿using System.Configuration;
-using System;
+﻿using System;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
@@ -14,8 +14,7 @@ namespace Student_Information_Management_System__SIMS_
     public partial class Student_Payment : Page
     {
         private readonly string connectionString = ConfigurationManager.ConnectionStrings["SIMSConnection"].ConnectionString;
-
-        private const int MaxReceiptBytes = 5 * 1024 * 1024; // 5 MB
+        private const int MaxReceiptBytes = 5 * 1024 * 1024;
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -25,11 +24,8 @@ namespace Student_Information_Management_System__SIMS_
             {
                 string fullName = SessionHelper.GetFullName(Session);
                 string studentId = SessionHelper.GetProfileId(Session);
-                string initial = !string.IsNullOrWhiteSpace(fullName) ? fullName.Trim()[0].ToString().ToUpper() : "S";
 
-                lblSidebarName.Text = fullName;
-                lblAvatarInitial.Text = initial;
-                lblStudentName.Text = fullName;
+                lblStudentName.Text = string.IsNullOrWhiteSpace(fullName) ? "Student" : fullName;
                 lblStudentId.Text = studentId;
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
 
@@ -66,15 +62,12 @@ namespace Student_Information_Management_System__SIMS_
                 ORDER BY Session DESC";
 
             DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[] { new SqlParameter("@StudentId", studentId) });
+
             foreach (DataRow row in dt.Rows)
-            {
                 ddlSession.Items.Add(new ListItem(row["Session"].ToString(), row["Session"].ToString()));
-            }
 
             if (!string.IsNullOrWhiteSpace(selected) && ddlSession.Items.FindByValue(selected) != null)
-            {
                 ddlSession.SelectedValue = selected;
-            }
         }
 
         private void LoadStats(string studentId)
@@ -92,8 +85,13 @@ namespace Student_Information_Management_System__SIMS_
             string countSql = "SELECT COUNT(*) " + baseWhere;
             string amountSql = "SELECT ISNULL(SUM(f.Amount), 0) " + baseWhere;
 
-            lblPendingCount.Text = Convert.ToInt32(DatabaseHelper.ExecuteScalar(countSql, new[] { new SqlParameter("@StudentId", studentId) })).ToString();
-            lblPendingAmount.Text = Convert.ToDecimal(DatabaseHelper.ExecuteScalar(amountSql, new[] { new SqlParameter("@StudentId", studentId) })).ToString("N2");
+            lblPendingCount.Text = Convert.ToInt32(DatabaseHelper.ExecuteScalar(
+                countSql,
+                new[] { new SqlParameter("@StudentId", studentId) })).ToString();
+
+            lblPendingAmount.Text = Convert.ToDecimal(DatabaseHelper.ExecuteScalar(
+                amountSql,
+                new[] { new SqlParameter("@StudentId", studentId) })).ToString("N2");
         }
 
         private void LoadPayments(string studentId)
@@ -184,23 +182,7 @@ namespace Student_Information_Management_System__SIMS_
             string studentId = SessionHelper.GetProfileId(Session);
 
             if (string.IsNullOrWhiteSpace(studentId))
-            {
                 studentId = GetCurrentStudentId();
-            }
-
-            LoadSessionFilter(studentId);
-            LoadStats(studentId);
-            LoadPayments(studentId);
-        }
-
-        private void BindPayments()
-        {
-            string studentId = SessionHelper.GetProfileId(Session);
-
-            if (string.IsNullOrWhiteSpace(studentId))
-            {
-                studentId = GetCurrentStudentId();
-            }
 
             LoadSessionFilter(studentId);
             LoadStats(studentId);
@@ -210,8 +192,12 @@ namespace Student_Information_Management_System__SIMS_
         protected void gvPayments_RowCommand(object sender, GridViewCommandEventArgs e)
         {
             int rowIndex;
-            if (!int.TryParse(Convert.ToString(e.CommandArgument), out rowIndex)) return;
-            if (rowIndex < 0 || rowIndex >= gvPayments.Rows.Count) return;
+
+            if (!int.TryParse(Convert.ToString(e.CommandArgument), out rowIndex))
+                return;
+
+            if (rowIndex < 0 || rowIndex >= gvPayments.Rows.Count)
+                return;
 
             int feeId = Convert.ToInt32(gvPayments.DataKeys[rowIndex].Values["FeeId"]);
 
@@ -229,7 +215,8 @@ namespace Student_Information_Management_System__SIMS_
 
         protected void gvPayments_RowDataBound(object sender, GridViewRowEventArgs e)
         {
-            if (e.Row.RowType != DataControlRowType.DataRow) return;
+            if (e.Row.RowType != DataControlRowType.DataRow)
+                return;
 
             string status = Convert.ToString(DataBinder.Eval(e.Row.DataItem, "DisplayStatus"));
             string receiptPath = Convert.ToString(DataBinder.Eval(e.Row.DataItem, "PaymentReceiptPath"));
@@ -248,9 +235,7 @@ namespace Student_Information_Management_System__SIMS_
             }
 
             if (litReceipt != null)
-            {
                 litReceipt.Text = BuildReceiptLink(receiptPath);
-            }
 
             bool hasReceipt = !string.IsNullOrWhiteSpace(receiptPath);
             bool canUpload = !hasReceipt && (status == "Pending" || status == "Rejected");
@@ -286,13 +271,17 @@ namespace Student_Information_Management_System__SIMS_
 
         private Control FindControlRecursive(Control root, string id)
         {
-            if (root == null) return null;
-            if (root.ID == id) return root;
+            if (root == null)
+                return null;
+
+            if (root.ID == id)
+                return root;
 
             foreach (Control child in root.Controls)
             {
                 Control found = FindControlRecursive(child, id);
-                if (found != null) return found;
+                if (found != null)
+                    return found;
             }
 
             return null;
@@ -340,21 +329,22 @@ namespace Student_Information_Management_System__SIMS_
             }
 
             DataRow row = dt.Rows[0];
+
             txtDetailPaymentId.Text = row["PaymentId"].ToString();
             txtDetailSession.Text = row["Session"].ToString();
             txtDetailStatus.Text = row["DisplayStatus"].ToString();
             txtDetailAmount.Text = "RM " + Convert.ToDecimal(row["DisplayAmount"]).ToString("N2");
+
             int enrollmentId = row["EnrollmentId"] == DBNull.Value ? 0 : Convert.ToInt32(row["EnrollmentId"]);
             litDetailCourses.Text = GetCoursePaymentHtml(enrollmentId, row["DisplayAmount"]);
+
             pnlDetail.Visible = true;
         }
 
         private string GetCoursePaymentHtml(int enrollmentId, object amountObj)
         {
             if (enrollmentId <= 0)
-            {
                 return "<span class='receipt-empty'>Legacy payment record. Course was not linked to an enrollment ID.</span>";
-            }
 
             string sql = @"
                 SELECT c.CourseCode, c.CourseName
@@ -368,15 +358,18 @@ namespace Student_Information_Management_System__SIMS_
             });
 
             if (dt.Rows.Count == 0)
-            {
                 return "<span class='receipt-empty'>Enrollment course not found for this payment.</span>";
-            }
 
             decimal amount = Convert.ToDecimal(amountObj);
             DataRow r = dt.Rows[0];
-            return "<div class='payment-course-list'><div class='payment-course-line'><span class='payment-course-code'>" + HttpUtility.HtmlEncode(r["CourseCode"].ToString()) + "</span>" +
-                   "<span class='payment-course-name'>" + HttpUtility.HtmlEncode(r["CourseName"].ToString()) + "</span>" +
-                   "<span class='payment-course-fee'>RM " + amount.ToString("N2") + "</span></div></div>";
+
+            return "<div class='payment-course-list'><div class='payment-course-line'><span class='payment-course-code'>"
+                + HttpUtility.HtmlEncode(r["CourseCode"].ToString())
+                + "</span><span class='payment-course-name'>"
+                + HttpUtility.HtmlEncode(r["CourseName"].ToString())
+                + "</span><span class='payment-course-fee'>RM "
+                + amount.ToString("N2")
+                + "</span></div></div>";
         }
 
         private void UploadReceipt(int feeId, FileUpload fu)
@@ -390,6 +383,7 @@ namespace Student_Information_Management_System__SIMS_
             }
 
             DataTable payment = GetStudentPayment(feeId, studentId);
+
             if (payment.Rows.Count == 0)
             {
                 ShowMessage("Invalid payment selected.", "error");
@@ -414,7 +408,10 @@ namespace Student_Information_Management_System__SIMS_
                 return;
             }
 
-            string enrollmentStatus = paymentRow.Table.Columns.Contains("EnrollmentStatus") ? paymentRow["EnrollmentStatus"].ToString() : string.Empty;
+            string enrollmentStatus = paymentRow.Table.Columns.Contains("EnrollmentStatus")
+                ? paymentRow["EnrollmentStatus"].ToString()
+                : string.Empty;
+
             if ((enrollmentStatus == "Drop Pending" || enrollmentStatus == "Dropped") && status == "Pending")
             {
                 ShowMessage("This enrollment is not active. No payment action is required.", "error");
@@ -428,6 +425,7 @@ namespace Student_Information_Management_System__SIMS_
             }
 
             string ext = Path.GetExtension(fu.FileName).ToLowerInvariant();
+
             if (ext != ".pdf" && ext != ".jpg" && ext != ".jpeg" && ext != ".png")
             {
                 ShowMessage("Only PDF, JPG, JPEG, or PNG receipt files are allowed.", "error");
@@ -436,7 +434,9 @@ namespace Student_Information_Management_System__SIMS_
 
             string folderRelative = "~/Student/PaymentReceipt/" + MakeSafeFolderName("PAY_" + feeId.ToString()) + "/";
             string folderPhysical = Server.MapPath(folderRelative);
-            if (!Directory.Exists(folderPhysical)) Directory.CreateDirectory(folderPhysical);
+
+            if (!Directory.Exists(folderPhysical))
+                Directory.CreateDirectory(folderPhysical);
 
             string safeFileName = "receipt_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ext;
             string physicalPath = Path.Combine(folderPhysical, safeFileName);
@@ -471,6 +471,7 @@ namespace Student_Information_Management_System__SIMS_
             LoadSessionFilter(studentId);
             LoadStats(studentId);
             LoadPayments(studentId);
+
             ShowMessage("Receipt uploaded successfully. Please wait for admin verification.", "success");
         }
 
@@ -487,6 +488,7 @@ namespace Student_Information_Management_System__SIMS_
                 LEFT JOIN Enrollment e ON e.EnrollmentId = f.EnrollmentId
                 WHERE f.FeeId = @FeeId
                   AND f.StudentId = @StudentId";
+
             return DatabaseHelper.ExecuteQuery(sql, new[]
             {
                 new SqlParameter("@FeeId", feeId),
@@ -498,7 +500,7 @@ namespace Student_Information_Management_System__SIMS_
         {
             string sql = @"
                 INSERT INTO Notifications (UserId, Title, Message, IsRead, CreatedAt)
-                SELECT 
+                SELECT
                     h.UserId,
                     'New Payment Receipt Uploaded',
                     'A student has uploaded a payment receipt for admin verification.' + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10) +
@@ -529,33 +531,39 @@ namespace Student_Information_Management_System__SIMS_
         private string MakeSafeFolderName(string value)
         {
             foreach (char c in Path.GetInvalidFileNameChars())
-            {
                 value = value.Replace(c, '_');
-            }
+
             return value.Replace(" ", "_").Replace("/", "_").Replace("\\", "_");
         }
 
         private string BuildReceiptLink(string receiptPath)
         {
             if (string.IsNullOrWhiteSpace(receiptPath))
-            {
                 return "<span class='receipt-empty'>No receipt uploaded</span>";
-            }
 
             string safeUrl = ResolveUrl(receiptPath);
-            return "<a class='receipt-link' href='" + HttpUtility.HtmlAttributeEncode(safeUrl) + "' target='_blank'><i class='fa-solid fa-eye'></i> View Receipt</a>";
+
+            return "<a class='receipt-link' href='"
+                + HttpUtility.HtmlAttributeEncode(safeUrl)
+                + "' target='_blank'><i class='fa-solid fa-eye'></i> View Receipt</a>";
         }
 
         private string GetStatusCss(string status)
         {
             switch (status)
             {
-                case "Paid": return "status-paid";
-                case "Pending": return "status-pending";
-                case "Rejected": return "status-rejected";
-                case "Overdue": return "status-overdue";
-                case "Not Active": return "status-not-active";
-                default: return "status-pending";
+                case "Paid":
+                    return "status-paid";
+                case "Pending":
+                    return "status-pending";
+                case "Rejected":
+                    return "status-rejected";
+                case "Overdue":
+                    return "status-overdue";
+                case "Not Active":
+                    return "status-not-active";
+                default:
+                    return "status-pending";
             }
         }
 
@@ -566,13 +574,12 @@ namespace Student_Information_Management_System__SIMS_
 
         private void ShowMessage(string message, string type)
         {
-            // Do not show the old top alert text above the page.
-            // Only show the clean modal dialog.
             pnlMessage.Visible = false;
             lblMessage.Text = string.Empty;
 
             string safeMessage = HttpUtility.JavaScriptStringEncode(message);
             string safeType = HttpUtility.JavaScriptStringEncode(type);
+
             ClientScript.RegisterStartupScript(
                 GetType(),
                 "systemDialog" + Guid.NewGuid().ToString("N"),
@@ -580,84 +587,18 @@ namespace Student_Information_Management_System__SIMS_
                 true);
         }
 
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
-        }
-
-        private void BindSessionFilter()
-        {
-            if (ddlSession == null) return;
-
-            string current = ddlSession.SelectedValue;
-
-            ddlSession.Items.Clear();
-            ddlSession.Items.Add(new ListItem("All Sessions", ""));
-
-            string studentId = GetCurrentStudentId();
-
-            using (SqlConnection con = new SqlConnection(connectionString))
-            {
-                string sql = @"
-                    SELECT DISTINCT Session
-                    FROM Fees
-                    WHERE StudentId = @StudentId
-                    ORDER BY Session";
-
-                using (SqlCommand cmd = new SqlCommand(sql, con))
-                {
-                    cmd.Parameters.AddWithValue("@StudentId", studentId);
-
-                    con.Open();
-
-                    using (SqlDataReader dr = cmd.ExecuteReader())
-                    {
-                        while (dr.Read())
-                        {
-                            string session = Convert.ToString(dr["Session"]);
-                            if (!string.IsNullOrWhiteSpace(session))
-                            {
-                                ddlSession.Items.Add(new ListItem(session, session));
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (!string.IsNullOrEmpty(current) && ddlSession.Items.FindByValue(current) != null)
-            {
-                ddlSession.SelectedValue = current;
-            }
-        }
-
-
         private string GetCurrentStudentId()
         {
-            // Student login uses SessionHelper.SetLogin(), which stores the student ID
-            // in SIMS_ProfileId. The old Session["StudentId"] / Session["UserId"] keys
-            // are not created during login, so using only those keys caused the Payment
-            // page to redirect away immediately after clicking the sidebar link.
             string studentId = SessionHelper.GetProfileId(Session);
 
             if (!string.IsNullOrWhiteSpace(studentId))
                 return studentId;
 
-            // Backward-compatible fallback, only for older pages that may still set this key.
             if (Session["StudentId"] != null && !string.IsNullOrWhiteSpace(Session["StudentId"].ToString()))
                 return Session["StudentId"].ToString();
 
             Response.Redirect("~/Login.aspx", true);
             return string.Empty;
         }
-
-
-        protected void btnConfirmLogout_Click(object sender, EventArgs e)
-        {
-            Session.Clear();
-            Session.Abandon();
-            Response.Redirect("~/Login.aspx");
-        }
-
     }
 }

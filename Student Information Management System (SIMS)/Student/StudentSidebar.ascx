@@ -1,6 +1,25 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="StudentSidebar.ascx.cs" Inherits="Student_Information_Management_System__SIMS_.StudentSidebar" %>
 
 <style>
+    .sidebar-user {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+    }
+
+    .user-info {
+        padding-top: 4px;
+    }
+
+    .user-name {
+        margin-bottom: 4px;
+    }
+
+    .user-role {
+        margin-top: 2px;
+    }
+
     .sidebar-photo-avatar {
         width: 42px;
         height: 42px;
