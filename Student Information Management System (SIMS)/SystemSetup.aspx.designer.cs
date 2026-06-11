@@ -11,7 +11,7 @@ namespace Student_Information_Management_System__SIMS_
 {
 
 
-    public partial class SeedAdmin
+    public partial class SystemSetup
     {
 
         /// <summary>
@@ -22,6 +22,69 @@ namespace Student_Information_Management_System__SIMS_
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
+
+        /// <summary>
+        /// lblModeTitle control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblModeTitle;
+
+        /// <summary>
+        /// lblModeSubtitle control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblModeSubtitle;
+
+        /// <summary>
+        /// pnlVerifyAdmin control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlVerifyAdmin;
+
+        /// <summary>
+        /// txtVerifyEmail control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtVerifyEmail;
+
+        /// <summary>
+        /// txtVerifyPassword control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtVerifyPassword;
+
+        /// <summary>
+        /// btnVerifyAdmin control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LinkButton btnVerifyAdmin;
+
+        /// <summary>
+        /// pnlSetupForm control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlSetupForm;
 
         /// <summary>
         /// txtFirst control.
@@ -66,7 +129,16 @@ namespace Student_Information_Management_System__SIMS_
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnSeed;
+        protected global::System.Web.UI.WebControls.LinkButton btnSeed;
+
+        /// <summary>
+        /// pnlLocked control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlLocked;
 
         /// <summary>
         /// pnlSuccess control.

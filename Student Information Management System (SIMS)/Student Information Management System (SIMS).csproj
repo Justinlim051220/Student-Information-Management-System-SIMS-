@@ -93,6 +93,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Admin\Admin_CreateAdmin.aspx.cs">
+      <DependentUpon>Admin_CreateAdmin.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\Admin_CreateAdmin.aspx.designer.cs">
+      <DependentUpon>Admin_CreateAdmin.aspx</DependentUpon>
+    </Compile>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Lecturer\AttendanceReport.aspx.cs">
       <DependentUpon>AttendanceReport.aspx</DependentUpon>
@@ -171,6 +178,13 @@
     <Compile Include="Student\StudentSidebar.ascx.designer.cs">
       <DependentUpon>StudentSidebar.ascx</DependentUpon>
     </Compile>
+    <Compile Include="SystemSetup.aspx.cs">
+      <DependentUpon>SystemSetup.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="SystemSetup.aspx.designer.cs">
+      <DependentUpon>SystemSetup.aspx</DependentUpon>
+    </Compile>
     <Compile Include="ViewSwitcher.ascx.cs">
       <DependentUpon>ViewSwitcher.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -180,6 +194,7 @@
     </Compile>
     <Content Include="About.aspx" />
     <Content Include="Admin\Admin_Announcement.aspx" />
+    <Content Include="Admin\Admin_CreateAdmin.aspx" />
     <Content Include="Admin\Admin_enrolment.aspx" />
     <Content Include="Admin\Admin_Notification.aspx" />
     <Content Include="Admin\Admin_Profile.aspx" />
@@ -277,6 +292,7 @@
     <Content Include="Student\Student_Enrollment.aspx" />
     <Content Include="Student\Student_Payment.aspx" />
     <Content Include="Styles\SIMS.css" />
+    <Content Include="SystemSetup.aspx" />
     <Content Include="ViewSwitcher.ascx" />
     <Content Include="Web.config" />
     <Content Include="Bundle.config" />
