@@ -1,5 +1,5 @@
 ﻿﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Attendance.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Attendance" %>
-
+<%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 <!DOCTYPE html>
 <html lang="en">
 <head runat="server">
@@ -243,120 +243,6 @@
             margin-top: 2px;
         }
 
-        /* ===== Standard Student logout dialog - same as Dashboard ===== */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(30,30,40,.60);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            padding: 18px;
-        }
-
-        .system-dialog .modal-box {
-            width: 100%;
-            max-width: 400px;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 12px 40px rgba(0,0,0,.28);
-            text-align: center;
-            overflow: hidden;
-            animation: studentModalPop .18s ease-out;
-        }
-
-        @keyframes studentModalPop {
-            from { opacity: 0; transform: translateY(10px) scale(.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .system-dialog .modal-head {
-            background: #fff;
-            color: #1a1a2e;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            border-bottom: 1px solid #ececec;
-            padding: 36px 32px 18px;
-            font-size: 1.2rem;
-            font-weight: 800;
-            gap: 14px;
-        }
-
-        .logout-warning-icon,
-        .prompt-modal .cm-icon-wrap.logout-warning-icon {
-            width: 72px !important;
-            height: 72px !important;
-            margin: 0 auto 16px !important;
-            padding: 0 !important;
-            border: 0 !important;
-            border-radius: 0 !important;
-            background: transparent !important;
-            color: #f59e0b !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            line-height: 1 !important;
-            box-shadow: none !important;
-            font-family: inherit !important;
-        }
-
-        .logout-warning-icon i,
-        .prompt-modal .cm-icon-wrap.logout-warning-icon i {
-            color: #f59e0b !important;
-            font-size: 56px !important;
-            line-height: 1 !important;
-            display: block !important;
-        }
-
-        .system-dialog .modal-body {
-            padding: 18px 32px 28px;
-            color: #555;
-            font-size: .97rem;
-            line-height: 1.65;
-        }
-
-        .system-dialog .modal-actions {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            padding: 0 32px 28px;
-        }
-
-        .system-dialog .modal-cancel,
-        .system-dialog .modal-submit {
-            min-width: 110px;
-            padding: 10px 32px;
-            border-radius: 50px;
-            font-size: .95rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all .18s ease;
-            box-sizing: border-box;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .system-dialog .modal-cancel {
-            background: transparent;
-            border: 2px solid #e8a838;
-            color: #e8a838;
-        }
-
-        .system-dialog .modal-submit {
-            background: #e8a838;
-            border: 2px solid #e8a838;
-            color: #fff;
-            box-shadow: 0 8px 18px rgba(232,168,56,.22);
-        }
-
-        .system-dialog .modal-cancel:hover { background: #fff8e1; }
-        .system-dialog .modal-submit:hover { background: #d99a2e; border-color: #d99a2e; }
 
     </style>
 </head>
@@ -364,81 +250,7 @@
 <body>
 <form id="form1" runat="server">
 
-    <div class="sidebar">
-        <div class="sidebar-brand">
-            <img src="~/Images/Logo_Dashboard.png" runat="server" alt="ONTI SIMS" class="brand-logo" />
-            <div class="brand-text">
-                <div class="brand-name">SIMS</div>
-                <div class="brand-sub">Student Portal</div>
-            </div>
-        </div>
-
-        <nav class="sidebar-nav">
-            <div class="sidebar-section-label">Main</div>
-
-            <asp:HyperLink ID="lnkDashboard" runat="server" NavigateUrl="~/Student/Student_Dashboard.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
-            </asp:HyperLink>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Academic</div>
-
-            <asp:HyperLink ID="lnkMyCourses" runat="server" NavigateUrl="~/Student/MyCourses.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-book-open nav-icon"></i> My Courses
-            </asp:HyperLink>
-
-            <asp:HyperLink ID="lnkAttendance" runat="server" NavigateUrl="~/Student/Attendance.aspx" CssClass="sidebar-link active">
-                <i class="fa-solid fa-calendar-check nav-icon"></i> Attendance
-            </asp:HyperLink>
-
-            <asp:HyperLink ID="lnkEnrollment" runat="server" NavigateUrl="~/Student/Student_Enrollment.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
-            </asp:HyperLink>
-
-            <asp:HyperLink ID="lnkResults" runat="server" NavigateUrl="~/Student/Results.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-chart-line nav-icon"></i> Results
-            </asp:HyperLink>
-<div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
-
-            <asp:HyperLink ID="lnkPayment" runat="server" NavigateUrl="~/Student/Student_Payment.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
-            </asp:HyperLink>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-
-            <asp:HyperLink ID="lnkNotifications" runat="server" NavigateUrl="~/Student/Notification.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-bell nav-icon"></i> Notifications
-                <asp:Panel ID="pnlSidebarNotifBadge" runat="server" CssClass="badge-dot" Visible="false" style="margin-left:auto;" />
-            </asp:HyperLink>
-
-            <asp:HyperLink ID="lnkContacts" runat="server" NavigateUrl="~/Student/Contacts.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-address-book nav-icon"></i> Contacts
-            </asp:HyperLink>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
-
-            <asp:HyperLink ID="lnkProfile" runat="server" NavigateUrl="~/Student/MyProfile.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
-            </asp:HyperLink>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-user">
-                <div class="user-avatar" style="width: 42px; height: 42px; border-radius: 50%; background: var(--orange-gradient); display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: 800;">
-                    <asp:Label ID="lblAvatarInitial" runat="server" Text="S" />
-                </div>
-                <div class="user-info">
-                    <div class="user-name">
-                        <asp:Label ID="lblSidebarName" runat="server" Text="Student" />
-                    </div>
-                    <div class="user-role">Student</div>
-                </div>
-            </div>
-
-            <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link" OnClientClick="showLogoutModal(); return false;">
-                <i class="fa-solid fa-right-from-bracket"></i> Log Out
-            </asp:LinkButton>
-        </div>
-    </div>
+ <uc:StudentSidebar ID="StudentSidebar1" runat="server" />
 
     <div class="main-wrapper">
         <div class="topbar">
@@ -564,27 +376,6 @@
     </div>
 
 
-    <!-- ================================================================
-         LOGOUT MODAL - same UI as Student Dashboard
-         ================================================================ -->
-    <div id="logoutModal" class="modal-overlay system-dialog">
-        <div class="modal-box">
-            <div class="modal-head">
-                <div class="logout-warning-icon">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                <span>Log Out</span>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to log out?
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="modal-cancel" onclick="hideLogoutModal();">Cancel</button>
-                <a href="../Login.aspx" class="modal-submit">Log Out</a>
-            </div>
-        </div>
-    </div>
-
     <!-- Custom Alert Modal Structure -->
     <div id="customModalOverlay">
         <div id="customModal">
@@ -601,16 +392,8 @@
             </div>
         </div>
     </div>
-
+    
     <script>
-
-        function showLogoutModal() {
-            document.getElementById('logoutModal').style.display = 'flex';
-        }
-
-        function hideLogoutModal() {
-            document.getElementById('logoutModal').style.display = 'none';
-        }
 
         var SVG_TICK =
             '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">' +

@@ -11,61 +11,43 @@ namespace Student_Information_Management_System__SIMS_
 {
 
 
-    public partial class Student_Contacts
+    public partial class StudentSidebar
     {
 
         /// <summary>
-        /// form1 control.
+        /// imgSidebarAvatar control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlForm form1;
+        protected global::System.Web.UI.WebControls.Image imgSidebarAvatar;
 
         /// <summary>
-        /// StudentSidebar1 control.
+        /// lblSidebarName control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::Student_Information_Management_System__SIMS_.StudentSidebar StudentSidebar1;
+        protected global::System.Web.UI.WebControls.Label lblSidebarName;
 
         /// <summary>
-        /// lblDate control.
+        /// lbLogout control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblDate;
+        protected global::System.Web.UI.WebControls.LinkButton lbLogout;
 
         /// <summary>
-        /// pnlNotifBadge control.
+        /// btnConfirmLogout control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlNotifBadge;
-
-        /// <summary>
-        /// pnlEmpty control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlEmpty;
-
-        /// <summary>
-        /// rptLecturerContacts control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Repeater rptLecturerContacts;
+        protected global::System.Web.UI.WebControls.LinkButton btnConfirmLogout;
     }
 }
