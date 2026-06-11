@@ -1,5 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Student_Enrollment.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student_Enrollment" %>
-<%@ Register Src="StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
+<%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 <!DOCTYPE html>
 <html lang="en">
 <head runat="server">
@@ -392,6 +392,7 @@
   </div>
 </div>
 
+
 <script type="text/javascript">
     function openDropModal(enrollmentId, courseId, session, courseText) {
         document.getElementById('<%= hfDropEnrollmentId.ClientID %>').value = enrollmentId;
@@ -472,14 +473,6 @@
 
     function goPaymentPage() {
         window.location.href = 'Student_Payment.aspx';
-    }
-
-    function showLogoutModal() {
-        document.getElementById('logoutModalOverlay').style.display = 'flex';
-    }
-
-    function closeLogoutModal() {
-        document.getElementById('logoutModalOverlay').style.display = 'none';
     }
 </script>
 

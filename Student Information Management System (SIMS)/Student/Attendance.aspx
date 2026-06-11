@@ -10,19 +10,50 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
     <style>
+        html,
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        #form1 {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
         .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 260px;
-            height: 100vh;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 260px !important;
+            height: 100vh !important;
             overflow-y: auto;
             overflow-x: hidden;
             scrollbar-width: thin;
+            z-index: 3000 !important;
         }
 
         .main-wrapper {
-            margin-left: 260px;
+            position: relative !important;
+            z-index: 1 !important;
+            margin-left: 260px !important;
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+            width: calc(100% - 260px) !important;
+            min-height: 100vh;
+        }
+
+        .main-wrapper > .topbar {
+            margin-top: 0 !important;
+            top: 0 !important;
+        }
+
+        .content-area {
+            padding: 28px 34px 40px;
         }
 
         .filter-bar {
@@ -225,24 +256,6 @@
                 grid-template-columns: 1fr;
             }
         }
-
-        .sidebar-user {
-            margin-bottom: 18px;
-            align-items: flex-start;
-        }
-
-        .user-info {
-            padding-top: 4px;
-        }
-
-        .user-name {
-            margin-bottom: 4px;
-        }
-
-        .user-role {
-            margin-top: 2px;
-        }
-
 
     </style>
 </head>
