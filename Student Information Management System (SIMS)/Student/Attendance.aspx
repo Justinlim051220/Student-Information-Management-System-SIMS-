@@ -1,4 +1,4 @@
-﻿﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Attendance.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Attendance" %>
+﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Attendance.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Attendance" %>
 <%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,52 +12,23 @@
     <style>
         html,
         body {
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        body {
-            overflow-x: hidden;
-        }
-
-        #form1 {
-            margin: 0 !important;
-            padding: 0 !important;
+            margin: 0;
+            padding: 0;
         }
 
         .sidebar {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 260px !important;
-            height: 100vh !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100vh;
             overflow-y: auto;
             overflow-x: hidden;
             scrollbar-width: thin;
-            z-index: 3000 !important;
         }
 
         .main-wrapper {
-            position: relative !important;
-            z-index: 1 !important;
-            margin-left: 260px !important;
-            margin-top: 0 !important;
-            padding-top: 0 !important;
-            width: calc(100% - 260px) !important;
-            min-height: 100vh;
-        }
-
-        .main-wrapper > .topbar {
-            margin-top: 0 !important;
-            top: 0 !important;
-        }
-
-        .content-area {
-            padding: 28px 34px 40px;
-        }
-        .content-wrapper
-        {
-            padding-top:0;
+            margin-left: 260px;
         }
 
         .filter-bar {
@@ -96,7 +67,6 @@
             border-bottom: 1px solid var(--border-light);
             font-size: 14px;
         }
-
         /* Clean Status Badges instead of checkboxes */
         .status-badge {
             display: inline-flex;
@@ -107,17 +77,6 @@
             font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
-        }
-        .page-header{
-            background:#ffffff;
-            padding:20px 32px;
-            margin-bottom:24px;
-
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-
-            border-bottom:1px solid #edf0f6;
         }
 
         .status-present {
