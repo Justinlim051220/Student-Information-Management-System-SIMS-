@@ -26,9 +26,6 @@ namespace Student_Information_Management_System__SIMS_
                 string fullName = SessionHelper.GetFullName(Session);
                 string studentId = SessionHelper.GetProfileId(Session);
                 string initial = !string.IsNullOrWhiteSpace(fullName) ? fullName.Trim()[0].ToString().ToUpper() : "S";
-
-                lblSidebarName.Text = fullName;
-                lblAvatarInitial.Text = initial;
                 lblStudentName.Text = fullName;
                 lblStudentId.Text = studentId;
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
@@ -579,13 +576,6 @@ namespace Student_Information_Management_System__SIMS_
                 "setTimeout(function(){ showSystemDialog('" + safeMessage + "','" + safeType + "'); }, 120);",
                 true);
         }
-
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
-        }
-
         private void BindSessionFilter()
         {
             if (ddlSession == null) return;
@@ -650,14 +640,5 @@ namespace Student_Information_Management_System__SIMS_
             Response.Redirect("~/Login.aspx", true);
             return string.Empty;
         }
-
-
-        protected void btnConfirmLogout_Click(object sender, EventArgs e)
-        {
-            Session.Clear();
-            Session.Abandon();
-            Response.Redirect("~/Login.aspx");
-        }
-
     }
 }

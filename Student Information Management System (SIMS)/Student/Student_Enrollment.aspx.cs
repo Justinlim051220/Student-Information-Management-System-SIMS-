@@ -20,8 +20,7 @@ namespace Student_Information_Management_System__SIMS_
                 string studentId = SessionHelper.GetProfileId(Session);
                 string initial = fullName.Length > 0 ? fullName[0].ToString().ToUpper() : "S";
 
-                lblSidebarName.Text = fullName;
-                lblAvatarInitial.Text = initial;
+                // Sidebar is now handled by StudentSidebar.ascx.
                 lblProfileInitial.Text = initial;
                 lblStudentName.Text = fullName;
                 lblStudentId.Text = studentId;
@@ -751,10 +750,5 @@ namespace Student_Information_Management_System__SIMS_
                 true);
         }
 
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
-        }
     }
 }
