@@ -24,6 +24,10 @@
         .main-wrapper {
             margin-left: 260px;
         }
+        .content-wrapper
+        {
+            padding-top:0;
+        }
 
         .filter-bar {
             display: grid;
@@ -72,6 +76,17 @@
             font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
+        }
+        .page-header{
+            background:#ffffff;
+            padding:20px 32px;
+            margin-bottom:24px;
+
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+
+            border-bottom:1px solid #edf0f6;
         }
 
         .status-present {
