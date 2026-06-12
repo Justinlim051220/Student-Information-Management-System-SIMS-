@@ -1,5 +1,5 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Attendance.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Attendance" %>
-
+﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Attendance.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Attendance" %>
+<%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 <!DOCTYPE html>
 <html lang="en">
 <head runat="server">
@@ -10,6 +10,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
     <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
         .sidebar {
             position: fixed;
             top: 0;
@@ -61,7 +67,6 @@
             border-bottom: 1px solid var(--border-light);
             font-size: 14px;
         }
-
         /* Clean Status Badges instead of checkboxes */
         .status-badge {
             display: inline-flex;
@@ -226,100 +231,13 @@
             }
         }
 
-        .sidebar-user {
-            margin-bottom: 18px;
-            align-items: flex-start;
-        }
-
-        .user-info {
-            padding-top: 4px;
-        }
-
-        .user-name {
-            margin-bottom: 4px;
-        }
-
-        .user-role {
-            margin-top: 2px;
-        }
     </style>
 </head>
 
 <body>
 <form id="form1" runat="server">
 
-    <div class="sidebar">
-        <div class="sidebar-brand">
-            <img src="~/Images/Logo_Dashboard.png" runat="server" alt="ONTI SIMS" class="brand-logo" />
-            <div class="brand-text">
-                <div class="brand-name">SIMS</div>
-                <div class="brand-sub">Student Portal</div>
-            </div>
-        </div>
-
-        <nav class="sidebar-nav">
-            <div class="sidebar-section-label">Main</div>
-
-            <asp:HyperLink ID="lnkDashboard" runat="server" NavigateUrl="~/Student/Student_Dashboard.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
-            </asp:HyperLink>
-
-            <asp:HyperLink ID="lnkMyCourses" runat="server" NavigateUrl="~/Student/MyCourses.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-book-open nav-icon"></i> My Courses
-            </asp:HyperLink>
-
-            <asp:HyperLink ID="lnkAttendance" runat="server" NavigateUrl="~/Student/Attendance.aspx" CssClass="sidebar-link active">
-                <i class="fa-solid fa-calendar-check nav-icon"></i> Attendance
-            </asp:HyperLink>
-
-            <asp:HyperLink ID="lnkEnrollment" runat="server" NavigateUrl="~/Student/Student_Enrollment.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
-            </asp:HyperLink>
-
-            <asp:HyperLink ID="lnkResults" runat="server" NavigateUrl="~/Student/Results.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-chart-line nav-icon"></i> Results
-            </asp:HyperLink>
-
-            <asp:HyperLink ID="lnkAcademicHistory" runat="server" NavigateUrl="~/Student/AcademicHistory.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History
-            </asp:HyperLink>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-
-            <asp:HyperLink ID="lnkNotifications" runat="server" NavigateUrl="~/Student/Notifications.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-bell nav-icon"></i> Notifications
-                <asp:Panel ID="pnlSidebarNotifBadge" runat="server" CssClass="badge-dot" Visible="false" style="margin-left:auto;" />
-            </asp:HyperLink>
-
-            <asp:HyperLink ID="lnkContacts" runat="server" NavigateUrl="~/Student/Contacts.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-address-book nav-icon"></i> Contacts
-            </asp:HyperLink>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
-
-            <asp:HyperLink ID="lnkProfile" runat="server" NavigateUrl="~/Student/MyProfile.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
-            </asp:HyperLink>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-user">
-                <div class="user-avatar" style="width: 42px; height: 42px; border-radius: 50%; background: var(--orange-gradient); display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: 800;">
-                    <asp:Label ID="lblAvatarInitial" runat="server" Text="S" />
-                </div>
-                <div class="user-info">
-                    <div class="user-name">
-                        <asp:Label ID="lblSidebarName" runat="server" Text="Student" />
-                    </div>
-                    <div class="user-role">Student</div>
-                </div>
-            </div>
-
-            <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link" OnClientClick="showLogoutModal(); return false;">
-                <i class="fa-solid fa-right-from-bracket"></i> Log Out
-            </asp:LinkButton>
-        </div>
-    </div>
+ <uc:StudentSidebar ID="StudentSidebar1" runat="server" />
 
     <div class="main-wrapper">
         <div class="topbar">
@@ -331,12 +249,12 @@
             </div>
 
             <div class="topbar-right">
-                <a href="Notifications.aspx" class="topbar-icon-btn" title="Notifications">
+                <a href="Notification.aspx" class="topbar-icon-btn" title="Notifications">
                     <i class="fa-solid fa-bell"></i>
                     <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
                 </a>
 
-                <a href="Profile.aspx" class="topbar-icon-btn" title="My Profile">
+                <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile">
                     <i class="fa-solid fa-circle-user"></i>
                 </a>
             </div>
@@ -444,6 +362,7 @@
         </div>
     </div>
 
+
     <!-- Custom Alert Modal Structure -->
     <div id="customModalOverlay">
         <div id="customModal">
@@ -460,8 +379,9 @@
             </div>
         </div>
     </div>
-
+    
     <script>
+
         var SVG_TICK =
             '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">' +
             '<polyline points="20 6 9 17 4 12"/>' +

@@ -15,8 +15,8 @@ namespace Student_Information_Management_System__SIMS_
             if (!IsPostBack)
             {
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
-                LoadStudentInfo();
                 LoadLecturerContacts();
+                CheckUnreadNotifications();
             }
         }
 
@@ -28,31 +28,6 @@ namespace Student_Information_Management_System__SIMS_
         private string CurrentStudentId
         {
             get { return SessionHelper.GetProfileId(Session); }
-        }
-
-        private void LoadStudentInfo()
-        {
-            string sql = @"
-                SELECT FirstName, LastName, ProfilePicture
-                FROM StudentDetails
-                WHERE UserId = @UserId";
-
-            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
-            {
-                new SqlParameter("@UserId", CurrentUserId)
-            });
-
-            if (dt.Rows.Count == 0)
-                return;
-
-            DataRow row = dt.Rows[0];
-            string fullName = (row["FirstName"] + " " + row["LastName"]).Trim();
-            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName) ? "Student" : fullName;
-
-            string picture = row["ProfilePicture"].ToString();
-            imgSidebarAvatar.ImageUrl = string.IsNullOrWhiteSpace(picture)
-                ? "~/ProfilePicture/default-profile.png"
-                : picture;
         }
 
         private void LoadLecturerContacts()
@@ -107,10 +82,13 @@ namespace Student_Information_Management_System__SIMS_
             rptLecturerContacts.DataBind();
         }
 
-        protected void lbLogout_Click(object sender, EventArgs e)
+        private void CheckUnreadNotifications()
         {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
+            object count = DatabaseHelper.ExecuteScalar(
+                "SELECT COUNT(*) FROM Notifications WHERE UserId = @Uid AND IsRead = 0",
+                new[] { new SqlParameter("@Uid", CurrentUserId) });
+
+            pnlNotifBadge.Visible = (count != null && Convert.ToInt32(count) > 0);
         }
     }
 }

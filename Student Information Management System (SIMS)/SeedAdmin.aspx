@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" 
+﻿%@ Page Language="C#" AutoEventWireup="true" 
          CodeBehind="SeedAdmin.aspx.cs" 
          Inherits="Student_Information_Management_System__SIMS_.SeedAdmin" %>
 

@@ -8,7 +8,7 @@ using SIMS.Helpers;
 
 namespace Student_Information_Management_System__SIMS_
 {
-    public partial class Notifications : Page
+    public partial class Notification : Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -16,7 +16,6 @@ namespace Student_Information_Management_System__SIMS_
 
             if (!IsPostBack)
             {
-                LoadStudentInfo();
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
                 LoadNotifications();
                 CheckUnreadNotifications();
@@ -28,41 +27,76 @@ namespace Student_Information_Management_System__SIMS_
             get { return SessionHelper.GetUserId(Session); }
         }
 
-        private void LoadStudentInfo()
-        {
-            string fullName = SessionHelper.GetFullName(Session);
-            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName) ? "Student" : fullName;
-            lblTopbarInitial.Text = string.IsNullOrWhiteSpace(fullName) ? "S" : fullName.Trim()[0].ToString().ToUpper();
-            LoadSidebarProfilePicture();
-        }
-
-        private void LoadSidebarProfilePicture()
-        {
-            // Student profile picture is not required for this page yet.
-            // The default profile picture keeps the sidebar consistent.
-            imgSidebarAvatar.ImageUrl = "~/ProfilePicture/default-profile.png";
-        }
-
         private void LoadNotifications()
         {
             string sql = @"
-                SELECT 
+                ;WITH StudentProgramme AS
+                (
+                    SELECT ProgrammeId
+                    FROM StudentDetails
+                    WHERE UserId = @UserId
+                ),
+                InboxItems AS
+                (
+                    SELECT 
+                        n.NotificationId,
+                        'Notification' AS ItemType,
+                        n.Title,
+                        CONVERT(VARCHAR(MAX), n.Message) AS Message,
+                        n.IsRead,
+                        n.CreatedAt,
+                        CASE 
+                            WHEN n.Title LIKE '%payment%' OR n.Message LIKE '%payment%' THEN 'Admin'
+                            WHEN n.Title LIKE '%approved%' OR n.Title LIKE '%rejected%' THEN 'Admin'
+                            WHEN n.Title LIKE '%enrol%' OR n.Title LIKE '%enroll%' THEN 'System'
+                            ELSE 'System'
+                        END AS SenderDisplay
+                    FROM Notifications n
+                    WHERE n.UserId = @UserId
+
+                    UNION ALL
+
+                    SELECT
+                        -a.AnnouncementId AS NotificationId,
+                        'Announcement' AS ItemType,
+                        a.Title,
+                        CONVERT(VARCHAR(MAX), a.Content) AS Message,
+                        CAST(1 AS BIT) AS IsRead,
+                        a.CreatedAt,
+                        CASE 
+                            WHEN u.Role = 1 THEN 'Admin - ' + ISNULL(h.FirstName + ' ' + h.LastName, u.Email)
+                            WHEN u.Role = 2 THEN 'Lecturer - ' + ISNULL(ld.FirstName + ' ' + ld.LastName, u.Email)
+                            ELSE ISNULL(u.Email, 'System')
+                        END AS SenderDisplay
+                    FROM Announcements a
+                    INNER JOIN Users u ON u.UserId = a.PostedByUserId
+                    LEFT JOIN HoPDetails h ON h.UserId = u.UserId
+                    LEFT JOIN LecturerDetails ld ON ld.UserId = u.UserId
+                    WHERE a.TargetRole IN ('Student', 'All')
+                      AND (
+                            a.ProgrammeId IS NULL
+                            OR a.ProgrammeId IN (SELECT ProgrammeId FROM StudentProgramme)
+                          )
+                )
+                SELECT
                     NotificationId,
+                    ItemType,
                     Title,
-                    CONVERT(VARCHAR(MAX), Message) AS Message,
+                    Message,
                     IsRead,
-                    CreatedAt
-                FROM Notifications
-                WHERE UserId = @UserId
-                  AND (
+                    CreatedAt,
+                    SenderDisplay
+                FROM InboxItems
+                WHERE (
                         @Search = ''
                         OR Title LIKE '%' + @Search + '%'
-                        OR CONVERT(VARCHAR(MAX), Message) LIKE '%' + @Search + '%'
+                        OR Message LIKE '%' + @Search + '%'
+                        OR SenderDisplay LIKE '%' + @Search + '%'
                       )
                   AND (
                         @Status = ''
-                        OR (@Status = 'Unread' AND IsRead = 0)
-                        OR (@Status = 'Read' AND IsRead = 1)
+                        OR (@Status = 'Unread' AND ItemType = 'Notification' AND IsRead = 0)
+                        OR (@Status = 'Read' AND (ItemType = 'Announcement' OR IsRead = 1))
                       )
                 ORDER BY IsRead ASC, CreatedAt DESC";
 
@@ -290,12 +324,6 @@ namespace Student_Information_Management_System__SIMS_
                 Guid.NewGuid().ToString("N"),
                 script,
                 true);
-        }
-
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
         }
     }
 }

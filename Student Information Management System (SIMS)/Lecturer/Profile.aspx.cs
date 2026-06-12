@@ -48,11 +48,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             if (dt.Rows.Count == 0)
             {
-                ShowMessage(
-                    "Validation Error",
-                    "Profile not found.",
-                    false);
-
+                ShowMessage("Validation Error", "Profile not found.", false);
                 return;
             }
 
@@ -75,41 +71,25 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 ddlGender.SelectedValue = gender;
 
             lblFullName.Text = txtFirstName.Text + " " + txtLastName.Text;
-            lblSidebarName.Text = lblFullName.Text;
 
             string picture = row["ProfilePicture"].ToString();
 
-            if (!string.IsNullOrWhiteSpace(picture))
-            {
-                imgProfile.ImageUrl = picture;
-                imgSidebarAvatar.ImageUrl = picture;
-            }
-            else
-            {
-                imgProfile.ImageUrl = "~/ProfilePicture/default-profile.png";
-                imgSidebarAvatar.ImageUrl = "~/ProfilePicture/default-profile.png";
-            }
+            imgProfile.ImageUrl = string.IsNullOrWhiteSpace(picture)
+                ? "~/ProfilePicture/default-profile.png"
+                : picture;
         }
 
         protected void btnSaveProfile_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtFirstName.Text))
             {
-                ShowMessage(
-                    "Validation Error",
-                    "First name is required.",
-                    false);
-
+                ShowMessage("Validation Error", "First name is required.", false);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(txtLastName.Text))
             {
-                ShowMessage(
-                    "Validation Error",
-                    "Last name is required.",
-                    false);
-
+                ShowMessage("Validation Error", "Last name is required.", false);
                 return;
             }
 
@@ -121,11 +101,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
                 if (uploadResult.StartsWith("ERROR:"))
                 {
-                    ShowMessage(
-                        "Upload Error",
-                        uploadResult.Replace("ERROR:", ""),
-                        false);
-
+                    ShowMessage("Upload Error", uploadResult.Replace("ERROR:", ""), false);
                     return;
                 }
 
@@ -155,11 +131,9 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             });
 
             LoadProfile();
+            LecturerSidebar1.RefreshSidebar();
 
-            ShowMessage(
-                "Success",
-                "Profile updated successfully.",
-                true);
+            ShowMessage("Success", "Profile updated successfully.", true);
         }
 
         private string GetCurrentProfilePicture()
@@ -225,12 +199,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 Guid.NewGuid().ToString(),
                 script,
                 true);
-        }
-
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
         }
     }
 }

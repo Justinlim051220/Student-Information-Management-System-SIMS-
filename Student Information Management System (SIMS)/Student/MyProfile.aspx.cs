@@ -18,6 +18,7 @@ namespace Student_Information_Management_System__SIMS_
             {
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
                 LoadProfile();
+                CheckUnreadNotifications();
             }
         }
 
@@ -74,19 +75,16 @@ namespace Student_Information_Management_System__SIMS_
                 ddlGender.SelectedValue = gender;
 
             lblFullName.Text = txtFirstName.Text + " " + txtLastName.Text;
-            lblSidebarName.Text = lblFullName.Text;
 
             string picture = row["ProfilePicture"].ToString();
 
             if (!string.IsNullOrWhiteSpace(picture))
             {
                 imgProfile.ImageUrl = picture;
-                imgSidebarAvatar.ImageUrl = picture;
             }
             else
             {
                 imgProfile.ImageUrl = "~/ProfilePicture/default-profile.png";
-                imgSidebarAvatar.ImageUrl = "~/ProfilePicture/default-profile.png";
             }
         }
 
@@ -161,6 +159,7 @@ namespace Student_Information_Management_System__SIMS_
             });
 
             LoadProfile();
+            StudentSidebar1.RefreshSidebar();
 
             ShowMessage(
                 "Success",
@@ -233,10 +232,13 @@ namespace Student_Information_Management_System__SIMS_
                 true);
         }
 
-        protected void lbLogout_Click(object sender, EventArgs e)
+        private void CheckUnreadNotifications()
         {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
+            object count = DatabaseHelper.ExecuteScalar(
+                "SELECT COUNT(*) FROM Notifications WHERE UserId = @Uid AND IsRead = 0",
+                new[] { new SqlParameter("@Uid", CurrentUserId) });
+
+            pnlNotifBadge.Visible = (count != null && Convert.ToInt32(count) > 0);
         }
     }
 }

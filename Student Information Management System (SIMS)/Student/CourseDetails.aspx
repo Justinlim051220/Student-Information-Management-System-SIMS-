@@ -1,4 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="CourseDetails.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.CourseDetails" %>
+<%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -6,9 +7,36 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Course Materials & Details - SIMS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../Styles/SIMS.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
     <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --primary: #1a1a2e;
+            --accent: #d99a2e;
+            --accent-hover: #e8a838;
+            --bg-neutral: #f7f8fa;
+            --text-main: #2c3e50;
+            --text-muted: #6c757d;
+            --border-color: #eef0f4;
+        }
+
+        body {
+            font-family: 'Nunito', 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-neutral);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
         .sidebar {
             position: fixed;
             top: 0;
@@ -22,33 +50,20 @@
 
         .main-wrapper {
             margin-left: 260px;
+            width: calc(100% - 260px);
+            box-sizing: border-box;
         }
 
         .page-content {
             padding: 30px 40px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .container {
-            max-width: 1000px;
             width: 100%;
-        }
-
-        :root {
-            --primary: #1a1a2e;
-            --accent: #0d6efd;
-            --accent-hover: #0b5ed7;
-            --bg-neutral: #f7f8fa;
-            --text-main: #2c3e50;
-            --text-muted: #6c757d;
-            --border-color: #eef0f4;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-neutral);
-            margin: 0;
-            padding: 0;
-            color: var(--text-main);
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         .back-link {
@@ -56,14 +71,45 @@
             align-items: center;
             gap: 8px;
             text-decoration: none;
-            color: var(--black);
-            font-weight: 600;
+            background-color: #e8a838;
+            color: #fff !important;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 8px 22px;
+            border-radius: 50px;
             margin-bottom: 25px;
-            transition: color 0.2s ease;
+            box-shadow: 0 4px 12px rgba(232, 168, 56, 0.15);
+            transition: all 0.2s ease-in-out;
         }
 
         .back-link:hover {
-            color: var(--accent-hover);
+            background-color: #d99a2e;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(217, 154, 46, 0.25);
+        }
+
+        .btn-download {
+            font-family: 'Nunito', sans-serif;
+            font-size: 13px;
+            color: #fff !important;
+            background-color: #e8a838;
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 18px;
+            border-radius: 50px;
+            box-shadow: 0 3px 10px rgba(232, 168, 56, 0.12);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-download:hover {
+            text-decoration: none;
+            background-color: #d99a2e;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 12px rgba(217, 154, 46, 0.22);
         }
 
         .course-card-header {
@@ -73,6 +119,8 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.03);
             border: 1px solid var(--border-color);
             margin-bottom: 30px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .course-meta-top {
@@ -122,6 +170,8 @@
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
             border: 1px solid var(--border-color);
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .material-top {
@@ -159,11 +209,6 @@
             color: #0d6efd;
         }
 
-        .badge-weight {
-            background: #fff3cd;
-            color: #856404;
-        }
-
         .material-desc {
             font-size: 14px;
             color: #5a626a;
@@ -175,7 +220,7 @@
         .file-list-box {
             background: #f8f9fa;
             border-radius: 8px;
-            padding: 12px 16px;
+            padding: 14px 16px;
             border: 1px solid #e9ecef;
         }
 
@@ -184,7 +229,7 @@
             font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             letter-spacing: 0.5px;
         }
 
@@ -192,7 +237,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid #edf0f2;
         }
 
@@ -209,28 +254,13 @@
 
         .file-info i {
             font-size: 16px;
-            color: #dc3545; /* Default file icon color */
+            color: #dc3545;
         }
 
         .file-size {
             font-size: 12px;
             color: var(--text-muted);
             margin-left: 5px;
-        }
-
-        .btn-download {
-            font-size: 13px;
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn-download:hover {
-            text-decoration: underline;
-            color: var(--accent-hover);
         }
 
         .post-footer-date {
@@ -247,6 +277,8 @@
             border-radius: 14px;
             border: 1px dashed #ced4da;
             color: var(--text-muted);
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .empty-container i {
@@ -259,216 +291,219 @@
             margin: 0 0 8px 0;
             color: var(--primary);
         }
+
+        .navigation-tabs {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: #fff;
+            color: #e8a838;
+            border: 2px solid #e8a838;
+        }
+
+        .tab-btn:hover,
+        .tab-btn.active {
+            background-color: #e8a838;
+            color: #fff !important;
+            border-color: #e8a838;
+        }
+
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+        .student-table th {
+            background: #fff8e1;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 700;
+            text-align: left;
+            padding: 14px;
+            border-bottom: 2px solid #eef0f4;
+        }
+
+        .student-table td {
+            padding: 14px;
+            border-bottom: 1px solid #eef0f4;
+            font-size: 14px;
+        }
     </style>
 </head>
+
 <body>
-    <form id="form1" runat="server">
+<form id="form1" runat="server">
 
-        <!-- ================================================================
-             SIDEBAR
-             ================================================================ -->
-        <div class="sidebar" id="sidebar">
-            <!-- Brand -->
-            <div class="sidebar-brand">
-                <img src="~/Images/Logo_Dashboard.png" runat="server" alt="ONTI SIMS" class="brand-logo" />
-                <div class="brand-text">
-                    <div class="brand-name">SIMS</div>
-                    <div class="brand-sub">Student Portal</div>
+    <uc:StudentSidebar ID="StudentSidebar1" runat="server" />
+
+    <div class="main-wrapper">
+        <div class="topbar">
+            <div>
+                <div class="topbar-title">Course Details</div>
+                <div class="topbar-date">
+                    <asp:Label ID="lblDate" runat="server" />
                 </div>
             </div>
 
-            <!-- Navigation -->
-            <nav class="sidebar-nav">
-                <div class="sidebar-section-label">Main</div>
+            <div class="topbar-right">
+                <a href="Notification.aspx" class="topbar-icon-btn" title="Notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
+                </a>
 
-                <asp:HyperLink ID="lnkDashboard" runat="server" NavigateUrl="~/Student/Student_Dashboard.aspx" CssClass="sidebar-link">
-                    <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
-                </asp:HyperLink>
-
-                <asp:HyperLink ID="lnkMyCourses" runat="server" NavigateUrl="~/Student/MyCourses.aspx" CssClass="sidebar-link active">
-                    <i class="fa-solid fa-book-open nav-icon"></i> My Courses
-                </asp:HyperLink>
-
-                <asp:HyperLink ID="lnkAttendance" runat="server" NavigateUrl="~/Student/Attendance.aspx" CssClass="sidebar-link">
-                    <i class="fa-solid fa-calendar-check nav-icon"></i> Attendance
-                </asp:HyperLink>
-
-                <asp:HyperLink ID="lnkEnrollment" runat="server" NavigateUrl="~/Student/Student_Enrollment.aspx" CssClass="sidebar-link">
-                    <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
-                </asp:HyperLink>
-
-                <asp:HyperLink ID="lnkResults" runat="server" NavigateUrl="~/Student/Results.aspx" CssClass="sidebar-link">
-                    <i class="fa-solid fa-chart-line nav-icon"></i> Results
-                </asp:HyperLink>
-
-                <asp:HyperLink ID="lnkAcademicHistory" runat="server" NavigateUrl="~/Student/AcademicHistory.aspx" CssClass="sidebar-link">
-                    <i class="fa-solid fa-clock-rotate-left nav-icon"></i> Academic History
-                </asp:HyperLink>
-
-                <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-
-                <asp:HyperLink ID="lnkNotifications" runat="server" NavigateUrl="~/Student/Notifications.aspx" CssClass="sidebar-link">
-                    <i class="fa-solid fa-bell nav-icon"></i> Notifications
-                    <asp:Panel ID="pnlSidebarNotifBadge" runat="server" CssClass="badge-dot" Visible="false" style="margin-left:auto;" />
-                </asp:HyperLink>
-
-                <asp:HyperLink ID="lnkContacts" runat="server" NavigateUrl="~/Student/Contacts.aspx" CssClass="sidebar-link">
-                    <i class="fa-solid fa-address-book nav-icon"></i> Contacts
-                </asp:HyperLink>
-
-                <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
-
-                <asp:HyperLink ID="lnkProfile" runat="server" NavigateUrl="~/Student/MyProfile.aspx" CssClass="sidebar-link">
-                    <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
-                </asp:HyperLink>
-            </nav>
-
-            <!-- Sidebar user footer -->
-            <div class="sidebar-footer">
-                <div class="sidebar-user">
-                    <div class="user-avatar">
-                        <asp:Label ID="lblAvatarInitial" runat="server" Text="S" />
-                    </div>
-                    <div class="user-info">
-                        <div class="user-name">
-                            <asp:Label ID="lblSidebarName" runat="server" Text="Student" />
-                        </div>
-                        <div class="user-role">Student</div>
-                    </div>
-                </div>
-                <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link"
-                    OnClientClick="showLogoutModal(); return false;">
-                    <i class="fa-solid fa-right-from-bracket"></i> Log Out
-                </asp:LinkButton>
-            </div>
-        </div><!-- /sidebar -->
-
-        <!-- ================================================================
-             MAIN CONTENT
-             ================================================================ -->
-        <div class="main-wrapper">
-            <!-- Topbar -->
-            <div class="topbar">
-                <div>
-                    <div class="topbar-title">Course Details</div>
-                    <div class="topbar-date">
-                        <asp:Label ID="lblDate" runat="server" />
-                    </div>
-                </div>
-                <div class="topbar-right">
-                    <a href="Notifications.aspx" class="topbar-icon-btn" title="Notifications">
-                        <i class="fa-solid fa-bell"></i>
-                        <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
-                    </a>
-                    <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile">
-                        <i class="fa-solid fa-circle-user"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Page content -->
-            <div class="page-content">
-                <div class="container">
-            
-            <a href="MyCourses.aspx" class="back-link">
-                <i class="fa-solid fa-arrow-left"></i> Back to Enrolled Modules
-            </a>
-
-            <div class="course-card-header">
-                <div class="course-meta-top">
-                    <asp:Label ID="lblCourseCode" runat="server" /> &bull; <asp:Label ID="lblCredits" runat="server" /> Credits
-                </div>
-                <h1><asp:Label ID="lblCourseName" runat="server" /></h1>
-                <p style="margin: 0; color: #5a626a; line-height: 1.5;">
-                    <asp:Label ID="lblDescription" runat="server" />
-                </p>
-                
-                <div class="lecturer-info">
-                    <i class="fa-solid fa-chalkboard-user"></i>
-                    <span>Instructor: <strong><asp:Label ID="lblLecturerName" runat="server" Text="Not Assigned Yet" /></strong></span>
-                </div>
-            </div>
-
-            <div class="section-title">
-                <i class="fa-solid fa-folder-open"></i> Learning References & Materials
-            </div>
-
-            <asp:Repeater ID="rptMaterials" runat="server" OnItemDataBound="rptMaterials_ItemDataBound">
-                <ItemTemplate>
-                    <div class="material-post">
-                        <asp:HiddenField ID="hfMaterialId" runat="server" Value='<%# Eval("MaterialId") %>' />
-                        <asp:HiddenField ID="hfLegacyFileName" runat="server" Value='<%# Eval("FileName") %>' />
-                        <asp:HiddenField ID="hfLegacyFilePath" runat="server" Value='<%# Eval("FilePath") %>' />
-                        <asp:HiddenField ID="hfLegacyFileType" runat="server" Value='<%# Eval("FileType") %>' />
-                        <asp:HiddenField ID="hfLegacyFileSize" runat="server" Value='<%# Eval("FileSizeKB") %>' />
-
-                        <div class="material-top">
-                            <h3 class="material-title"><%# Eval("Title") %></h3>
-                            <div class="badge-group">
-                                <span class="badge badge-type"><%# Eval("MaterialType") %></span>
-                            </div>
-                        </div>
-
-                        <p class="material-desc"><%# Eval("Description") %></p>
-
-                        <div class="file-list-box">
-                            <div class="file-list-title">Attachments</div>
-                            
-                            <asp:Repeater ID="rptFiles" runat="server">
-                                <ItemTemplate>
-                                    <div class="file-row">
-                                        <div class="file-info">
-                                            <i class="fa-solid fa-file-pdf"></i>
-                                            <span><%# Eval("FileName") %></span>
-                                            <span class="file-size">(<%# Eval("FileSizeKB") %> KB)</span>
-                                        </div>
-                                        <a href='<%# ResolveUrl(Eval("FilePath").ToString()) %>' class="btn-download" target="_blank">
-                                            <i class="fa-solid fa-download"></i> Open File
-                                        </a>
-                                    </div>
-                                </ItemTemplate>
-                            </asp:Repeater>
-                        </div>
-
-                        <div class="post-footer-date">
-                            Posted on: <%# Eval("CreatedAt", "{0:dd MMM yyyy, hh:mm tt}") %>
-                        </div>
-                    </div>
-                </ItemTemplate>
-            </asp:Repeater>
-
-            <asp:Panel ID="pnlNoMaterials" runat="server" CssClass="empty-container" Visible="false">
-                <i class="fa-solid fa-box-open"></i>
-                <h3>No materials posted yet</h3>
-                <p>Your lecturer hasn't uploaded files or references for this course section.</p>
-            </asp:Panel>
-
-                </div><!-- /container -->
-            </div><!-- /page-content -->
-        </div><!-- /main-wrapper -->
-
-        <!-- Logout Modal -->
-        <div id="logoutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26,26,46,0.85); z-index: 9999; align-items: center; justify-content: center;">
-            <div style="background: white; border-radius: 12px; width: 100%; max-width: 380px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); overflow: hidden;">
-                <div style="padding: 25px 30px 10px; text-align: center; border-bottom: 1px solid #eee;">
-                    <h3>🔒 Log Out</h3>
-                </div>
-                <div style="padding: 25px 30px; text-align: center; color: #555;">
-                    <p>Are you sure you want to log out of SIMS?</p>
-                </div>
-                <div style="padding: 20px 30px 25px; display: flex; gap: 12px; justify-content: center; border-top: 1px solid #eee;">
-                    <button type="button" onclick="hideLogoutModal()" style="padding: 10px 24px;" class="btn btn-outline">Cancel</button>
-                    <asp:LinkButton ID="btnConfirmLogout" runat="server" CssClass="btn btn-danger" OnClick="lbLogout_Click">
-                        Yes, Log Out
-                    </asp:LinkButton>
-                </div>
+                <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile">
+                    <i class="fa-solid fa-circle-user"></i>
+                </a>
             </div>
         </div>
 
-        <script>
-            function showLogoutModal() { document.getElementById('logoutModal').style.display = 'flex'; }
-            function hideLogoutModal() { document.getElementById('logoutModal').style.display = 'none'; }
-        </script>
-    </form>
+        <div class="page-content">
+            <div class="container">
+
+                <a href="MyCourses.aspx" class="back-link">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Enrolled Modules
+                </a>
+
+                <div class="course-card-header">
+                    <div class="course-meta-top">
+                        <asp:Label ID="lblCourseCode" runat="server" />
+                        &bull;
+                        <asp:Label ID="lblCredits" runat="server" /> Credits
+                    </div>
+
+                    <h1>
+                        <asp:Label ID="lblCourseName" runat="server" />
+                    </h1>
+
+                    <p style="margin:0; color:#5a626a; line-height:1.5;">
+                        <asp:Label ID="lblDescription" runat="server" />
+                    </p>
+
+                    <div class="lecturer-info">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                        <span>
+                            Instructor:
+                            <strong><asp:Label ID="lblLecturerName" runat="server" Text="Not Assigned Yet" /></strong>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="navigation-tabs">
+                    <asp:LinkButton ID="btnModulesTab"
+                        runat="server"
+                        CssClass="tab-btn active"
+                        OnClick="btnModulesTab_Click">
+                        <i class="fa-solid fa-file-lines"></i> Modules
+                    </asp:LinkButton>
+
+                    <asp:LinkButton ID="btnGradesTab"
+                        runat="server"
+                        CssClass="tab-btn"
+                        OnClick="btnGradesTab_Click">
+                        <i class="fa-solid fa-star"></i> Grades
+                    </asp:LinkButton>
+                </div>
+
+                <asp:Panel ID="pnlModulesSection" runat="server" Visible="true">
+                    <div class="section-title">
+                        <i class="fa-solid fa-folder-open"></i> Learning References & Materials
+                    </div>
+
+                    <asp:Repeater ID="rptMaterials" runat="server" OnItemDataBound="rptMaterials_ItemDataBound">
+                        <ItemTemplate>
+                            <div class="material-post">
+                                <asp:HiddenField ID="hfMaterialId" runat="server" Value='<%# Eval("MaterialId") %>' />
+                                <asp:HiddenField ID="hfLegacyFileName" runat="server" Value='<%# Eval("FileName") %>' />
+                                <asp:HiddenField ID="hfLegacyFilePath" runat="server" Value='<%# Eval("FilePath") %>' />
+                                <asp:HiddenField ID="hfLegacyFileType" runat="server" Value='<%# Eval("FileType") %>' />
+                                <asp:HiddenField ID="hfLegacyFileSize" runat="server" Value='<%# Eval("FileSizeKB") %>' />
+
+                                <div class="material-top">
+                                    <h3 class="material-title"><%# Eval("Title") %></h3>
+                                    <div class="badge-group">
+                                        <span class="badge badge-type"><%# Eval("MaterialType") %></span>
+                                    </div>
+                                </div>
+
+                                <p class="material-desc"><%# Eval("Description") %></p>
+
+                                <div class="file-list-box">
+                                    <div class="file-list-title">Attachments</div>
+
+                                    <asp:Repeater ID="rptFiles" runat="server">
+                                        <ItemTemplate>
+                                            <div class="file-row">
+                                                <div class="file-info">
+                                                    <i class="fa-solid fa-file-pdf"></i>
+                                                    <span><%# Eval("FileName") %></span>
+                                                    <span class="file-size">(<%# Eval("FileSizeKB") %> KB)</span>
+                                                </div>
+
+                                                <a href='<%# GetDownloadUrl(Eval("FileId"), Eval("FilePath")) %>' class="btn-download">
+                                                    <i class="fa-solid fa-download"></i> Open File
+                                                </a>
+                                            </div>
+                                        </ItemTemplate>
+                                    </asp:Repeater>
+                                </div>
+
+                                <div class="post-footer-date">
+                                    Posted on: <%# Eval("CreatedAt", "{0:dd MMM yyyy, hh:mm tt}") %>
+                                </div>
+                            </div>
+                        </ItemTemplate>
+                    </asp:Repeater>
+
+                    <asp:Panel ID="pnlNoMaterials" runat="server" CssClass="empty-container" Visible="false">
+                        <i class="fa-solid fa-box-open"></i>
+                        <h3>No materials posted yet</h3>
+                        <p>Your lecturer hasn't uploaded files or references for this course section.</p>
+                    </asp:Panel>
+                </asp:Panel>
+
+                <asp:Panel ID="pnlGradesSection" runat="server" Visible="false">
+                    <div class="section-title">
+                        <i class="fa-solid fa-square-poll-vertical"></i> Course Grades
+                    </div>
+
+                    <div class="course-card-header" style="background:#fff; padding:20px; border-radius:14px; border:1px solid #eef0f4; overflow-x:auto;">
+                        <asp:GridView ID="gvStudentGrades"
+                            runat="server"
+                            CssClass="student-table"
+                            GridLines="None"
+                            AutoGenerateColumns="true"
+                            OnRowDataBound="gvStudentGrades_RowDataBound">
+                            <HeaderStyle BackColor="#fff8e1" Font-Bold="true" HorizontalAlign="Left" />
+                            <RowStyle BackColor="#ffffff" />
+                        </asp:GridView>
+
+                        <asp:Panel ID="pnlNoGrades" runat="server" Visible="false" Style="text-align:center; padding:40px 20px;">
+                            <i class="fa-solid fa-graduation-cap" style="font-size:46px; color:#e8a838; margin-bottom:12px; display:block;"></i>
+                            <h3>No marks have been posted or published yet.</h3>
+                        </asp:Panel>
+                    </div>
+                </asp:Panel>
+
+            </div>
+        </div>
+    </div>
+
+</form>
 </body>
 </html>
