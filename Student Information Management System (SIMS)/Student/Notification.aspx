@@ -1,4 +1,4 @@
-﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Notification.aspx.cs"
+﻿﻿﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Notification.aspx.cs"
     Inherits="Student_Information_Management_System__SIMS_.Notification" %>
 <%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 
@@ -14,6 +14,34 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
 
     <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #form1 {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Match Attendance/MyCourses topbar exactly: white bar, no grey layer above */
+        .topbar {
+            background: #ffffff !important;
+            border-bottom: 1px solid #edf0f6 !important;
+            margin: 0 !important;
+            padding: 20px 40px !important;
+        }
+
+        .topbar-title {
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .topbar-date {
+            margin-top: 5px;
+        }
+
         .notification-header {
             display:flex;
             align-items:center;
@@ -129,17 +157,13 @@
         }
 
         .mark-read-row {
-            margin-top: 22px;
+            display:block;
+            margin-top:18px;
         }
 
         .mark-read-row .btn {
-            width: 100%;
-            min-height: 46px;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            border-radius: 10px;
+            width:100%;
+            min-height:44px;
         }
 
         .topbar-profile-img {
@@ -427,12 +451,15 @@
 
         .main-wrapper {
             margin-left: 260px;
-            width: calc(100% - 260px);
-            min-height: 100vh;
+            background: #ffffff;
         }
 
-        .content-area {
-            padding: 28px 34px 40px;
+        .content-area,
+        .page-content {
+            padding: 30px 40px;
+            width: 100%;
+            box-sizing: border-box;
+            background: #ffffff;
         }
 
         .sidebar-user {
@@ -558,48 +585,6 @@
 
         .system-dialog .modal-cancel:hover { background: #fff8e1; }
         .system-dialog .modal-submit:hover { background: #d99a2e; border-color: #d99a2e; }
-
-
-
-        /* ===== Standard top-right icons same as Student Dashboard ===== */
-        .topbar-right {
-            display:flex;
-            align-items:center;
-            gap:12px;
-        }
-
-        .topbar-icon-btn {
-            position:relative;
-            width:44px;
-            height:44px;
-            border-radius:50%;
-            background:#f4f6fb;
-            color:#111827;
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            text-decoration:none;
-            font-size:19px;
-            border:1px solid #edf0f5;
-            transition:all .18s ease;
-        }
-
-        .topbar-icon-btn:hover {
-            background:#fff8e8;
-            color:var(--orange-main);
-            transform:translateY(-1px);
-        }
-
-        .topbar-icon-btn .badge-dot {
-            position:absolute;
-            top:3px;
-            right:3px;
-            width:10px;
-            height:10px;
-            border-radius:50%;
-            background:#ff6b00;
-            border:2px solid #fff;
-        }
 
         .topbar-hidden-server-avatar {
             display:none !important;
@@ -747,6 +732,96 @@
             transform: translateY(-1px);
             color: #ffffff !important;
 }
+
+        /* FINAL TOPBAR FIX: match Attendance / Payment page header exactly and remove grey strip */
+        html,
+        body,
+        #form1 {
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow-x: hidden !important;
+        }
+
+        body {
+            background: #ffffff !important;
+        }
+
+        .main-wrapper {
+            margin-left: 260px !important;
+            width: calc(100% - 260px) !important;
+            min-height: 100vh !important;
+            background: #ffffff !important;
+            padding-top: 0 !important;
+        }
+
+        .topbar {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            background: #ffffff !important;
+            margin: 0 !important;
+            padding: 20px 40px !important;
+            border-top: 0 !important;
+            border-bottom: 1px solid #edf0f6 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            min-height: auto !important;
+        }
+
+        .topbar-title {
+            margin: 0 !important;
+            padding: 0 !important;
+            font-size: 24px !important;
+            font-weight: 800 !important;
+            line-height: 1.2 !important;
+            color: var(--text-primary, #111827) !important;
+        }
+
+        .topbar-date {
+            margin-top: 5px !important;
+            padding: 0 !important;
+            color: var(--text-secondary, #8b93a7) !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+        }
+
+        .topbar-right {
+            display: flex !important;
+            align-items: center !important;
+            gap: 14px !important;
+        }
+
+        .topbar-icon-btn {
+            width: 44px !important;
+            height: 44px !important;
+            border-radius: 50% !important;
+            background: #f4f6fa !important;
+            color: #4b5563 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-decoration: none !important;
+            position: relative !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            transition: .2s ease !important;
+        }
+
+        .topbar-icon-btn:hover {
+            background: #eef1f6 !important;
+            color: #111827 !important;
+            transform: translateY(-1px) !important;
+        }
+
+        .page-content {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            padding: 30px 40px !important;
+            background: #ffffff !important;
+        }
+
     </style>
 </head>
 
@@ -756,6 +831,7 @@
 
     <asp:HiddenField ID="hfDeleteTarget" runat="server" />
     <asp:HiddenField ID="hfReadTarget" runat="server" />
+    <asp:HiddenField ID="hfUnreadTarget" runat="server" />
 
     <uc:StudentSidebar ID="StudentSidebar1" runat="server" />
 
@@ -786,7 +862,7 @@
             </div>
         </div>
 
-        <div class="content-area">
+        <div class="page-content">
             <div class="notif-stats">
                 <div class="notif-stat-card">
                     <div class="notif-stat-icon"><i class="fa-solid fa-bell"></i></div>
@@ -857,6 +933,7 @@
                     <asp:Button ID="btnMarkAllRead" runat="server"
                         Text="Mark All as Read"
                         CssClass="btn btn-primary"
+                        OnClientClick="showMarkAllReadConfirm(); return false;"
                         OnClick="btnMarkAllRead_Click" />
                 </div>
             </div>
@@ -895,6 +972,7 @@
                                     CssClass="icon-btn read-btn"
                                     CommandName="MarkRead"
                                     CommandArgument='<%# Eval("NotificationId") %>'
+                                    OnClientClick='<%# "showReadConfirm(" + Eval("NotificationId") + "); return false;" %>'
                                     ToolTip="Mark as read"
                                     Visible='<%# Eval("ItemType").ToString() == "Notification" && !Convert.ToBoolean(Eval("IsRead")) %>'>
                                     <i class="fa-solid fa-check"></i>
@@ -904,6 +982,7 @@
                                     CssClass="icon-btn unread-btn"
                                     CommandName="MarkUnread"
                                     CommandArgument='<%# Eval("NotificationId") %>'
+                                    OnClientClick='<%# "showUnreadConfirm(" + Eval("NotificationId") + "); return false;" %>'
                                     ToolTip="Mark as unread"
                                     Visible='<%# Eval("ItemType").ToString() == "Notification" && Convert.ToBoolean(Eval("IsRead")) %>'>
                                     <i class="fa-regular fa-envelope"></i>
@@ -914,6 +993,7 @@
                                     Visible='<%# Eval("ItemType").ToString() == "Notification" %>'
                                     CommandName="DeleteNotification"
                                     CommandArgument='<%# Eval("NotificationId") %>'
+                                    OnClientClick='<%# "showDeleteConfirm(" + Eval("NotificationId") + "); return false;" %>'
                                     ToolTip="Delete">
                                     <i class="fa-solid fa-trash"></i>
                                 </asp:LinkButton>
@@ -943,7 +1023,9 @@
 
 
     <asp:Button ID="btnReadConfirmed" runat="server" Style="display:none;" OnClick="btnReadConfirmed_Click" />
+    <asp:Button ID="btnUnreadConfirmed" runat="server" Style="display:none;" OnClick="btnUnreadConfirmed_Click" />
     <asp:Button ID="btnDeleteConfirmed" runat="server" Style="display:none;" OnClick="btnDeleteConfirmed_Click" />
+    <asp:Button ID="btnMarkAllReadConfirmed" runat="server" Style="display:none;" OnClick="btnMarkAllRead_Click" />
 
     <script>
         function showLogoutModal() {
@@ -977,7 +1059,7 @@
         function showMessageModal(title, message) {
             document.getElementById('cmTitle').innerHTML = title;
             document.getElementById('cmBody').innerHTML = message;
-            document.getElementById('cmIcon').innerHTML = iconSvg(title.indexOf('Error') >= 0 ? 'error' : 'success');
+            document.getElementById('cmIcon').innerHTML = iconSvg(title.indexOf('Error') >= 0 ? 'error' : (title.indexOf('Warning') >= 0 ? 'warning' : 'success'));
             document.getElementById('cmCancelBtn').style.display = 'none';
             document.getElementById('cmOkBtn').style.display = '';
             document.getElementById('cmOkBtn').onclick = closeMessageModal;
@@ -1012,6 +1094,33 @@
         document.getElementById('cmOkBtn').onclick = function () {
             closeMessageModal();
             document.getElementById('<%= btnReadConfirmed.ClientID %>').click();
+            };
+            document.getElementById('customModalOverlay').classList.add('active');
+        }
+
+        function showUnreadConfirm(id) {
+            document.getElementById('<%= hfUnreadTarget.ClientID %>').value = id;
+            document.getElementById('cmTitle').innerHTML = 'Mark as Unread';
+            document.getElementById('cmBody').innerHTML = 'Mark this notification as unread?';
+            document.getElementById('cmIcon').innerHTML = iconSvg('warning');
+            document.getElementById('cmCancelBtn').style.display = '';
+            document.getElementById('cmOkBtn').style.display = '';
+            document.getElementById('cmOkBtn').onclick = function () {
+                closeMessageModal();
+                document.getElementById('<%= btnUnreadConfirmed.ClientID %>').click();
+            };
+            document.getElementById('customModalOverlay').classList.add('active');
+        }
+
+        function showMarkAllReadConfirm() {
+            document.getElementById('cmTitle').innerHTML = 'Mark All as Read';
+            document.getElementById('cmBody').innerHTML = 'Mark all unread notifications as read?';
+            document.getElementById('cmIcon').innerHTML = iconSvg('warning');
+            document.getElementById('cmCancelBtn').style.display = '';
+            document.getElementById('cmOkBtn').style.display = '';
+            document.getElementById('cmOkBtn').onclick = function () {
+                closeMessageModal();
+                document.getElementById('<%= btnMarkAllReadConfirmed.ClientID %>').click();
             };
             document.getElementById('customModalOverlay').classList.add('active');
         }

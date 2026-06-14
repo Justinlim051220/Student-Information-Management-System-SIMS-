@@ -168,6 +168,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 RiskData AS
                 (
                     SELECT
+                        sd.UserId AS StudentUserId,
                         sd.StudentId,
                         sd.FirstName + ' ' + sd.LastName AS StudentName,
                         c.CourseId,
@@ -230,6 +231,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                           )
                 )
                 SELECT
+                    StudentUserId,
                     StudentId,
                     StudentName,
                     CourseDisplay,
@@ -296,6 +298,58 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             lblAttendanceRisk.Text = attendanceRisk.ToString();
             lblAcademicRisk.Text = academicRisk.ToString();
+
+            NotifyAtRiskStudents(dt);
+        }
+
+        private void NotifyAtRiskStudents(DataTable riskStudents)
+        {
+            foreach (DataRow row in riskStudents.Rows)
+            {
+                int studentUserId = Convert.ToInt32(row["StudentUserId"]);
+                string course = row["CourseDisplay"].ToString();
+                string session = row["Session"].ToString();
+                bool attendanceRisk = Convert.ToInt32(row["IsAttendanceRisk"]) == 1;
+                bool academicRisk = Convert.ToInt32(row["IsAcademicRisk"]) == 1;
+
+                string title = "At-Risk Alert: " + course;
+                if (title.Length > 200)
+                    title = title.Substring(0, 200);
+
+                string riskReason = "";
+                if (attendanceRisk)
+                    riskReason += "Poor attendance";
+                if (academicRisk)
+                    riskReason += (riskReason.Length > 0 ? " and " : "") + "low marks";
+
+                string message =
+                    "You have been identified as at-risk for this course." + Environment.NewLine + Environment.NewLine +
+                    "Course: " + course + Environment.NewLine +
+                    "Session: " + session + Environment.NewLine +
+                    "Attendance Rate: " + row["AttendanceRate"] + "%" + Environment.NewLine +
+                    "Average Marks: " + row["AverageMarks"] + "%" + Environment.NewLine +
+                    "Reason: " + riskReason + Environment.NewLine + Environment.NewLine +
+                    "Please contact your lecturer or take action as soon as possible.";
+
+                DatabaseHelper.ExecuteNonQuery(@"
+                    IF NOT EXISTS (
+                        SELECT 1
+                        FROM Notifications
+                        WHERE UserId = @UserId
+                          AND Title = @Title
+                          AND CreatedAt >= DATEADD(day, -7, GETDATE())
+                    )
+                    BEGIN
+                        INSERT INTO Notifications (UserId, Title, Message, IsRead, CreatedAt)
+                        VALUES (@UserId, @Title, @Message, 0, GETDATE())
+                    END",
+                    new[]
+                    {
+                        new SqlParameter("@UserId", studentUserId),
+                        new SqlParameter("@Title", title),
+                        new SqlParameter("@Message", message)
+                    });
+            }
         }
 
         private void CheckUnreadNotifications()

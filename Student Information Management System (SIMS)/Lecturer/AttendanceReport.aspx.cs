@@ -295,7 +295,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
             summary.Columns.Add("Class Date");
             summary.Columns.Add("Present", typeof(int));
             summary.Columns.Add("Absent", typeof(int));
-            summary.Columns.Add("Late", typeof(int));
             summary.Columns.Add("Rate");
 
             foreach (DataRow dateRow in dates.Rows)
@@ -306,7 +305,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     SELECT
                         SUM(CASE WHEN Status = 'Present' THEN 1 ELSE 0 END) AS PresentCount,
                         SUM(CASE WHEN Status = 'Absent' THEN 1 ELSE 0 END) AS AbsentCount,
-                        SUM(CASE WHEN Status = 'Late' THEN 1 ELSE 0 END) AS LateCount,
                         COUNT(*) AS TotalCount
                     FROM Attendance
                     WHERE Session = @Session
@@ -323,15 +321,13 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
                 int present = counts.Rows[0]["PresentCount"] == DBNull.Value ? 0 : Convert.ToInt32(counts.Rows[0]["PresentCount"]);
                 int absent = counts.Rows[0]["AbsentCount"] == DBNull.Value ? 0 : Convert.ToInt32(counts.Rows[0]["AbsentCount"]);
-                int late = counts.Rows[0]["LateCount"] == DBNull.Value ? 0 : Convert.ToInt32(counts.Rows[0]["LateCount"]);
                 int total = counts.Rows[0]["TotalCount"] == DBNull.Value ? 0 : Convert.ToInt32(counts.Rows[0]["TotalCount"]);
-                decimal rate = total == 0 ? 0 : Math.Round((decimal)(present + late) * 100 / total, 2);
+                decimal rate = total == 0 ? 0 : Math.Round((decimal)present * 100 / total, 2);
 
                 DataRow row = summary.NewRow();
                 row["Class Date"] = date.ToString("dd/MM/yyyy");
                 row["Present"] = present;
                 row["Absent"] = absent;
-                row["Late"] = late;
                 row["Rate"] = rate.ToString("N2") + "%";
 
                 summary.Rows.Add(row);
