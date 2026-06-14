@@ -17,6 +17,7 @@ namespace Student_Information_Management_System__SIMS_
             if (!IsPostBack)
             {
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
+                SyncVisibleAnnouncementsToInbox();
                 LoadNotifications();
                 CheckUnreadNotifications();
             }
@@ -30,53 +31,34 @@ namespace Student_Information_Management_System__SIMS_
         private void LoadNotifications()
         {
             string sql = @"
-                ;WITH StudentProgramme AS
+                ;WITH InboxItems AS
                 (
-                    SELECT ProgrammeId
-                    FROM StudentDetails
-                    WHERE UserId = @UserId
-                ),
-                InboxItems AS
-                (
-                    SELECT 
-                        n.NotificationId,
-                        'Notification' AS ItemType,
-                        n.Title,
-                        CONVERT(VARCHAR(MAX), n.Message) AS Message,
-                        n.IsRead,
-                        n.CreatedAt,
-                        CASE 
-                            WHEN n.Title LIKE '%payment%' OR n.Message LIKE '%payment%' THEN 'Admin'
-                            WHEN n.Title LIKE '%approved%' OR n.Title LIKE '%rejected%' THEN 'Admin'
-                            WHEN n.Title LIKE '%enrol%' OR n.Title LIKE '%enroll%' THEN 'System'
-                            ELSE 'System'
-                        END AS SenderDisplay
-                    FROM Notifications n
-                    WHERE n.UserId = @UserId
-
-                    UNION ALL
-
-                    SELECT
-                        -a.AnnouncementId AS NotificationId,
-                        'Announcement' AS ItemType,
-                        a.Title,
-                        CONVERT(VARCHAR(MAX), a.Content) AS Message,
-                        CAST(1 AS BIT) AS IsRead,
-                        a.CreatedAt,
-                        CASE 
-                            WHEN u.Role = 1 THEN 'Admin - ' + ISNULL(h.FirstName + ' ' + h.LastName, u.Email)
-                            WHEN u.Role = 2 THEN 'Lecturer - ' + ISNULL(ld.FirstName + ' ' + ld.LastName, u.Email)
-                            ELSE ISNULL(u.Email, 'System')
-                        END AS SenderDisplay
-                    FROM Announcements a
-                    INNER JOIN Users u ON u.UserId = a.PostedByUserId
-                    LEFT JOIN HoPDetails h ON h.UserId = u.UserId
-                    LEFT JOIN LecturerDetails ld ON ld.UserId = u.UserId
-                    WHERE a.TargetRole IN ('Student', 'All')
-                      AND (
-                            a.ProgrammeId IS NULL
-                            OR a.ProgrammeId IN (SELECT ProgrammeId FROM StudentProgramme)
-                          )
+                SELECT
+                    NotificationId,
+                    'Notification' AS ItemType,
+                    Title,
+                    CONVERT(VARCHAR(MAX), Message) AS Message,
+                    IsRead,
+                    CreatedAt,
+                    CASE 
+                        WHEN Title LIKE '%announcement%' THEN 'Admin'
+                        WHEN Title LIKE '%payment%' OR CONVERT(VARCHAR(MAX), Message) LIKE '%payment%' THEN 'Admin'
+                        WHEN Title LIKE '%approved%' OR Title LIKE '%rejected%' THEN 'Admin'
+                        WHEN Title LIKE '%enrol%' OR Title LIKE '%enroll%' THEN 'System'
+                        ELSE 'System'
+                    END AS SenderDisplay
+                FROM Notifications
+                WHERE UserId = @UserId
+                  AND (
+                        @Search = ''
+                        OR Title LIKE '%' + @Search + '%'
+                        OR CONVERT(VARCHAR(MAX), Message) LIKE '%' + @Search + '%'
+                      )
+                  AND (
+                        @Status = ''
+                        OR (@Status = 'Unread' AND IsRead = 0)
+                        OR (@Status = 'Read' AND IsRead = 1)
+                      )
                 )
                 SELECT
                     NotificationId,
@@ -87,17 +69,6 @@ namespace Student_Information_Management_System__SIMS_
                     CreatedAt,
                     SenderDisplay
                 FROM InboxItems
-                WHERE (
-                        @Search = ''
-                        OR Title LIKE '%' + @Search + '%'
-                        OR Message LIKE '%' + @Search + '%'
-                        OR SenderDisplay LIKE '%' + @Search + '%'
-                      )
-                  AND (
-                        @Status = ''
-                        OR (@Status = 'Unread' AND ItemType = 'Notification' AND IsRead = 0)
-                        OR (@Status = 'Read' AND (ItemType = 'Announcement' OR IsRead = 1))
-                      )
                 ORDER BY IsRead ASC, CreatedAt DESC";
 
             DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
@@ -118,6 +89,59 @@ namespace Student_Information_Management_System__SIMS_
                 new[] { new SqlParameter("@UserId", CurrentUserId) });
 
             lblUnread.Text = unread == null ? "0" : unread.ToString();
+        }
+
+        private void SyncVisibleAnnouncementsToInbox()
+        {
+            string sql = @"
+                ;WITH StudentProfile AS
+                (
+                    SELECT StudentId, ProgrammeId
+                    FROM StudentDetails
+                    WHERE UserId = @UserId
+                )
+                INSERT INTO Notifications (UserId, Title, Message, IsRead, CreatedAt)
+                SELECT
+                    @UserId,
+                    a.Title,
+                    CONVERT(VARCHAR(MAX), a.Content),
+                    0,
+                    a.CreatedAt
+                FROM Announcements a
+                CROSS JOIN StudentProfile sp
+                WHERE a.TargetRole IN ('Student', 'All')
+                  AND (a.ProgrammeId IS NULL OR a.ProgrammeId = sp.ProgrammeId)
+                  AND (
+                        a.CourseId IS NULL
+                        OR EXISTS (
+                            SELECT 1
+                            FROM Enrollment e
+                            WHERE e.StudentId = sp.StudentId
+                              AND e.CourseId = a.CourseId
+                              AND e.Status = 'Active'
+                              AND (a.Session IS NULL OR e.Session = a.Session)
+                        )
+                      )
+                  AND (
+                        a.Session IS NULL
+                        OR a.CourseId IS NOT NULL
+                        OR EXISTS (
+                            SELECT 1
+                            FROM Enrollment e
+                            WHERE e.StudentId = sp.StudentId
+                              AND e.Session = a.Session
+                              AND e.Status = 'Active'
+                        )
+                      )
+                  AND NOT EXISTS (
+                        SELECT 1
+                        FROM Notifications n
+                        WHERE n.UserId = @UserId
+                          AND n.Title = a.Title
+                          AND CONVERT(VARCHAR(MAX), n.Message) = CONVERT(VARCHAR(MAX), a.Content)
+                      )";
+
+            DatabaseHelper.ExecuteNonQuery(sql, new[] { new SqlParameter("@UserId", CurrentUserId) });
         }
 
         protected void Filter_Changed(object sender, EventArgs e)
@@ -182,7 +206,8 @@ namespace Student_Information_Management_System__SIMS_
 
             if (e.CommandName == "MarkUnread")
             {
-                MarkNotificationReadStatus(notificationId, false);
+                ShowUnreadConfirmation(notificationId);
+                return;
             }
             else if (e.CommandName == "DeleteNotification")
             {
@@ -214,6 +239,16 @@ namespace Student_Information_Management_System__SIMS_
                 true);
         }
 
+        private void ShowUnreadConfirmation(int notificationId)
+        {
+            ScriptManager.RegisterStartupScript(
+                this,
+                GetType(),
+                "confirmUnreadNotification" + notificationId,
+                "showUnreadConfirm(" + notificationId + ");",
+                true);
+        }
+
         protected void btnReadConfirmed_Click(object sender, EventArgs e)
         {
             int notificationId;
@@ -226,6 +261,23 @@ namespace Student_Information_Management_System__SIMS_
 
             MarkNotificationReadStatus(notificationId, true);
             hfReadTarget.Value = "";
+
+            LoadNotifications();
+            CheckUnreadNotifications();
+        }
+
+        protected void btnUnreadConfirmed_Click(object sender, EventArgs e)
+        {
+            int notificationId;
+
+            if (!int.TryParse(hfUnreadTarget.Value, out notificationId))
+            {
+                ShowMessage("Error", "Invalid notification selected.");
+                return;
+            }
+
+            MarkNotificationReadStatus(notificationId, false);
+            hfUnreadTarget.Value = "";
 
             LoadNotifications();
             CheckUnreadNotifications();

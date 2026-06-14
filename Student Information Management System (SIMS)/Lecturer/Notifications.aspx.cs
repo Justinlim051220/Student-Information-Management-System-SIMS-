@@ -96,13 +96,13 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 CheckUnreadNotifications();
 
                 if (rows > 0)
-                    ShowMessage("✅ Success", "All notifications marked as read.");
+                    ShowMessage("Success", "All notifications marked as read.");
                 else
-                    ShowMessage("⚠ Warning", "No unread notifications found.");
+                    ShowMessage("Warning", "No unread notifications found.");
             }
             catch (Exception ex)
             {
-                ShowMessage("❌ Error", "Error marking all notifications as read: " + ex.Message);
+                ShowMessage("Error", "Error marking all notifications as read: " + ex.Message);
             }
         }
 
@@ -112,7 +112,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             if (!int.TryParse(e.CommandArgument.ToString(), out notificationId))
             {
-                ShowMessage("❌ Error", "Invalid notification selected.");
+                ShowMessage("Error", "Invalid notification selected.");
                 return;
             }
 
@@ -167,7 +167,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             if (!int.TryParse(hfReadTarget.Value, out notificationId))
             {
-                ShowMessage("❌ Error", "Invalid notification selected.");
+                ShowMessage("Error", "Invalid notification selected.");
                 return;
             }
 
@@ -184,7 +184,7 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             if (!int.TryParse(hfDeleteTarget.Value, out notificationId))
             {
-                ShowMessage("❌ Error", "Invalid notification selected for deletion.");
+                ShowMessage("Error", "Invalid notification selected for deletion.");
                 return;
             }
 
@@ -215,18 +215,18 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 if (rows > 0)
                 {
                     ShowMessage(
-                        "✅ Success",
+                        "Success",
                         isRead ? "Notification marked as read." : "Notification marked as unread."
                     );
                 }
                 else
                 {
-                    ShowMessage("❌ Error", "Notification not found or you do not have permission.");
+                    ShowMessage("Error", "Notification not found or you do not have permission.");
                 }
             }
             catch (Exception ex)
             {
-                ShowMessage("❌ Error", "Error updating notification: " + ex.Message);
+                ShowMessage("Error", "Error updating notification: " + ex.Message);
             }
         }
 
@@ -246,13 +246,13 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 });
 
                 if (rows > 0)
-                    ShowMessage("✅ Success", "Notification deleted successfully.");
+                    ShowMessage("Success", "Notification deleted successfully.");
                 else
-                    ShowMessage("❌ Error", "Notification not found or you do not have permission.");
+                    ShowMessage("Error", "Notification not found or you do not have permission.");
             }
             catch (Exception ex)
             {
-                ShowMessage("❌ Error", "Error deleting notification: " + ex.Message);
+                ShowMessage("Error", "Error deleting notification: " + ex.Message);
             }
         }
 
