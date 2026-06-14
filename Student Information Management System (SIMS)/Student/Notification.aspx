@@ -1,5 +1,4 @@
-﻿﻿﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Notification.aspx.cs"
-    Inherits="Student_Information_Management_System__SIMS_.Notification" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Notification.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Notification" %>
 <%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 
 <!DOCTYPE html>
@@ -23,23 +22,6 @@
         #form1 {
             margin: 0;
             padding: 0;
-        }
-
-        /* Match Attendance/MyCourses topbar exactly: white bar, no grey layer above */
-        .topbar {
-            background: #ffffff !important;
-            border-bottom: 1px solid #edf0f6 !important;
-            margin: 0 !important;
-            padding: 20px 40px !important;
-        }
-
-        .topbar-title {
-            margin: 0;
-            line-height: 1.2;
-        }
-
-        .topbar-date {
-            margin-top: 5px;
         }
 
         .notification-header {
@@ -449,9 +431,9 @@
             scrollbar-width: thin;
         }
 
-        .main-wrapper {
+       .main-wrapper {
             margin-left: 260px;
-            background: #ffffff;
+            background: var(--bg-page);
         }
 
         .content-area,
@@ -459,7 +441,7 @@
             padding: 30px 40px;
             width: 100%;
             box-sizing: border-box;
-            background: #ffffff;
+            background: var(--bg-page);
         }
 
         .sidebar-user {
@@ -731,97 +713,68 @@
         .logout-btn-confirm:hover {
             transform: translateY(-1px);
             color: #ffffff !important;
-}
+        }
 
-        /* FINAL TOPBAR FIX: match Attendance / Payment page header exactly and remove grey strip */
         html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #form1 {
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-wrapper {
+            margin-left: 260px;
+        }
+
+        .page-content {
+            padding: 30px 40px;
+        
         body,
         #form1 {
             margin: 0 !important;
             padding: 0 !important;
-            overflow-x: hidden !important;
-        }
-
-        body {
-            background: #ffffff !important;
         }
 
         .main-wrapper {
             margin-left: 260px !important;
-            width: calc(100% - 260px) !important;
-            min-height: 100vh !important;
-            background: #ffffff !important;
             padding-top: 0 !important;
         }
 
         .topbar {
-            width: 100% !important;
-            box-sizing: border-box !important;
-            background: #ffffff !important;
+            height: 88px !important;
+            min-height: 88px !important;
+            padding: 16px 32px !important;
             margin: 0 !important;
-            padding: 20px 40px !important;
-            border-top: 0 !important;
-            border-bottom: 1px solid #edf0f6 !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
+            box-sizing: border-box !important;
             display: flex !important;
             align-items: center !important;
             justify-content: space-between !important;
-            min-height: auto !important;
         }
 
         .topbar-title {
             margin: 0 !important;
             padding: 0 !important;
-            font-size: 24px !important;
-            font-weight: 800 !important;
+            font-size: 20px !important;
             line-height: 1.2 !important;
-            color: var(--text-primary, #111827) !important;
         }
 
         .topbar-date {
-            margin-top: 5px !important;
+            margin: 0 !important;
             padding: 0 !important;
-            color: var(--text-secondary, #8b93a7) !important;
-            font-size: 13px !important;
-            font-weight: 600 !important;
+            margin-top: 4px !important;
         }
 
-        .topbar-right {
-            display: flex !important;
-            align-items: center !important;
-            gap: 14px !important;
-        }
-
-        .topbar-icon-btn {
-            width: 44px !important;
-            height: 44px !important;
-            border-radius: 50% !important;
-            background: #f4f6fa !important;
-            color: #4b5563 !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            text-decoration: none !important;
-            position: relative !important;
-            border: 0 !important;
-            box-shadow: none !important;
-            transition: .2s ease !important;
-        }
-
-        .topbar-icon-btn:hover {
-            background: #eef1f6 !important;
-            color: #111827 !important;
-            transform: translateY(-1px) !important;
+        .topbar-hidden-server-avatar {
+            display: none !important;
         }
 
         .page-content {
-            width: 100% !important;
-            box-sizing: border-box !important;
             padding: 30px 40px !important;
-            background: #ffffff !important;
         }
-
     </style>
 </head>
 
@@ -856,9 +809,7 @@
 
                 <!-- Kept hidden only so existing code-behind references will not break. -->
                 <asp:Label ID="lblTopbarInitial" runat="server" Text="A" Style="display:none;" />
-                <asp:Image ID="imgTopbarAvatar" runat="server"
-                    ImageUrl="~/ProfilePicture/default-profile.png"
-                    CssClass="topbar-hidden-server-avatar" />
+                
             </div>
         </div>
 

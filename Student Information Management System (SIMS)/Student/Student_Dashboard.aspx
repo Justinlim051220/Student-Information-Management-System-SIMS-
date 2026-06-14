@@ -36,23 +36,6 @@
             margin-left: 260px;
         }
 
-        .notif-wrap {
-            position: relative;
-            display: inline-block;
-        }
-
-        .notif-dot {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 10px;
-            height: 10px;
-            background: #ef4444;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            z-index: 999;
-        }
-
         .stu-stats-grid {
             display: grid;
             grid-template-columns: repeat(5, minmax(170px, 1fr));
@@ -459,10 +442,8 @@
 
             <div class="topbar-right">
                 <a href="Notification.aspx" class="topbar-icon-btn" title="Notifications">
-                    <span class="notif-wrap">
-                        <i class="fa-solid fa-bell"></i>
-                        <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="notif-dot" Visible="false" />
-                    </span>
+                    <i class="fa-solid fa-bell"></i>
+                    <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
                 </a>
 
                 <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile">
