@@ -44,6 +44,8 @@ namespace Student_Information_Management_System__SIMS_.Admin
                     SELECT Session FROM Fees
                     UNION
                     SELECT Session FROM CourseOffering
+                    UNION
+                    SELECT [Session] FROM Results
                 ) x
                 WHERE Session IS NOT NULL AND LTRIM(RTRIM(Session)) <> ''
                 ORDER BY Session DESC";
@@ -95,7 +97,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
         private void UpdateFilterVisibility()
         {
             pnlCourseFilter.Visible = ddlReportType.SelectedValue == "Attendance";
-            pnlAcademicSoon.Visible = ddlReportType.SelectedValue == "Academic";
+            pnlAcademicSoon.Visible = false;
         }
 
         protected void btnGenerate_Click(object sender, EventArgs e)
@@ -106,12 +108,6 @@ namespace Student_Information_Management_System__SIMS_.Admin
             if (string.IsNullOrWhiteSpace(ddlReportType.SelectedValue))
             {
                 ShowMessage("Filter Required", "Please select the report type first.");
-                return;
-            }
-
-            if (ddlReportType.SelectedValue == "Academic")
-            {
-                ShowMessage("Coming Soon", "Academic Report is not available yet.");
                 return;
             }
 
@@ -143,7 +139,128 @@ namespace Student_Information_Management_System__SIMS_.Admin
             if (ddlReportType.SelectedValue == "Enrollment")
             {
                 GenerateEnrollmentReport();
+                return;
             }
+
+            if (ddlReportType.SelectedValue == "Academic")
+            {
+                GenerateAcademicReport();
+                return;
+            }
+        }
+
+        private void GenerateAcademicReport()
+        {
+            DataTable dt = GetAcademicData(ddlSession.SelectedValue, ddlProgramme.SelectedValue);
+            BindCommonReport("Academic Report", dt, null, false);
+
+            int totalStudents = dt.Rows.Count;
+            decimal totalGpa = 0;
+            decimal totalCgpa = 0;
+            decimal highestGpa = 0;
+            decimal highestCgpa = 0;
+
+            foreach (DataRow row in dt.Rows)
+            {
+                decimal gpa = row["GPA"] == DBNull.Value ? 0 : Convert.ToDecimal(row["GPA"]);
+                decimal cgpa = row["CGPA"] == DBNull.Value ? 0 : Convert.ToDecimal(row["CGPA"]);
+
+                totalGpa += gpa;
+                totalCgpa += cgpa;
+
+                if (gpa > highestGpa) highestGpa = gpa;
+                if (cgpa > highestCgpa) highestCgpa = cgpa;
+            }
+
+            decimal averageGpa = totalStudents == 0 ? 0 : Math.Round(totalGpa / totalStudents, 2);
+            decimal averageCgpa = totalStudents == 0 ? 0 : Math.Round(totalCgpa / totalStudents, 2);
+
+            SetSummary(
+                "Total Students", totalStudents.ToString(),
+                "Average GPA", averageGpa.ToString("N2"),
+                "Average CGPA", averageCgpa.ToString("N2"),
+                "Highest GPA / CGPA", highestGpa.ToString("N2") + " / " + highestCgpa.ToString("N2"));
+        }
+
+        private DataTable GetAcademicData(string session, string programmeId)
+        {
+            string sql = @"
+                SELECT r.StudentId,
+                       sd.FirstName + ' ' + sd.LastName AS StudentName,
+                       r.Semester,
+                       c.CourseCode,
+                       r.Grade,
+                       r.GPA,
+                       r.CGPA
+                FROM Results r
+                INNER JOIN StudentDetails sd ON r.StudentId = sd.StudentId
+                INNER JOIN Courses c ON r.CourseId = c.CourseId
+                WHERE r.[Session] = @Session
+                  AND sd.ProgrammeId = @ProgrammeId
+                  AND r.ResultStatus = 'Published'
+                ORDER BY sd.FirstName, sd.LastName, r.Semester, c.CourseCode";
+
+            DataTable raw = DatabaseHelper.ExecuteQuery(sql, new SqlParameter[]
+            {
+                new SqlParameter("@Session", session),
+                new SqlParameter("@ProgrammeId", programmeId)
+            });
+
+            DataTable result = new DataTable();
+            result.Columns.Add("Student ID");
+            result.Columns.Add("Student Name");
+            result.Columns.Add("Semester");
+
+            foreach (DataRow row in raw.Rows)
+            {
+                string courseCode = Convert.ToString(row["CourseCode"]);
+                if (!result.Columns.Contains(courseCode))
+                {
+                    result.Columns.Add(courseCode);
+                }
+            }
+
+            result.Columns.Add("GPA");
+            result.Columns.Add("CGPA");
+
+            DataView distinctStudents = new DataView(raw);
+            DataTable students = distinctStudents.ToTable(true, "StudentId", "StudentName", "Semester", "GPA", "CGPA");
+
+            foreach (DataRow student in students.Rows)
+            {
+                DataRow output = result.NewRow();
+                string studentId = Convert.ToString(student["StudentId"]);
+                string semester = Convert.ToString(student["Semester"]);
+
+                output["Student ID"] = studentId;
+                output["Student Name"] = Convert.ToString(student["StudentName"]);
+                output["Semester"] = semester;
+
+                foreach (DataColumn col in result.Columns)
+                {
+                    if (col.ColumnName != "Student ID" &&
+                        col.ColumnName != "Student Name" &&
+                        col.ColumnName != "Semester" &&
+                        col.ColumnName != "GPA" &&
+                        col.ColumnName != "CGPA")
+                    {
+                        output[col.ColumnName] = "-";
+                    }
+                }
+
+                foreach (DataRow course in raw.Select("StudentId = '" + studentId.Replace("'", "''") + "' AND Semester = " + semester))
+                {
+                    string courseCode = Convert.ToString(course["CourseCode"]);
+                    output[courseCode] = Convert.ToString(course["Grade"]);
+                }
+
+                output["GPA"] = Convert.ToDecimal(student["GPA"]).ToString("N2");
+                output["CGPA"] = Convert.ToDecimal(student["CGPA"]).ToString("N2");
+
+                result.Rows.Add(output);
+            }
+
+            return result;
         }
 
         private void GenerateFeePaymentReport()
@@ -564,6 +681,16 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 return dt;
             }
 
+            if (title.Equals("Academic Report", StringComparison.OrdinalIgnoreCase))
+            {
+                // Academic report already uses a clean pivot layout: one row per student,
+                // course codes as columns, and grade only. Keep the PDF exactly aligned
+                // with the screen table.
+                return source;
+            }
+
+            // Fee Payment and Enrollment now also use the same professional PDF table
+            // instead of falling back to a plain raw export.
             return source;
         }
 

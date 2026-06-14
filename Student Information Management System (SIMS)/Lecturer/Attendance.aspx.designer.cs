@@ -24,31 +24,13 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
         /// <summary>
-        /// imgSidebarAvatar control.
+        /// LecturerSidebar1 control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Image imgSidebarAvatar;
-
-        /// <summary>
-        /// lblSidebarName control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSidebarName;
-
-        /// <summary>
-        /// lbLogout control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.LinkButton lbLogout;
+        protected global::Student_Information_Management_System__SIMS_.Lecturer.LecturerSidebar LecturerSidebar1;
 
         /// <summary>
         /// lblDate control.
@@ -193,14 +175,5 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnSubmitAttendance;
-
-        /// <summary>
-        /// btnConfirmLogout control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.LinkButton btnConfirmLogout;
     }
 }

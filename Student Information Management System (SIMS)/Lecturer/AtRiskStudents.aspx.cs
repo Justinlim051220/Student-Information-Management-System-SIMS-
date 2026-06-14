@@ -15,7 +15,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
 
             if (!IsPostBack)
             {
-                LoadLecturerInfo();
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
 
                 LoadProgrammeFilter();
@@ -45,44 +44,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     new[] { new SqlParameter("@UserId", CurrentUserId) });
 
                 return result == null ? "" : result.ToString();
-            }
-        }
-
-        private void LoadLecturerInfo()
-        {
-            string fullName = SessionHelper.GetFullName(Session);
-
-            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName)
-                ? "Lecturer"
-                : fullName;
-
-            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName)
-                ? "Lecturer"
-                : fullName;
-
-            LoadSidebarProfilePicture();
-        }
-
-        private void LoadSidebarProfilePicture()
-        {
-            object result = DatabaseHelper.ExecuteScalar(
-                "SELECT ProfilePicture FROM LecturerDetails WHERE UserId = @UserId",
-                new[]
-                {
-            new SqlParameter("@UserId", CurrentUserId)
-                });
-
-            string picture = result == null || result == DBNull.Value
-                ? ""
-                : result.ToString();
-
-            if (!string.IsNullOrWhiteSpace(picture))
-            {
-                imgSidebarAvatar.ImageUrl = picture;
-            }
-            else
-            {
-                imgSidebarAvatar.ImageUrl = "~/ProfilePicture/default-profile.png";
             }
         }
         private void LoadProgrammeFilter()
@@ -347,12 +308,6 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                 new[] { new SqlParameter("@UserId", CurrentUserId) });
 
             pnlNotifBadge.Visible = count != null && Convert.ToInt32(count) > 0;
-        }
-
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
         }
     }
 }

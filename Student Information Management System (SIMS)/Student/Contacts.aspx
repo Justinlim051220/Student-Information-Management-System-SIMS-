@@ -1,4 +1,5 @@
 ﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Contacts.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student_Contacts" %>
+<%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -157,73 +158,29 @@
         .logout-btn-cancel:hover { background:#fff7ed; transform:translateY(-1px); }
         .logout-btn-confirm { border:2px solid transparent; background:var(--orange-gradient); color:#ffffff!important; box-shadow:var(--shadow-orange); }
         .logout-btn-confirm:hover { transform:translateY(-1px); color:#ffffff!important; }
+
+        .sidebar-photo-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            overflow: hidden;
+            padding: 0 !important;
+            flex-shrink: 0;
+            background: #ffffff;
+        }
+
+        .sidebar-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
     </style>
 </head>
 <body>
 <form id="form1" runat="server">
-    <div class="sidebar">
-        <div class="sidebar-brand">
-            <img src="~/Images/Logo_Dashboard.png" runat="server" class="brand-logo" />
-            <div class="brand-text">
-                <div class="brand-name">SIMS</div>
-                <div class="brand-sub">Student Portal</div>
-            </div>
-        </div>
-
-        <nav class="sidebar-nav">
-            <div class="sidebar-section-label">Main</div>
-            <a href="Student_Dashboard.aspx" class="sidebar-link">
-                <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Academic</div>
-            <a href="MyCourses.aspx" class="sidebar-link">
-                <i class="fa-solid fa-book-open nav-icon"></i> My Courses
-            </a>
-            <a href="Attendance.aspx" class="sidebar-link">
-                <i class="fa-solid fa-calendar-check nav-icon"></i> Attendance
-            </a>
-            <a href="Student_Enrollment.aspx" class="sidebar-link">
-                <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
-            </a>
-            <a href="Results.aspx" class="sidebar-link">
-                <i class="fa-solid fa-chart-line nav-icon"></i> Results
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
-            <a href="Student_Payment.aspx" class="sidebar-link">
-                <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-            <a href="Notification.aspx" class="sidebar-link">
-                <i class="fa-solid fa-bell nav-icon"></i> Notifications
-            </a>
-            <a href="Contacts.aspx" class="sidebar-link active">
-                <i class="fa-solid fa-address-book nav-icon"></i> Contacts
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
-            <a href="MyProfile.aspx" class="sidebar-link">
-                <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-user">
-                <div class="user-avatar">
-                    <asp:Label ID="lblAvatarInitial" runat="server" Text="S" />
-                </div>
-                <div class="user-info">
-                    <div class="user-name"><asp:Label ID="lblSidebarName" runat="server" Text="Student" /></div>
-                    <div class="user-role">Student</div>
-                </div>
-            </div>
-            <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link" OnClientClick="showLogoutModal(); return false;">
-                <i class="fa-solid fa-right-from-bracket"></i> Log Out
-            </asp:LinkButton>
-        </div>
-    </div>
+<uc:StudentSidebar ID="StudentSidebar1" runat="server" />
 
     <div class="main-wrapper">
         <div class="topbar">
@@ -285,19 +242,6 @@
         </div>
     </div>
 
-    <div id="logoutModal" class="logout-modal-overlay" onclick="hideLogoutModalOnBackdrop(event)">
-        <div class="logout-modal-card" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
-            <div class="logout-modal-top">
-                <div class="logout-warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                <h3 id="logoutTitle" class="logout-title">Log Out</h3>
-            </div>
-            <p class="logout-message">Are you sure you want to log out?</p>
-            <div class="logout-actions">
-                <button type="button" class="logout-btn logout-btn-cancel" onclick="hideLogoutModal()">Cancel</button>
-                <asp:LinkButton ID="btnConfirmLogout" runat="server" CssClass="logout-btn logout-btn-confirm" OnClick="lbLogout_Click">Log Out</asp:LinkButton>
-            </div>
-        </div>
-    </div>
 
     <script>
         function showLogoutModal() {

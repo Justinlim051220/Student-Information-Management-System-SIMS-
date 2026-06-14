@@ -7,7 +7,7 @@ using SIMS.Helpers;
 
 namespace Student_Information_Management_System__SIMS_.Student
 {
-    public partial class MyCourses : System.Web.UI.Page
+    public partial class MyCourses : Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -15,36 +15,23 @@ namespace Student_Information_Management_System__SIMS_.Student
 
             if (!IsPostBack)
             {
-                lblDate.Text = DateTime.Now.ToString("dd MMM yyyy");
+                lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
 
-                LoadSidebarUserInfo();
                 LoadFilters();
                 LoadEnrolledCourses();
                 CheckUnreadNotifications();
             }
         }
 
-        private void LoadSidebarUserInfo()
-        {
-            string studentName = SessionHelper.GetFullName(Session);
-
-            if (string.IsNullOrWhiteSpace(studentName))
-                studentName = "Student";
-
-            string initial = studentName.Length > 0 ? studentName.Substring(0, 1).ToUpper() : "S";
-
-            lblSidebarName.Text = studentName;
-            lblAvatarInitial.Text = initial;
-        }
-
         private void CheckUnreadNotifications()
         {
             int userId = SessionHelper.GetUserId(Session);
+
             object count = DatabaseHelper.ExecuteScalar(
                 "SELECT COUNT(*) FROM Notifications WHERE UserId = @Uid AND IsRead = 0",
                 new[] { new SqlParameter("@Uid", userId) });
 
-            bool hasUnread = (count != null && Convert.ToInt32(count) > 0);
+            bool hasUnread = count != null && count != DBNull.Value && Convert.ToInt32(count) > 0;
             pnlNotifBadge.Visible = hasUnread;
         }
 
@@ -93,7 +80,8 @@ namespace Student_Information_Management_System__SIMS_.Student
             }
             catch
             {
-                // Prevent page crash if filters fail
+                lblMessage.Text = "Unable to load course filters.";
+                lblMessage.Visible = true;
             }
         }
 
@@ -114,14 +102,10 @@ namespace Student_Information_Management_System__SIMS_.Student
                   AND e.Status <> 'Dropped'";
 
             if (!string.IsNullOrEmpty(ddlFilterSession.SelectedValue))
-            {
                 sql += " AND e.Session = @Session";
-            }
 
             if (!string.IsNullOrEmpty(ddlFilterSemester.SelectedValue))
-            {
                 sql += " AND e.Semester = @Semester";
-            }
 
             sql += " ORDER BY e.Session DESC, e.Semester ASC, c.CourseCode ASC";
 
@@ -131,14 +115,10 @@ namespace Student_Information_Management_System__SIMS_.Student
             };
 
             if (!string.IsNullOrEmpty(ddlFilterSession.SelectedValue))
-            {
                 parameters.Add(new SqlParameter("@Session", ddlFilterSession.SelectedValue));
-            }
 
             if (!string.IsNullOrEmpty(ddlFilterSemester.SelectedValue))
-            {
                 parameters.Add(new SqlParameter("@Semester", ddlFilterSemester.SelectedValue));
-            }
 
             DataTable dt = DatabaseHelper.ExecuteQuery(sql, parameters.ToArray());
 
@@ -154,13 +134,15 @@ namespace Student_Information_Management_System__SIMS_.Student
             }
             else
             {
+                rptCourses.DataSource = null;
+                rptCourses.DataBind();
+
                 rptCourses.Visible = false;
                 pnlEmpty.Visible = true;
 
                 lblTotal.Text = "0";
             }
         }
-
 
         protected void ddlFilterSession_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -175,12 +157,6 @@ namespace Student_Information_Management_System__SIMS_.Student
         protected void btnSearch_Click(object sender, EventArgs e)
         {
             LoadEnrolledCourses();
-        }
-
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
         }
     }
 }

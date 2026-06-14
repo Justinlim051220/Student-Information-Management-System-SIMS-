@@ -11,19 +11,16 @@ namespace Student_Information_Management_System__SIMS_.Student
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Restrict page entry to logged-in students
             SessionHelper.RequireStudent(Session, Response);
 
             if (!IsPostBack)
             {
-                // Validate incoming parameters gracefully
                 if (string.IsNullOrEmpty(GetCourseIdParam()) || string.IsNullOrEmpty(GetSessionParam()))
                 {
                     Response.Redirect("MyCourses.aspx");
                     return;
                 }
 
-                LoadSidebarUserInfo();
                 LoadCourseHeader();
                 LoadCourseMaterials();
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
@@ -31,7 +28,6 @@ namespace Student_Information_Management_System__SIMS_.Student
             }
         }
 
-        // Case-Insensitive evaluation of parameter inputs from query strings
         private string GetCourseIdParam()
         {
             return Request.QueryString["CourseId"] ?? Request.QueryString["courseId"];
@@ -49,7 +45,6 @@ namespace Student_Information_Management_System__SIMS_.Student
 
         private void LoadCourseHeader()
         {
-            // Join query pulls both base course traits and assigned lecturers
             string sql = @"
                 SELECT c.CourseCode, c.CourseName, c.Credits, c.Description,
                        (ld.FirstName + ' ' + ld.LastName) AS FullName
@@ -58,7 +53,8 @@ namespace Student_Information_Management_System__SIMS_.Student
                 LEFT JOIN LecturerDetails ld ON lc.LecturerId = ld.LecturerId
                 WHERE c.CourseId = @CourseId";
 
-            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[] {
+            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
                 new SqlParameter("@CourseId", Convert.ToInt32(GetCourseIdParam())),
                 new SqlParameter("@Session", GetSessionParam())
             });
@@ -66,15 +62,14 @@ namespace Student_Information_Management_System__SIMS_.Student
             if (dt != null && dt.Rows.Count > 0)
             {
                 DataRow row = dt.Rows[0];
+
                 lblCourseCode.Text = Server.HtmlEncode(row["CourseCode"].ToString());
                 lblCourseName.Text = Server.HtmlEncode(row["CourseName"].ToString());
                 lblCredits.Text = Server.HtmlEncode(row["Credits"].ToString());
                 lblDescription.Text = Server.HtmlEncode(row["Description"].ToString());
 
                 if (row["FullName"] != DBNull.Value)
-                {
                     lblLecturerName.Text = Server.HtmlEncode(row["FullName"].ToString());
-                }
             }
             else
             {
@@ -84,7 +79,6 @@ namespace Student_Information_Management_System__SIMS_.Student
 
         private void LoadCourseMaterials()
         {
-            // Fetch everything relating to the module code target
             string sql = @"
                 SELECT MaterialId, Title, Description, MaterialType, CreatedAt,
                        FileName, FilePath, FileType, FileSizeKB
@@ -92,7 +86,8 @@ namespace Student_Information_Management_System__SIMS_.Student
                 WHERE CourseId = @CourseId AND Session = @Session
                 ORDER BY CreatedAt DESC";
 
-            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[] {
+            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
                 new SqlParameter("@CourseId", Convert.ToInt32(GetCourseIdParam())),
                 new SqlParameter("@Session", GetSessionParam())
             });
@@ -108,66 +103,67 @@ namespace Student_Information_Management_System__SIMS_.Student
             else
             {
                 rptMaterials.Visible = false;
-                pnlNoMaterials.Visible = true; // Displays placeholder message
+                pnlNoMaterials.Visible = true;
             }
         }
 
         protected void rptMaterials_ItemDataBound(object sender, RepeaterItemEventArgs e)
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            if (e.Item.ItemType != ListItemType.Item && e.Item.ItemType != ListItemType.AlternatingItem)
+                return;
+
+            Repeater rptFiles = (Repeater)e.Item.FindControl("rptFiles");
+            HiddenField hfMaterialId = (HiddenField)e.Item.FindControl("hfMaterialId");
+            HiddenField hfLegacyFileName = (HiddenField)e.Item.FindControl("hfLegacyFileName");
+            HiddenField hfLegacyFilePath = (HiddenField)e.Item.FindControl("hfLegacyFilePath");
+            HiddenField hfLegacyFileSize = (HiddenField)e.Item.FindControl("hfLegacyFileSize");
+
+            if (rptFiles == null || hfMaterialId == null)
+                return;
+
+            string sqlFiles = @"
+                SELECT FileId, FileName, FilePath, FileType, FileSizeKB
+                FROM CourseMaterialFiles
+                WHERE MaterialId = @MaterialId
+                ORDER BY UploadedAt ASC";
+
+            DataTable dtFiles = DatabaseHelper.ExecuteQuery(sqlFiles, new[]
             {
-                Repeater rptFiles = (Repeater)e.Item.FindControl("rptFiles");
-                HiddenField hfMaterialId = (HiddenField)e.Item.FindControl("hfMaterialId");
+                new SqlParameter("@MaterialId", Convert.ToInt32(hfMaterialId.Value))
+            });
 
-                // Legacy Column References
-                HiddenField hfLegacyFileName = (HiddenField)e.Item.FindControl("hfLegacyFileName");
-                HiddenField hfLegacyFilePath = (HiddenField)e.Item.FindControl("hfLegacyFilePath");
-                HiddenField hfLegacyFileSize = (HiddenField)e.Item.FindControl("hfLegacyFileSize");
+            if (dtFiles != null && dtFiles.Rows.Count > 0)
+            {
+                rptFiles.DataSource = dtFiles;
+                rptFiles.DataBind();
+            }
+            else if (hfLegacyFilePath != null && !string.IsNullOrEmpty(hfLegacyFilePath.Value))
+            {
+                DataTable dtFallback = new DataTable();
+                dtFallback.Columns.Add("FileId");
+                dtFallback.Columns.Add("FileName");
+                dtFallback.Columns.Add("FilePath");
+                dtFallback.Columns.Add("FileSizeKB");
 
-                if (rptFiles != null && hfMaterialId != null)
-                {
-                    // Check modern structural table CourseMaterialFiles
-                    string sqlFiles = @"
-                        SELECT FileId, FileName, FilePath, FileType, FileSizeKB
-                        FROM CourseMaterialFiles 
-                        WHERE MaterialId = @MaterialId 
-                        ORDER BY UploadedAt ASC";
+                DataRow dr = dtFallback.NewRow();
+                dr["FileId"] = "";
+                dr["FileName"] = hfLegacyFileName == null ? "" : hfLegacyFileName.Value;
+                dr["FilePath"] = hfLegacyFilePath.Value;
+                dr["FileSizeKB"] = hfLegacyFileSize != null && !string.IsNullOrEmpty(hfLegacyFileSize.Value)
+                    ? hfLegacyFileSize.Value
+                    : "0";
 
-                    DataTable dtFiles = DatabaseHelper.ExecuteQuery(sqlFiles, new[] {
-                        new SqlParameter("@MaterialId", Convert.ToInt32(hfMaterialId.Value))
-                    });
+                dtFallback.Rows.Add(dr);
 
-                    if (dtFiles != null && dtFiles.Rows.Count > 0)
-                    {
-                        rptFiles.DataSource = dtFiles;
-                        rptFiles.DataBind();
-                    }
-                    else if (!string.IsNullOrEmpty(hfLegacyFilePath.Value))
-                    {
-                        // Fallback fallback: Check if old schema columns contain file entries
-                        DataTable dtFallback = new DataTable();
-                        dtFallback.Columns.Add("FileId");
-                        dtFallback.Columns.Add("FileName");
-                        dtFallback.Columns.Add("FilePath");
-                        dtFallback.Columns.Add("FileSizeKB");
-
-                        DataRow dr = dtFallback.NewRow();
-                        dr["FileId"] = "";
-                        dr["FileName"] = hfLegacyFileName.Value;
-                        dr["FilePath"] = hfLegacyFilePath.Value;
-                        dr["FileSizeKB"] = !string.IsNullOrEmpty(hfLegacyFileSize.Value) ? hfLegacyFileSize.Value : "0";
-                        dtFallback.Rows.Add(dr);
-
-                        rptFiles.DataSource = dtFallback;
-                        rptFiles.DataBind();
-                    }
-                }
+                rptFiles.DataSource = dtFallback;
+                rptFiles.DataBind();
             }
         }
 
         protected string GetDownloadUrl(object fileId, object filePath)
         {
             string id = Convert.ToString(fileId);
+
             if (!string.IsNullOrWhiteSpace(id))
                 return "DownloadCourseMaterial.aspx?fileId=" + Server.UrlEncode(id);
 
@@ -175,11 +171,11 @@ namespace Student_Information_Management_System__SIMS_.Student
             return string.IsNullOrWhiteSpace(path) ? "#" : ResolveUrl(path);
         }
 
-        // Click handler actions for Tab selection layout changes
         protected void btnModulesTab_Click(object sender, EventArgs e)
         {
             pnlModulesSection.Visible = true;
             pnlGradesSection.Visible = false;
+
             btnModulesTab.CssClass = "tab-btn active";
             btnGradesTab.CssClass = "tab-btn";
         }
@@ -188,6 +184,7 @@ namespace Student_Information_Management_System__SIMS_.Student
         {
             pnlModulesSection.Visible = false;
             pnlGradesSection.Visible = true;
+
             btnModulesTab.CssClass = "tab-btn";
             btnGradesTab.CssClass = "tab-btn active";
 
@@ -275,6 +272,7 @@ namespace Student_Information_Management_System__SIMS_.Student
 
             gvStudentGrades.DataSource = table;
             gvStudentGrades.DataBind();
+
             gvStudentGrades.Visible = true;
             pnlNoGrades.Visible = false;
         }
@@ -331,31 +329,15 @@ namespace Student_Information_Management_System__SIMS_.Student
             }
         }
 
-        private void LoadSidebarUserInfo()
-        {
-            string studentName = SessionHelper.GetFullName(Session);
-
-            if (string.IsNullOrWhiteSpace(studentName))
-                studentName = "Student";
-
-            lblSidebarName.Text = Server.HtmlEncode(studentName);
-            lblAvatarInitial.Text = studentName.Length > 0 ? studentName.Substring(0, 1).ToUpper() : "S";
-        }
-
         private void CheckUnreadNotifications()
         {
             int userId = SessionHelper.GetUserId(Session);
+
             object count = DatabaseHelper.ExecuteScalar(
                 "SELECT COUNT(*) FROM Notifications WHERE UserId = @Uid AND IsRead = 0",
                 new[] { new SqlParameter("@Uid", userId) });
 
-            pnlNotifBadge.Visible = (count != null && Convert.ToInt32(count) > 0);
-        }
-
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
+            pnlNotifBadge.Visible = count != null && count != DBNull.Value && Convert.ToInt32(count) > 0;
         }
     }
 }

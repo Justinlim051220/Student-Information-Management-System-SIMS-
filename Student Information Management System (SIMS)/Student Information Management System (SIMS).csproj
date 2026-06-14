@@ -93,7 +93,42 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Admin\Admin_CreateAdmin.aspx.cs">
+      <DependentUpon>Admin_CreateAdmin.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\Admin_CreateAdmin.aspx.designer.cs">
+      <DependentUpon>Admin_CreateAdmin.aspx</DependentUpon>
+    </Compile>
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Lecturer\AttendanceReport.aspx.cs">
+      <DependentUpon>AttendanceReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Lecturer\AttendanceReport.aspx.designer.cs">
+      <DependentUpon>AttendanceReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Lecturer\CourseReport.aspx.cs">
+      <DependentUpon>CourseReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Lecturer\CourseReport.aspx.designer.cs">
+      <DependentUpon>CourseReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Lecturer\LecturerSidebar.ascx.cs">
+      <DependentUpon>LecturerSidebar.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Lecturer\LecturerSidebar.ascx.designer.cs">
+      <DependentUpon>LecturerSidebar.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Lecturer\Report.aspx.cs">
+      <DependentUpon>Report.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Lecturer\Report.aspx.designer.cs">
+      <DependentUpon>Report.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Site.Mobile.Master.cs">
       <DependentUpon>Site.Mobile.Master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -136,6 +171,20 @@
     <Compile Include="Student\Results.aspx.designer.cs">
       <DependentUpon>Results.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Student\StudentSidebar.ascx.cs">
+      <DependentUpon>StudentSidebar.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Student\StudentSidebar.ascx.designer.cs">
+      <DependentUpon>StudentSidebar.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="SystemSetup.aspx.cs">
+      <DependentUpon>SystemSetup.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="SystemSetup.aspx.designer.cs">
+      <DependentUpon>SystemSetup.aspx</DependentUpon>
+    </Compile>
     <Compile Include="ViewSwitcher.ascx.cs">
       <DependentUpon>ViewSwitcher.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -145,6 +194,7 @@
     </Compile>
     <Content Include="About.aspx" />
     <Content Include="Admin\Admin_Announcement.aspx" />
+    <Content Include="Admin\Admin_CreateAdmin.aspx" />
     <Content Include="Admin\Admin_enrolment.aspx" />
     <Content Include="Admin\Admin_Notification.aspx" />
     <Content Include="Admin\Admin_Profile.aspx" />
@@ -183,11 +233,15 @@
     <Content Include="Lecturer\Announcements.aspx" />
     <Content Include="Lecturer\AtRiskStudents.aspx" />
     <Content Include="Lecturer\Attendance.aspx" />
+    <Content Include="Lecturer\AttendanceReport.aspx" />
+    <Content Include="Lecturer\CourseReport.aspx" />
     <Content Include="Lecturer\CourseStudents.aspx" />
+    <Content Include="Lecturer\LecturerSidebar.ascx" />
     <Content Include="Lecturer\Lecturer_Dashboard.aspx" />
     <Content Include="Lecturer\MyCourses.aspx" />
     <Content Include="Lecturer\Notifications.aspx" />
     <Content Include="Lecturer\Profile.aspx" />
+    <Content Include="Lecturer\Report.aspx" />
     <Content Include="Login.aspx" />
     <Content Include="ResetPassword.aspx" />
     <Content Include="Scripts\bootstrap.bundle.js" />
@@ -233,10 +287,12 @@
     <Content Include="Student\MyProfile.aspx" />
     <Content Include="Student\Notification.aspx" />
     <Content Include="Student\Results.aspx" />
+    <Content Include="Student\StudentSidebar.ascx" />
     <Content Include="Student\Student_Dashboard.aspx" />
     <Content Include="Student\Student_Enrollment.aspx" />
     <Content Include="Student\Student_Payment.aspx" />
     <Content Include="Styles\SIMS.css" />
+    <Content Include="SystemSetup.aspx" />
     <Content Include="ViewSwitcher.ascx" />
     <Content Include="Web.config" />
     <Content Include="Bundle.config" />

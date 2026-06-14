@@ -1,5 +1,5 @@
 ﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Results.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Results" %>
-
+<%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 <!DOCTYPE html>
 <html lang="en">
 <head runat="server">
@@ -135,78 +135,125 @@
             line-height: 1 !important;
             display: block !important;
         }
+        .logout-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.62);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .logout-modal-card {
+            width: 100%;
+            max-width: 400px;
+            background: #ffffff;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28);
+            text-align: center;
+            font-family: var(--font-primary);
+            animation: logoutPop 0.18s ease-out;
+        }
+
+        @keyframes logoutPop {
+            from { transform: translateY(8px) scale(0.98); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .logout-modal-top {
+            padding: 36px 32px 20px;
+        }
+
+        .logout-warning-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            color: #f59e0b;
+            font-size: 56px;
+            line-height: 1;
+        }
+
+        .logout-warning-icon i {
+            color: #f59e0b;
+        }
+
+        .logout-title {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .logout-message {
+            margin: 0;
+            padding: 20px 32px;
+            border-top: 1px solid var(--border-light);
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .logout-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 18px 28px 28px;
+        }
+
+        .logout-btn {
+            min-width: 118px;
+            height: 44px;
+            border-radius: 999px;
+            font-family: var(--font-primary);
+            font-size: 14px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .logout-btn-cancel {
+            border: 2px solid var(--orange-main);
+            background: #ffffff;
+            color: var(--orange-main);
+        }
+
+        .logout-btn-cancel:hover {
+            background: #fff7ed;
+            transform: translateY(-1px);
+        }
+
+        .logout-btn-confirm {
+            border: 2px solid transparent;
+            background: var(--orange-gradient);
+            color: #ffffff !important;
+            box-shadow: var(--shadow-orange);
+        }
+
+        .logout-btn-confirm:hover {
+            transform: translateY(-1px);
+            color: #ffffff !important;
+        }
+        
     </style>
 </head>
 
 <body>
 <form id="form1" runat="server">
 
-    <div class="sidebar">
-        <div class="sidebar-brand">
-            <img src="~/Images/Logo_Dashboard.png" runat="server" alt="ONTI SIMS" class="brand-logo" />
-            <div class="brand-text">
-                <div class="brand-name">SIMS</div>
-                <div class="brand-sub">Student Portal</div>
-            </div>
-        </div>
-
-        <nav class="sidebar-nav">
-            <div class="sidebar-section-label">Main</div>
-            <asp:HyperLink ID="lnkDashboard" runat="server" NavigateUrl="~/Student/Student_Dashboard.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
-            </asp:HyperLink>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Academic</div>
-            <asp:HyperLink ID="lnkMyCourses" runat="server" NavigateUrl="~/Student/MyCourses.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-book-open nav-icon"></i> My Courses
-            </asp:HyperLink>
-            <asp:HyperLink ID="lnkAttendance" runat="server" NavigateUrl="~/Student/Attendance.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-calendar-check nav-icon"></i> Attendance
-            </asp:HyperLink>
-            <asp:HyperLink ID="lnkEnrollment" runat="server" NavigateUrl="~/Student/Student_Enrollment.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
-            </asp:HyperLink>
-            <asp:HyperLink ID="lnkResults" runat="server" NavigateUrl="~/Student/Results.aspx" CssClass="sidebar-link active">
-                <i class="fa-solid fa-chart-line nav-icon"></i> Results
-            </asp:HyperLink>
-<div class="sidebar-section-label" style="margin-top:12px;">Finance</div>
-            <asp:HyperLink ID="lnkPayment" runat="server" NavigateUrl="~/Student/Student_Payment.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-money-bill-wave nav-icon"></i> Payment
-            </asp:HyperLink>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-            <asp:HyperLink ID="lnkNotifications" runat="server" NavigateUrl="~/Student/Notification.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-bell nav-icon"></i> Notifications
-                <asp:Panel ID="pnlSidebarNotifBadge" runat="server" CssClass="badge-dot" Visible="false" style="margin-left:auto;" />
-            </asp:HyperLink>
-            <asp:HyperLink ID="lnkContacts" runat="server" NavigateUrl="~/Student/Contacts.aspx" CssClass="sidebar-link">
-                <i class="fa-solid fa-address-book nav-icon"></i> Contacts
-            </asp:HyperLink>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
-            <asp:HyperLink ID="lnkProfile" runat="server" NavigateUrl="~/Student/MyProfile.aspx" CssClass="sidebar-link">
-               <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
-            </asp:HyperLink>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-user">
-                <div class="user-avatar" style="width: 42px; height: 42px; border-radius: 50%; background: var(--orange-gradient); display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: 800;">
-                     <asp:Label ID="lblAvatarInitial" runat="server" Text="S" />
-                </div>
-                <div class="user-info">
-                    <div class="user-name">
-                        <asp:Label ID="lblSidebarName" runat="server" Text="Student" />
-                    </div>
-                    <div class="user-role">Student</div>
-                </div>
-            </div>
-
-            <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link" OnClientClick="showLogoutModal(); return false;">
-                <i class="fa-solid fa-right-from-bracket"></i> Log Out
-            </asp:LinkButton>
-        </div>
-    </div>
+    <uc:StudentSidebar ID="StudentSidebar1" runat="server" />
 
     <div class="main-wrapper">
         <div class="topbar">
@@ -321,29 +368,23 @@
         </div>
     </div>
 
-    <div id="logoutModal" class="modal-overlay system-dialog">
-        <div class="modal-box">
-            <div class="modal-head">
-                <div class="logout-warning-icon">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                Log Out
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to log out?</p>
-            </div>
-            <div class="modal-actions">
-                <button type="button" onclick="hideLogoutModal()" class="modal-cancel">Cancel</button>
-                <asp:LinkButton ID="btnConfirmLogout" runat="server" CssClass="modal-submit" OnClick="lbLogout_Click">
-                    Log Out
-                </asp:LinkButton>
-            </div>
-        </div>
-    </div>
 
     <script>
-        function showLogoutModal() { document.getElementById('logoutModal').style.display = 'flex'; }
-        function hideLogoutModal() { document.getElementById('logoutModal').style.display = 'none'; }
+        function showLogoutModal() {
+            var modal = document.getElementById('logoutModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function hideLogoutModal() {
+            var modal = document.getElementById('logoutModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function hideLogoutModalOnBackdrop(event) {
+            if (event.target && event.target.id === 'logoutModal') {
+                hideLogoutModal();
+            }
+        }
     </script>
 
 </form>

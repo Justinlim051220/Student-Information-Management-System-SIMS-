@@ -18,14 +18,14 @@ namespace Student_Information_Management_System__SIMS_
             {
                 string fullName = SessionHelper.GetFullName(Session);
                 string studentId = SessionHelper.GetProfileId(Session);
-                string initial = fullName.Length > 0 ? fullName[0].ToString().ToUpper() : "S";
+                string initial = !string.IsNullOrWhiteSpace(fullName)
+                    ? fullName.Substring(0, 1).ToUpper()
+                    : "S";
 
-                lblSidebarName.Text = fullName;
-                lblAvatarInitial.Text = initial;
                 lblProfileInitial.Text = initial;
-                lblStudentName.Text = fullName;
+                lblStudentName.Text = string.IsNullOrWhiteSpace(fullName) ? "Student" : fullName;
                 lblStudentId.Text = studentId;
-                lblStudentNameTop.Text = fullName;
+                lblStudentNameTop.Text = string.IsNullOrWhiteSpace(fullName) ? "Student" : fullName;
                 lblStudentIdTop.Text = studentId;
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
 
@@ -751,10 +751,6 @@ namespace Student_Information_Management_System__SIMS_
                 true);
         }
 
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
-        }
+       
     }
 }

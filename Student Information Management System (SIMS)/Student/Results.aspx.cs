@@ -16,7 +16,6 @@ namespace Student_Information_Management_System__SIMS_.Student
             if (!IsPostBack)
             {
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
-                LoadStudentMetadata();
                 LoadSessionFilter();
                 ResetResultDisplay("Please select an academic session and semester, then click View Results.");
                 CheckNotificationsBadge();
@@ -42,15 +41,6 @@ namespace Student_Information_Management_System__SIMS_.Student
         private int CurrentUserId
         {
             get { return SessionHelper.GetUserId(Session); }
-        }
-
-        private void LoadStudentMetadata()
-        {
-            string fullName = SessionHelper.GetFullName(Session);
-            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName) ? "Student Account" : fullName;
-
-            if (!string.IsNullOrWhiteSpace(fullName))
-                lblAvatarInitial.Text = fullName.Substring(0, 1).ToUpper();
         }
 
         private void LoadSessionFilter()
@@ -189,7 +179,6 @@ namespace Student_Information_Management_System__SIMS_.Student
 
             decimal gpa = totalCredits > 0 ? Math.Round(totalQualityPoints / totalCredits, 2) : 0;
 
-            // Replace the selected semester result only. This keeps the table clean when lecturers edit marks later.
             DatabaseHelper.ExecuteNonQuery(@"
                 DELETE FROM Results
                 WHERE StudentId = @StudentId
@@ -314,13 +303,12 @@ namespace Student_Information_Management_System__SIMS_.Student
             lblCGPA.Text = "0.00";
             lblTotalCredits.Text = "0";
 
-            // The panel already contains a general empty-state message in the ASPX.
-            // Keeping the custom detail through tooltip avoids adding a new designer control.
             pnlEmpty.ToolTip = message;
         }
 
         private string GetLetterGrade(decimal score)
         {
+            if (score >= 90) return "A+";
             if (score >= 80) return "A";
             if (score >= 75) return "A-";
             if (score >= 70) return "B+";
@@ -328,6 +316,8 @@ namespace Student_Information_Management_System__SIMS_.Student
             if (score >= 60) return "B-";
             if (score >= 55) return "C+";
             if (score >= 50) return "C";
+            if (score >= 45) return "C-";
+            if (score >= 40) return "D";
             return "F";
         }
 
@@ -335,35 +325,41 @@ namespace Student_Information_Management_System__SIMS_.Student
         {
             switch (grade)
             {
-                case "A": return 4.00m;
-                case "A-": return 3.67m;
-                case "B+": return 3.33m;
-                case "B": return 3.00m;
-                case "B-": return 2.67m;
-                case "C+": return 2.33m;
-                case "C": return 2.00m;
-                default: return 0.00m;
+                case "A+":
+                case "A":
+                    return 4.00m;
+                case "A-":
+                    return 3.67m;
+                case "B+":
+                    return 3.33m;
+                case "B":
+                    return 3.00m;
+                case "B-":
+                    return 2.67m;
+                case "C+":
+                    return 2.33m;
+                case "C":
+                    return 2.00m;
+                case "C-":
+                    return 1.50m;
+                case "D":
+                    return 1.00m;
+                case "F":
+                default:
+                    return 0.00m;
             }
         }
 
         private void CheckNotificationsBadge()
         {
             int unreadCount = 0;
+
             object result = DatabaseHelper.ExecuteScalar(
                 "SELECT COUNT(*) FROM Notifications WHERE UserId = @UserId AND IsRead = 0",
                 new[] { new SqlParameter("@UserId", CurrentUserId) });
 
             if (result != null && int.TryParse(result.ToString(), out unreadCount))
-            {
                 pnlNotifBadge.Visible = unreadCount > 0;
-                pnlSidebarNotifBadge.Visible = unreadCount > 0;
-            }
-        }
-
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
         }
     }
 }

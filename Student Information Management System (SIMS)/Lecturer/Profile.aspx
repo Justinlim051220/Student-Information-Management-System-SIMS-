@@ -1,4 +1,5 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Profile.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Lecturer.Profile" %>
+<%@ Register Src="~/Lecturer/LecturerSidebar.ascx" TagPrefix="uc" TagName="LecturerSidebar" %>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -83,12 +84,21 @@
         }
 
         .sidebar-user {
-          margin-bottom: 18px;
-          align-items  : flex-start;
+            margin-bottom: 18px;
+            align-items: flex-start;
         }
-        .user-info  { padding-top: 4px; }
-        .user-name  { margin-bottom: 4px; }
-        .user-role  { margin-top: 2px; }
+
+        .user-info {
+            padding-top: 4px;
+        }
+
+        .user-name {
+            margin-bottom: 4px;
+        }
+
+        .user-role {
+            margin-top: 2px;
+        }
 
         .sidebar-photo-avatar {
             width: 42px;
@@ -212,9 +222,7 @@
         .cm-btn:hover {
             background: #fdf3e0;
         }
-        /* ================================================================
-           Logout confirmation prompt - exact Lecturer_Dashboard style
-           ================================================================ */
+
         .logout-modal-overlay {
             display: none;
             position: fixed;
@@ -240,10 +248,12 @@
 
         @keyframes logoutPop {
             from { transform: translateY(8px) scale(0.98); opacity: 0; }
-            to   { transform: translateY(0) scale(1); opacity: 1; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
         }
 
-        .logout-modal-top { padding: 36px 32px 20px; }
+        .logout-modal-top {
+            padding: 36px 32px 20px;
+        }
 
         .logout-warning-icon {
             width: 72px;
@@ -258,7 +268,9 @@
             line-height: 1;
         }
 
-        .logout-warning-icon i { color: #f59e0b; }
+        .logout-warning-icon i {
+            color: #f59e0b;
+        }
 
         .logout-title {
             margin: 0;
@@ -328,86 +340,7 @@
 <body>
 <form id="form1" runat="server">
 
-    <div class="sidebar">
-
-        <div class="sidebar-brand">
-            <img src="~/Images/Logo_Dashboard.png" runat="server" class="brand-logo" />
-            <div class="brand-text">
-                <div class="brand-name">SIMS</div>
-                <div class="brand-sub">Lecturer Portal</div>
-            </div>
-        </div>
-
-        <nav class="sidebar-nav">
-
-            <div class="sidebar-section-label">Main</div>
-
-            <a href="Lecturer_Dashboard.aspx" class="sidebar-link">
-                <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
-            </a>
-
-            <a href="MyCourses.aspx" class="sidebar-link">
-                <i class="fa-solid fa-book-open nav-icon"></i> My Courses
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Academic</div>
-
-            <a href="Attendance.aspx" class="sidebar-link">
-                <i class="fa-solid fa-clipboard-check nav-icon"></i> Attendance
-            </a>
-
-            <a href="AtRiskStudents.aspx" class="sidebar-link">
-                <i class="fa-solid fa-triangle-exclamation nav-icon"></i> At-Risk Students
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-
-            <a href="Announcements.aspx" class="sidebar-link">
-                <i class="fa-solid fa-bullhorn nav-icon"></i> Announcements
-            </a>
-
-            <a href="Notifications.aspx" class="sidebar-link">
-                <i class="fa-solid fa-bell nav-icon"></i> Notifications
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
-
-            <a href="Profile.aspx" class="sidebar-link active">
-                <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
-            </a>
-
-        </nav>
-
-        <div class="sidebar-footer">
-
-            <div class="sidebar-user">
-
-                <div class="user-avatar sidebar-photo-avatar">
-                    <asp:Image ID="imgSidebarAvatar"
-                        runat="server"
-                        ImageUrl="~/ProfilePicture/default-profile.png"
-                        CssClass="sidebar-avatar-img" />
-                </div>
-
-                <div class="user-info">
-                    <div class="user-name">
-                        <asp:Label ID="lblSidebarName" runat="server" Text="Lecturer" />
-                    </div>
-                    <div class="user-role">Lecturer</div>
-                </div>
-
-            </div>
-
-            <asp:LinkButton ID="lbLogout"
-                runat="server"
-                CssClass="sidebar-link"
-                OnClientClick="showLogoutModal(); return false;">
-                <i class="fa-solid fa-right-from-bracket"></i> Log Out
-            </asp:LinkButton>
-
-        </div>
-
-    </div>
+    <uc:LecturerSidebar ID="LecturerSidebar1" runat="server" />
 
     <div class="main-wrapper">
 
@@ -560,28 +493,6 @@
 
         </div>
     </div>
-    <!-- Logout Confirmation Modal -->
-    <div id="logoutModal" class="logout-modal-overlay" onclick="hideLogoutModalOnBackdrop(event)">
-        <div class="logout-modal-card" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
-            <div class="logout-modal-top">
-                <div class="logout-warning-icon">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                <h3 id="logoutTitle" class="logout-title">Log Out</h3>
-            </div>
-
-            <p class="logout-message">Are you sure you want to log out?</p>
-
-            <div class="logout-actions">
-                <button type="button" class="logout-btn logout-btn-cancel" onclick="hideLogoutModal()">Cancel</button>
-                <asp:LinkButton ID="btnConfirmLogout" runat="server"
-                    CssClass="logout-btn logout-btn-confirm"
-                    OnClick="lbLogout_Click">
-                    Log Out
-                </asp:LinkButton>
-            </div>
-        </div>
-    </div>
 
     <script>
         var SVG_TICK =
@@ -596,7 +507,6 @@
             '</svg>';
 
         function showMessageModal(title, message, isSuccess) {
-
             var iconWrap = document.getElementById('cmIconWrap');
             var iconEl = document.getElementById('cmIcon');
 

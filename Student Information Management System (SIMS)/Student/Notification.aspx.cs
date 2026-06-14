@@ -16,7 +16,6 @@ namespace Student_Information_Management_System__SIMS_
 
             if (!IsPostBack)
             {
-                LoadStudentInfo();
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
                 LoadNotifications();
                 CheckUnreadNotifications();
@@ -26,21 +25,6 @@ namespace Student_Information_Management_System__SIMS_
         private int CurrentUserId
         {
             get { return SessionHelper.GetUserId(Session); }
-        }
-
-        private void LoadStudentInfo()
-        {
-            string fullName = SessionHelper.GetFullName(Session);
-            lblSidebarName.Text = string.IsNullOrWhiteSpace(fullName) ? "Student" : fullName;
-            lblTopbarInitial.Text = string.IsNullOrWhiteSpace(fullName) ? "S" : fullName.Trim()[0].ToString().ToUpper();
-            LoadSidebarProfilePicture();
-        }
-
-        private void LoadSidebarProfilePicture()
-        {
-            // Student profile picture is not required for this page yet.
-            // The default profile picture keeps the sidebar consistent.
-            imgSidebarAvatar.ImageUrl = "~/ProfilePicture/default-profile.png";
         }
 
         private void LoadNotifications()
@@ -340,12 +324,6 @@ namespace Student_Information_Management_System__SIMS_
                 Guid.NewGuid().ToString("N"),
                 script,
                 true);
-        }
-
-        protected void lbLogout_Click(object sender, EventArgs e)
-        {
-            SessionHelper.Logout(Session);
-            Response.Redirect("~/Login.aspx", false);
         }
     }
 }
