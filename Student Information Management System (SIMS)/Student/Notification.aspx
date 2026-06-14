@@ -25,6 +25,23 @@
             padding: 0;
         }
 
+        /* Match Attendance/MyCourses topbar exactly: white bar, no grey layer above */
+        .topbar {
+            background: #ffffff !important;
+            border-bottom: 1px solid #edf0f6 !important;
+            margin: 0 !important;
+            padding: 20px 40px !important;
+        }
+
+        .topbar-title {
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .topbar-date {
+            margin-top: 5px;
+        }
+
         .notification-header {
             display:flex;
             align-items:center;
@@ -434,15 +451,15 @@
 
         .main-wrapper {
             margin-left: 260px;
-            width: calc(100% - 260px);
-            min-height: 100vh;
-            box-sizing: border-box;
+            background: #ffffff;
         }
 
-        .content-area {
+        .content-area,
+        .page-content {
             padding: 30px 40px;
             width: 100%;
             box-sizing: border-box;
+            background: #ffffff;
         }
 
         .sidebar-user {
@@ -715,6 +732,96 @@
             transform: translateY(-1px);
             color: #ffffff !important;
 }
+
+        /* FINAL TOPBAR FIX: match Attendance / Payment page header exactly and remove grey strip */
+        html,
+        body,
+        #form1 {
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow-x: hidden !important;
+        }
+
+        body {
+            background: #ffffff !important;
+        }
+
+        .main-wrapper {
+            margin-left: 260px !important;
+            width: calc(100% - 260px) !important;
+            min-height: 100vh !important;
+            background: #ffffff !important;
+            padding-top: 0 !important;
+        }
+
+        .topbar {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            background: #ffffff !important;
+            margin: 0 !important;
+            padding: 20px 40px !important;
+            border-top: 0 !important;
+            border-bottom: 1px solid #edf0f6 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            min-height: auto !important;
+        }
+
+        .topbar-title {
+            margin: 0 !important;
+            padding: 0 !important;
+            font-size: 24px !important;
+            font-weight: 800 !important;
+            line-height: 1.2 !important;
+            color: var(--text-primary, #111827) !important;
+        }
+
+        .topbar-date {
+            margin-top: 5px !important;
+            padding: 0 !important;
+            color: var(--text-secondary, #8b93a7) !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+        }
+
+        .topbar-right {
+            display: flex !important;
+            align-items: center !important;
+            gap: 14px !important;
+        }
+
+        .topbar-icon-btn {
+            width: 44px !important;
+            height: 44px !important;
+            border-radius: 50% !important;
+            background: #f4f6fa !important;
+            color: #4b5563 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-decoration: none !important;
+            position: relative !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            transition: .2s ease !important;
+        }
+
+        .topbar-icon-btn:hover {
+            background: #eef1f6 !important;
+            color: #111827 !important;
+            transform: translateY(-1px) !important;
+        }
+
+        .page-content {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            padding: 30px 40px !important;
+            background: #ffffff !important;
+        }
+
     </style>
 </head>
 
@@ -755,7 +862,7 @@
             </div>
         </div>
 
-        <div class="content-area">
+        <div class="page-content">
             <div class="notif-stats">
                 <div class="notif-stat-card">
                     <div class="notif-stat-icon"><i class="fa-solid fa-bell"></i></div>
