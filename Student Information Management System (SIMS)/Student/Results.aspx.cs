@@ -401,6 +401,23 @@ namespace Student_Information_Management_System__SIMS_.Student
 
         protected void btnExportResultSlip_Click(object sender, EventArgs e)
         {
+            // Validate selections before attempting to retrieve results
+            if (string.IsNullOrWhiteSpace(ddlSession.SelectedValue) ||
+                string.IsNullOrWhiteSpace(ddlSemester.SelectedValue) ||
+                !int.TryParse(ddlSemester.SelectedValue, out int semester))
+            {
+                ShowNoResultsModal();
+                return;
+            }
+
+            // Validate that results are available before exporting
+            DataTable resultsData = GetResultsDataTable();
+            if (resultsData == null || resultsData.Rows.Count == 0)
+            {
+                ShowNoResultsModal();
+                return;
+            }
+
             StoreResultsForExport();
             ExportPdf();
         }
@@ -419,7 +436,12 @@ namespace Student_Information_Management_System__SIMS_.Student
         {
             string studentId = CurrentStudentId;
             string session = ddlSession.SelectedValue;
-            int semester = Convert.ToInt32(ddlSemester.SelectedValue);
+
+            // Parse semester (already validated in btnExportResultSlip_Click)
+            if (!int.TryParse(ddlSemester.SelectedValue, out int semester))
+            {
+                return null;
+            }
 
             DataTable dt = DatabaseHelper.ExecuteQuery(@"
                 SELECT
@@ -435,14 +457,14 @@ namespace Student_Information_Management_System__SIMS_.Student
                 FROM Results r
                 INNER JOIN Courses c ON c.CourseId = r.CourseId
                 WHERE r.StudentId = @StudentId
-                  AND r.Session = @Session
-                  AND r.Semester = @Semester
+                    AND r.Session = @Session
+                    AND r.Semester = @Semester
                 ORDER BY c.CourseCode",
                 new[]
                 {
-                    new SqlParameter("@StudentId", studentId),
-                    new SqlParameter("@Session", session),
-                    new SqlParameter("@Semester", semester)
+                   new SqlParameter("@StudentId", studentId),
+                   new SqlParameter("@Session", session),
+                   new SqlParameter("@Semester", semester)
                 });
 
             return dt;
@@ -590,6 +612,12 @@ namespace Student_Information_Management_System__SIMS_.Student
                 HttpUtility.JavaScriptStringEncode(title),
                 HttpUtility.JavaScriptStringEncode(message));
 
-            ScriptManager.RegisterStartupScript(this, GetType(), Guid.NewGuid().ToString("N"), script, true);
+            ClientScript.RegisterStartupScript(GetType(), Guid.NewGuid().ToString("N"), script, true);
+        }
+
+        private void ShowNoResultsModal()
+        {
+            const string script = "showNoResultsModal();";
+            ClientScript.RegisterStartupScript(GetType(), Guid.NewGuid().ToString("N"), script, true);
         }
     }}
