@@ -1,4 +1,4 @@
-﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Results.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Results" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Results.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Results" %>
 <%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 <!DOCTYPE html>
 <html lang="en">
@@ -303,8 +303,13 @@
             </div>
 
             <asp:Panel ID="pnlResults" runat="server" CssClass="card">
-                <div class="card-header">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                     <span class="card-title">Published Result Sheet</span>
+                    <asp:LinkButton ID="btnExportResultSlip" runat="server" CssClass="btn btn-sm" 
+                        Style="background-color: #e8a838; color: white; padding: 8px 14px; border-radius: 4px; text-decoration: none; border: none; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;"
+                        OnClick="btnExportResultSlip_Click" ToolTip="Export Result Slip as PDF">
+                        <i class="fa-solid fa-file-pdf" style="font-size: 14px;"></i> Export Result Slip
+                    </asp:LinkButton>
                 </div>
 
                 <div class="card-body">
