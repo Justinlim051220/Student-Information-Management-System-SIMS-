@@ -652,15 +652,15 @@
                 iconWrap.classList.add('icon-delete');
                 iconEl.innerHTML = SVG_TRASH;
                 titleEl.innerHTML = 'Confirm Delete';
-            } else if (title.indexOf('✅') !== -1) {
+            } else if (title === 'Success') {
                 iconWrap.classList.add('icon-success');
                 iconEl.innerHTML = SVG_TICK;
                 titleEl.innerHTML = 'Success';
-            } else if (title.indexOf('❌') !== -1) {
-                iconWrap.classList.add('icon-error');
-                iconEl.innerHTML = SVG_CROSS;
+            } else if (title === 'Error') {
+                iconWrap.classList.add('icon-warning');
+                iconEl.innerHTML = SVG_WARN;
                 titleEl.innerHTML = 'Error';
-            } else if (title.indexOf('⚠') !== -1) {
+            } else if (title === 'Warning') {
                 iconWrap.classList.add('icon-warning');
                 iconEl.innerHTML = SVG_WARN;
                 titleEl.innerHTML = 'Warning';
@@ -669,8 +669,8 @@
                 iconEl.innerHTML = SVG_WARN;
                 titleEl.innerHTML = 'Edit Mode';
             } else {
-                iconWrap.classList.add('icon-success');
-                iconEl.innerHTML = SVG_TICK;
+                iconWrap.classList.add('icon-warning');
+                iconEl.innerHTML = SVG_WARN;
                 titleEl.innerHTML = title;
             }
 
@@ -683,10 +683,8 @@
             if (isConfirmDelete) {
                 btnCancel.style.display = 'inline-block';
                 btnDelete.style.display = 'inline-block';
-
                 btnDelete.onclick = function () {
                     document.getElementById('<%= hfDeleteTarget.ClientID %>').value = announcementId;
-                    closeCustomModal();
                     document.getElementById('<%= btnDeleteConfirmed.ClientID %>').click();
                 };
             } else {

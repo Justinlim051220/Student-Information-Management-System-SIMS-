@@ -471,11 +471,11 @@ namespace Student_Information_Management_System__SIMS_.Lecturer
                     break;
 
                 case "danger":
-                    title = "❌ Error";
+                    title = "Error";
                     break;
 
                 case "warning":
-                    title = "⚠ Warning";
+                    title = "Warning";
                     break;
 
                 default:
