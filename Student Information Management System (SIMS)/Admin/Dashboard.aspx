@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Dashboard.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Admin_Dashboard" %>
+﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Dashboard.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Admin_Dashboard" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -248,6 +248,345 @@
         color: #ffffff !important;
     }
 
+  
+
+    /* ================================================================
+       Professional admin dashboard upgrade
+       ================================================================ */
+    .main-wrapper {
+        min-height: 100vh;
+        background: #f6f8fb;
+    }
+
+    .topbar {
+        background: #ffffff !important;
+        border-bottom: 1px solid #edf0f6 !important;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.03);
+    }
+
+    .page-content {
+        padding: 28px 34px 40px !important;
+    }
+
+    .admin-hero {
+        background: linear-gradient(135deg, #fff7ed 0%, #ffffff 58%, #fff3d6 100%);
+        border: 1px solid rgba(245, 166, 35, .22);
+        border-radius: 26px;
+        box-shadow: 0 18px 42px rgba(15, 23, 42, .08);
+        padding: 26px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 22px;
+    }
+
+    .admin-hero-left {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        min-width: 0;
+    }
+
+    .admin-hero-icon {
+        width: 74px;
+        height: 74px;
+        border-radius: 24px;
+        background: var(--orange-gradient);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 31px;
+        box-shadow: var(--shadow-orange);
+        flex-shrink: 0;
+    }
+
+    .admin-hero-kicker {
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--orange-dark);
+    }
+
+    .admin-hero-title {
+        font-family: var(--font-accent);
+        font-size: 30px;
+        line-height: 1.12;
+        font-weight: 900;
+        color: var(--text-primary);
+        margin-top: 5px;
+    }
+
+    .admin-hero-text {
+        margin-top: 8px;
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.55;
+    }
+
+    .admin-hero-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .admin-hero-btn {
+        border-radius: 999px;
+        padding: 11px 18px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 900;
+        font-size: 13px;
+        text-decoration: none;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+
+    .admin-hero-btn.primary {
+        color: #ffffff;
+        background: var(--orange-gradient);
+        box-shadow: var(--shadow-orange);
+        border: 2px solid transparent;
+    }
+
+    .admin-hero-btn.secondary {
+        color: var(--orange-dark);
+        background: #ffffff;
+        border: 2px solid rgba(245, 166, 35, .35);
+    }
+
+    .admin-hero-btn:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .admin-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .admin-kpi-card {
+        position: relative;
+        overflow: hidden;
+        background: #ffffff;
+        border: 1px solid #edf0f6;
+        border-radius: 22px;
+        padding: 22px;
+        min-height: 130px;
+        box-shadow: 0 14px 30px rgba(15, 23, 42, .06);
+    }
+
+    .admin-kpi-card::after {
+        content: '';
+        position: absolute;
+        right: -36px;
+        top: -36px;
+        width: 108px;
+        height: 108px;
+        border-radius: 50%;
+        background: rgba(245, 166, 35, .10);
+    }
+
+    .admin-kpi-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .admin-kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        font-size: 20px;
+        box-shadow: 0 10px 24px rgba(15,23,42,.10);
+    }
+
+    .admin-kpi-icon.orange { background: var(--orange-gradient); }
+    .admin-kpi-icon.blue { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+    .admin-kpi-icon.green { background: linear-gradient(135deg, #16a34a, #4ade80); }
+    .admin-kpi-icon.red { background: linear-gradient(135deg, #ef4444, #fb7185); }
+
+    .admin-kpi-value {
+        margin-top: 18px;
+        font-size: 31px;
+        line-height: 1;
+        font-weight: 900;
+        color: var(--text-primary);
+        position: relative;
+        z-index: 1;
+    }
+
+    .admin-kpi-label {
+        margin-top: 8px;
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        position: relative;
+        z-index: 1;
+    }
+
+    .admin-kpi-note {
+        margin-top: 6px;
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+    }
+
+    .admin-quick-panel {
+        background: #ffffff;
+        border: 1px solid #edf0f6;
+        border-radius: 22px;
+        box-shadow: 0 14px 30px rgba(15, 23, 42, .06);
+        padding: 18px;
+        margin-bottom: 24px;
+    }
+
+    .admin-section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-primary);
+        font-size: 16px;
+        font-weight: 900;
+        margin-bottom: 14px;
+    }
+
+    .admin-section-title i {
+        color: var(--orange-main);
+    }
+
+    .quick-actions {
+        margin-bottom: 0 !important;
+    }
+
+    .quick-btn {
+        background: #fffaf5 !important;
+        border: 1px solid #f3dfc2 !important;
+        color: #9a4f00 !important;
+        padding: 11px 16px !important;
+        box-shadow: none !important;
+    }
+
+    .quick-btn:hover {
+        color: #ffffff !important;
+        background: var(--orange-gradient) !important;
+        border-color: transparent !important;
+        box-shadow: var(--shadow-orange) !important;
+    }
+
+    .admin-card-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+        gap: 24px;
+    }
+
+    .admin-card-grid.equal {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 24px;
+    }
+
+    .card {
+        border-radius: 22px !important;
+        border: 1px solid #edf0f6 !important;
+        box-shadow: 0 14px 30px rgba(15, 23, 42, .06) !important;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: #ffffff !important;
+        border-bottom: 1px solid #edf0f6 !important;
+        padding: 18px 20px !important;
+    }
+
+    .card-title {
+        font-size: 16px !important;
+        font-weight: 900 !important;
+        color: var(--text-primary) !important;
+    }
+
+    .data-table th {
+        background: #fff7ed !important;
+        color: #8a4b09 !important;
+        font-size: 12px !important;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .fee-status-dashboard {
+        display: grid;
+        gap: 14px;
+    }
+
+    .fee-status-row {
+        display: grid;
+        grid-template-columns: 82px minmax(0, 1fr) 38px;
+        gap: 12px;
+        align-items: center;
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--text-secondary);
+    }
+
+    .fee-status-track {
+        height: 12px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: #eef2f7;
+    }
+
+    .fee-status-fill {
+        width: 0%;
+        height: 100%;
+        border-radius: 999px;
+        transition: width .45s ease;
+    }
+
+    .fee-status-fill.paid { background: linear-gradient(135deg, #16a34a, #4ade80); }
+    .fee-status-fill.pending { background: var(--orange-gradient); }
+    .fee-status-fill.overdue { background: linear-gradient(135deg, #ef4444, #fb7185); }
+
+    .fee-chart-note {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #f8fafc;
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1.5;
+        font-weight: 700;
+    }
+
+    @media (max-width: 1180px) {
+        .admin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .admin-card-grid,
+        .admin-card-grid.equal { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+        .page-content { padding: 20px !important; }
+        .admin-hero { flex-direction: column; align-items: flex-start; }
+        .admin-hero-actions { justify-content: flex-start; }
+        .admin-kpi-grid { grid-template-columns: 1fr; }
+    }
+
   </style>
 </head>
 <body>
@@ -351,6 +690,7 @@
 <!-- ================================================================
      MAIN CONTENT
      ================================================================ -->
+
 <div class="main-wrapper">
 
   <!-- Topbar -->
@@ -375,91 +715,102 @@
   <!-- Page content -->
   <div class="page-content">
 
-    <!-- Page header with welcome message -->
-    <div class="page-header">
-      <h1>Welcome back, <asp:Label ID="lblWelcomeName" runat="server" Text="Admin" />! 👋</h1>
-      <p>Here's an overview of the SIMS system for <strong>April 2026</strong> session.</p>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-      <a href="ManageStudents.aspx?action=add" class="quick-btn">
-        <i class="fa-solid fa-user-plus"></i> Add Student
-      </a>
-      <a href="ManageLecturers.aspx?action=add" class="quick-btn">
-        <i class="fa-solid fa-user-tie"></i> Add Lecturer
-      </a>
-      <a href="ManageCourses.aspx?action=add" class="quick-btn">
-        <i class="fa-solid fa-book-medical"></i> Add Course
-      </a>
-      <a href="Announcements.aspx?action=add" class="quick-btn">
-        <i class="fa-solid fa-bullhorn"></i> Post Announcement
-      </a>
-      <a href="ManageFees.aspx" class="quick-btn">
-        <i class="fa-solid fa-receipt"></i> Manage Fees
-      </a>
-    </div>
-
-    <!-- Stats row -->
-    <div class="stats-grid">
-
-      <div class="stat-card">
-        <div class="stat-icon orange">
-          <i class="fa-solid fa-user-graduate"></i>
+    <!-- Professional hero -->
+    <section class="admin-hero">
+      <div class="admin-hero-left">
+        <div class="admin-hero-icon">
+          <i class="fa-solid fa-shield-halved"></i>
         </div>
         <div>
-          <div class="stat-value">
-            <asp:Label ID="lblTotalStudents" runat="server" Text="0" />
+          <div class="admin-hero-kicker">Admin Control Centre</div>
+          <div class="admin-hero-title">
+            Welcome back, <asp:Label ID="lblWelcomeName" runat="server" Text="Admin" />
           </div>
-          <div class="stat-label">Total Students</div>
+          <div class="admin-hero-text">
+            Monitor student enrolment, academic setup, payments, announcements, and reports from one professional dashboard.
+          </div>
         </div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-icon blue">
-          <i class="fa-solid fa-chalkboard-teacher"></i>
+      <div class="admin-hero-actions">
+        <a href="Reports.aspx" class="admin-hero-btn secondary">
+          <i class="fa-solid fa-chart-line"></i> View Reports
+        </a>
+        <a href="ManageFees.aspx" class="admin-hero-btn primary">
+          <i class="fa-solid fa-receipt"></i> Manage Fees
+        </a>
+      </div>
+    </section>
+
+    <!-- KPI cards -->
+    <section class="admin-kpi-grid">
+      <div class="admin-kpi-card">
+        <div class="admin-kpi-top">
+          <div class="admin-kpi-icon orange"><i class="fa-solid fa-user-graduate"></i></div>
         </div>
-        <div>
-          <div class="stat-value">
-            <asp:Label ID="lblTotalLecturers" runat="server" Text="0" />
-          </div>
-          <div class="stat-label">Lecturers</div>
-        </div>
+        <div class="admin-kpi-value"><asp:Label ID="lblTotalStudents" runat="server" Text="0" /></div>
+        <div class="admin-kpi-label">Active students</div>
+        <div class="admin-kpi-note">Users currently active in SIMS</div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-icon green">
-          <i class="fa-solid fa-layer-group"></i>
+      <div class="admin-kpi-card">
+        <div class="admin-kpi-top">
+          <div class="admin-kpi-icon blue"><i class="fa-solid fa-chalkboard-teacher"></i></div>
         </div>
-        <div>
-          <div class="stat-value">
-            <asp:Label ID="lblTotalProgrammes" runat="server" Text="0" />
-          </div>
-          <div class="stat-label">Programmes</div>
-        </div>
+        <div class="admin-kpi-value"><asp:Label ID="lblTotalLecturers" runat="server" Text="0" /></div>
+        <div class="admin-kpi-label">Lecturers</div>
+        <div class="admin-kpi-note">Active lecturer accounts</div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-icon red">
-          <i class="fa-solid fa-money-bill-wave"></i>
+      <div class="admin-kpi-card">
+        <div class="admin-kpi-top">
+          <div class="admin-kpi-icon green"><i class="fa-solid fa-layer-group"></i></div>
         </div>
-        <div>
-          <div class="stat-value">
-            <asp:Label ID="lblPendingFees" runat="server" Text="0" />
-          </div>
-          <div class="stat-label">Pending Fee Records</div>
-        </div>
+        <div class="admin-kpi-value"><asp:Label ID="lblTotalProgrammes" runat="server" Text="0" /></div>
+        <div class="admin-kpi-label">Programmes</div>
+        <div class="admin-kpi-note">Available academic programmes</div>
       </div>
 
-    </div><!-- /stats-grid -->
+      <div class="admin-kpi-card">
+        <div class="admin-kpi-top">
+          <div class="admin-kpi-icon red"><i class="fa-solid fa-money-bill-wave"></i></div>
+        </div>
+        <div class="admin-kpi-value"><asp:Label ID="lblPendingFees" runat="server" Text="0" /></div>
+        <div class="admin-kpi-label">Pending payments</div>
+        <div class="admin-kpi-note">Excludes dropped / not-active history</div>
+      </div>
+    </section>
 
-    <!-- Second row: Recent students + Activity -->
-    <div class="grid-2">
+    <!-- Quick actions -->
+    <section class="admin-quick-panel">
+      <div class="admin-section-title"><i class="fa-solid fa-bolt"></i> Quick Actions</div>
+      <div class="quick-actions">
+        <a href="ManageStudents.aspx?action=add" class="quick-btn">
+          <i class="fa-solid fa-user-plus"></i> Add Student
+        </a>
+        <a href="ManageLecturers.aspx?action=add" class="quick-btn">
+          <i class="fa-solid fa-user-tie"></i> Add Lecturer
+        </a>
+        <a href="ManageCourses.aspx?action=add" class="quick-btn">
+          <i class="fa-solid fa-book-medical"></i> Add Course
+        </a>
+        <a href="Admin_Announcement.aspx?action=add" class="quick-btn">
+          <i class="fa-solid fa-bullhorn"></i> Post Announcement
+        </a>
+        <a href="Admin_enrolment.aspx" class="quick-btn">
+          <i class="fa-solid fa-clipboard-list"></i> Enrollment
+        </a>
+        <a href="ManageFees.aspx" class="quick-btn">
+          <i class="fa-solid fa-receipt"></i> Manage Fees
+        </a>
+      </div>
+    </section>
 
-      <!-- Recent Students -->
+    <!-- Main data row -->
+    <section class="admin-card-grid">
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Recently Enrolled Students</span>
+          <span class="card-title"><i class="fa-solid fa-user-clock"></i> Recently Enrolled Students</span>
           <a href="ManageStudents.aspx" class="btn btn-outline btn-sm">View All</a>
         </div>
         <div class="card-body" style="padding:0;">
@@ -479,14 +830,8 @@
                     <tr>
                       <td><code><%# Eval("StudentId") %></code></td>
                       <td><%# Eval("FullName") %></td>
-                      <td>
-                        <span class="badge badge-orange">
-                          <%# Eval("ProgrammeCode") %>
-                        </span>
-                      </td>
-                      <td class="text-muted">
-                        <%# Eval("EnrollmentDate", "{0:dd MMM yyyy}") %>
-                      </td>
+                      <td><span class="badge badge-orange"><%# Eval("ProgrammeCode") %></span></td>
+                      <td class="text-muted"><%# Eval("EnrollmentDate", "{0:dd MMM yyyy}") %></td>
                     </tr>
                   </ItemTemplate>
                   <FooterTemplate>
@@ -501,10 +846,94 @@
         </div>
       </div>
 
-      <!-- System Activity / Announcements -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Recent Announcements</span>
+          <span class="card-title"><i class="fa-solid fa-circle-nodes"></i> Payment Status Overview</span>
+          <a href="ManageFees.aspx" class="btn btn-outline btn-sm">Details</a>
+        </div>
+        <div class="card-body">
+          <div class="admin-kpi-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:18px;">
+            <div class="admin-kpi-card" style="min-height:105px;padding:16px;box-shadow:none;">
+              <div class="admin-kpi-icon green" style="width:38px;height:38px;font-size:16px;"><i class="fa-solid fa-circle-check"></i></div>
+              <div class="admin-kpi-value" style="font-size:24px;margin-top:12px;"><asp:Label ID="lblPaidFees" runat="server" Text="0" /></div>
+              <div class="admin-kpi-label">Paid</div>
+            </div>
+
+            <div class="admin-kpi-card" style="min-height:105px;padding:16px;box-shadow:none;">
+              <div class="admin-kpi-icon red" style="width:38px;height:38px;font-size:16px;"><i class="fa-solid fa-clock"></i></div>
+              <div class="admin-kpi-value" style="font-size:24px;margin-top:12px;"><asp:Label ID="lblOverdueFees" runat="server" Text="0" /></div>
+              <div class="admin-kpi-label">Overdue</div>
+            </div>
+          </div>
+
+          <div class="fee-status-dashboard" aria-label="Payment status chart">
+            <div class="fee-status-row">
+              <span>Paid</span>
+              <div class="fee-status-track"><div id="feePaidBar" class="fee-status-fill paid"></div></div>
+              <strong id="feePaidValue">0</strong>
+            </div>
+            <div class="fee-status-row">
+              <span>Pending</span>
+              <div class="fee-status-track"><div id="feePendingBar" class="fee-status-fill pending"></div></div>
+              <strong id="feePendingValue">0</strong>
+            </div>
+            <div class="fee-status-row">
+              <span>Overdue</span>
+              <div class="fee-status-track"><div id="feeOverdueBar" class="fee-status-fill overdue"></div></div>
+              <strong id="feeOverdueValue">0</strong>
+            </div>
+          </div>
+
+          <div class="fee-chart-note">
+            Dashboard pending count now follows the same logic as Manage Fees: dropped / not-active payment history is not counted as pending action.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Second data row -->
+    <section class="admin-card-grid equal">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i class="fa-solid fa-book-open-reader"></i> Active Course Enrolments — April 2026</span>
+          <a href="ManageCourses.aspx" class="btn btn-outline btn-sm">Manage</a>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Course Name</th>
+                  <th>Credits</th>
+                  <th>Active Students</th>
+                </tr>
+              </thead>
+              <tbody>
+                <asp:Repeater ID="rptCourses" runat="server">
+                  <ItemTemplate>
+                    <tr>
+                      <td><code><%# Eval("CourseCode") %></code></td>
+                      <td><%# Eval("CourseName") %></td>
+                      <td><%# Eval("Credits") %></td>
+                      <td><span class="badge badge-info"><%# Eval("EnrolledCount") %></span></td>
+                    </tr>
+                  </ItemTemplate>
+                  <FooterTemplate>
+                    <%# rptCourses.Items.Count == 0
+                        ? "<tr><td colspan='4' style='text-align:center;color:var(--text-muted);padding:24px;'>No courses found.</td></tr>"
+                        : "" %>
+                  </FooterTemplate>
+                </asp:Repeater>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i class="fa-solid fa-bullhorn"></i> Recent Announcements</span>
           <a href="Admin_Announcement.aspx" class="btn btn-outline btn-sm">View All</a>
         </div>
         <div class="card-body">
@@ -514,9 +943,7 @@
                 <li class="activity-item">
                   <span class="activity-dot"></span>
                   <div>
-                    <div class="activity-text">
-                      <strong><%# Eval("Title") %></strong>
-                    </div>
+                    <div class="activity-text"><strong><%# Eval("Title") %></strong></div>
                     <span class="activity-time">
                       <i class="fa-regular fa-clock"></i>
                       <%# Eval("CreatedAt", "{0:dd MMM yyyy HH:mm}") %>
@@ -534,105 +961,42 @@
           </ul>
         </div>
       </div>
-
-    </div><!-- /grid-2 -->
-
-    <!-- Third row: Courses this session + Fee summary -->
-    <div class="grid-2" style="margin-top:24px;">
-
-      <!-- Courses this session -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Courses — April 2026 Session</span>
-          <a href="ManageCourses.aspx" class="btn btn-outline btn-sm">Manage</a>
-        </div>
-        <div class="card-body" style="padding:0;">
-          <div class="table-wrapper">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Code</th>
-                  <th>Course Name</th>
-                  <th>Credits</th>
-                  <th>Enrolled</th>
-                </tr>
-              </thead>
-              <tbody>
-                <asp:Repeater ID="rptCourses" runat="server">
-                  <ItemTemplate>
-                    <tr>
-                      <td><code><%# Eval("CourseCode") %></code></td>
-                      <td><%# Eval("CourseName") %></td>
-                      <td><%# Eval("Credits") %></td>
-                      <td>
-                        <span class="badge badge-info"><%# Eval("EnrolledCount") %></span>
-                      </td>
-                    </tr>
-                  </ItemTemplate>
-                  <FooterTemplate>
-                    <%# rptCourses.Items.Count == 0
-                        ? "<tr><td colspan='4' style='text-align:center;color:var(--text-muted);padding:24px;'>No courses found.</td></tr>"
-                        : "" %>
-                  </FooterTemplate>
-                </asp:Repeater>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Fee Overview -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Fee Collection Overview</span>
-          <a href="ManageFees.aspx" class="btn btn-outline btn-sm">Details</a>
-        </div>
-        <div class="card-body">
-          <div class="stats-grid" style="grid-template-columns:1fr 1fr;gap:16px;margin-bottom:0;">
-
-            <div class="stat-card" style="flex-direction:column;align-items:flex-start;gap:6px;">
-              <div class="stat-icon green" style="width:38px;height:38px;font-size:18px;">
-                <i class="fa-solid fa-circle-check"></i>
-              </div>
-              <div class="stat-value" style="font-size:22px;">
-                <asp:Label ID="lblPaidFees" runat="server" Text="0" />
-              </div>
-              <div class="stat-label">Paid</div>
-            </div>
-
-            <div class="stat-card" style="flex-direction:column;align-items:flex-start;gap:6px;">
-              <div class="stat-icon red" style="width:38px;height:38px;font-size:18px;">
-                <i class="fa-solid fa-clock"></i>
-              </div>
-              <div class="stat-value" style="font-size:22px;">
-                <asp:Label ID="lblOverdueFees" runat="server" Text="0" />
-              </div>
-              <div class="stat-label">Overdue</div>
-            </div>
-
-          </div>
-
-          <div style="margin-top:20px;">
-            <div style="font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;">
-              Collection by month (mock chart)
-            </div>
-            <div class="mini-chart">
-              <div class="mini-bar" style="height:30%;"></div>
-              <div class="mini-bar" style="height:55%;"></div>
-              <div class="mini-bar" style="height:45%;"></div>
-              <div class="mini-bar" style="height:70%;"></div>
-              <div class="mini-bar" style="height:85%;"></div>
-              <div class="mini-bar" style="height:100%;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /grid-2 second row -->
+    </section>
 
   </div><!-- /page-content -->
 </div><!-- /main-wrapper -->
 
+<script>
+    function renderDashboardFeeChart(data) {
+        if (!data) return;
+
+        var paid = Number(data.paid || 0);
+        var pending = Number(data.pending || 0);
+        var overdue = Number(data.overdue || 0);
+        var max = Math.max(paid, pending, overdue, 1);
+
+        var items = [
+            { bar: 'feePaidBar', value: 'feePaidValue', count: paid },
+            { bar: 'feePendingBar', value: 'feePendingValue', count: pending },
+            { bar: 'feeOverdueBar', value: 'feeOverdueValue', count: overdue }
+        ];
+
+        items.forEach(function (item) {
+            var bar = document.getElementById(item.bar);
+            var value = document.getElementById(item.value);
+            var width = Math.max(6, Math.round((item.count / max) * 100));
+
+            if (bar) bar.style.width = width + '%';
+            if (value) value.textContent = item.count;
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.dashboardFeeData) {
+            renderDashboardFeeChart(window.dashboardFeeData);
+        }
+    });
+</script>
 <script>
     // Sidebar toggle for mobile
     function toggleSidebar() {

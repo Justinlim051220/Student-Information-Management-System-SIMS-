@@ -20,6 +20,10 @@
         .approve-btn:hover { background:#16803a; color:#fff; }
         .reject-btn { color:#c53030; border-color:#c53030; }
         .reject-btn:hover { background:#c53030; color:#fff; }
+        .suspend-btn { color:#7c2d12; border-color:#f97316; }
+        .suspend-btn:hover { background:#f97316; color:#fff; }
+        .unsuspend-btn { color:#166534; border-color:#22c55e; }
+        .unsuspend-btn:hover { background:#22c55e; color:#fff; }
         .edit-btn { color:#e8a838; border-color:#e8a838; }
         .edit-btn:hover { background:#e8a838; color:#fff; }
         .delete-btn { color:#e8a838; border-color:#e8a838; }
@@ -81,6 +85,27 @@
             background: #eef2f7;
             color: #475569;
             border: 1px solid #d7dee8;
+        }
+
+        .status-suspended {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .status-active-account {
+            background: #e7f8ee;
+            color: #16803a;
+            border: 1px solid #a9e7bf;
+        }
+
+        .suspension-reason {
+            display: block;
+            margin-top: 6px;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+            line-height: 1.4;
         }
 
         .no-admin-action {
@@ -212,6 +237,14 @@
                                         CssClass='<%# "status-badge " + GetStatusCss(Eval("DisplayStatus")) %>' />
                                 </ItemTemplate>
                             </asp:TemplateField>
+                            <asp:TemplateField HeaderText="Account">
+                                <ItemTemplate>
+                                    <asp:Label ID="lblAccountStatus" runat="server"
+                                        Text='<%# GetAccountStatusText(Eval("IsSuspended")) %>'
+                                        CssClass='<%# "status-badge " + GetAccountStatusCss(Eval("IsSuspended")) %>' />
+                                    <%# GetSuspensionReason(Eval("IsSuspended"), Eval("SuspensionReason")) %>
+                                </ItemTemplate>
+                            </asp:TemplateField>
                             <asp:BoundField DataField="PaymentDate" HeaderText="Payment Date" DataFormatString="{0:yyyy-MM-dd}" />
                             <asp:TemplateField HeaderText="Receipt">
                                 <ItemTemplate>
@@ -223,6 +256,8 @@
                                     <div class="action-row">
                                         <asp:LinkButton ID="btnApprove" runat="server" CssClass="action-btn approve-btn" CommandName="ApprovePayment" CommandArgument='<%# Eval("FeeId") %>'><i class="fa-solid fa-check"></i> Approve</asp:LinkButton>
                                         <asp:LinkButton ID="btnReject" runat="server" CssClass="action-btn reject-btn" CommandName="RejectPayment" CommandArgument='<%# Eval("FeeId") %>'><i class="fa-solid fa-xmark"></i> Reject</asp:LinkButton>
+                                        <asp:LinkButton ID="btnSuspend" runat="server" CssClass="action-btn suspend-btn" CommandName="SuspendStudent" CommandArgument='<%# Eval("StudentId") %>'><i class="fa-solid fa-user-lock"></i> Suspend</asp:LinkButton>
+                                        <asp:LinkButton ID="btnUnsuspend" runat="server" CssClass="action-btn unsuspend-btn" CommandName="UnsuspendStudent" CommandArgument='<%# Eval("StudentId") %>'><i class="fa-solid fa-user-check"></i> Unsuspend</asp:LinkButton>
                                     </div>
                                 </ItemTemplate>
                             </asp:TemplateField>

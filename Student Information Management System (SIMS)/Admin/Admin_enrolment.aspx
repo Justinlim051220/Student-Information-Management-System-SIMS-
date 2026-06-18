@@ -22,6 +22,8 @@
         .action-row { display:flex; align-items:center; gap:10px; flex-wrap:nowrap; white-space:nowrap; justify-content:center; }
         .action-row .action-btn { min-width:112px; text-align:center; margin:0 !important; }
         .data-table th:last-child, .data-table td:last-child { min-width:260px; }
+        .drop-reason-text { display:block; max-width:280px; line-height:1.55; color:#555; white-space:normal; word-break:break-word; }
+        .drop-reason-empty { color:#999; }
         #confirmModalOverlay { display:none; position:fixed; inset:0; background:rgba(30,30,40,.60); z-index:10000; justify-content:center; align-items:center; }
         #confirmModalOverlay.active { display:flex; }
         #confirmModal { background:#fff; border-radius:16px; width:100%; max-width:400px; padding:36px 32px 28px; box-shadow:0 12px 40px rgba(0,0,0,.28); text-align:center; }
@@ -160,6 +162,13 @@
                             <asp:BoundField DataField="Semester" HeaderText="Sem" />
                             <asp:BoundField DataField="TotalAmount" HeaderText="Total Fee (RM)" DataFormatString="{0:N2}" />
                             <asp:BoundField DataField="Status" HeaderText="Status" />
+                            <asp:TemplateField HeaderText="Drop Reason">
+                                <ItemTemplate>
+                                    <asp:Label ID="lblDropReason" runat="server"
+                                        CssClass='<%# string.IsNullOrWhiteSpace(Convert.ToString(Eval("DropReason"))) ? "drop-reason-empty" : "drop-reason-text" %>'
+                                        Text='<%# FormatDropReason(Eval("DropReason")) %>' />
+                                </ItemTemplate>
+                            </asp:TemplateField>
                             <asp:TemplateField HeaderText="Action">
                                 <ItemTemplate>
                                     <div class="action-row">

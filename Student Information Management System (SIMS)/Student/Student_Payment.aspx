@@ -56,6 +56,56 @@
             color: var(--text-secondary);
         }
 
+        .payment-suspension-warning {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            background: linear-gradient(135deg, #fff7ed 0%, #ffffff 72%, #fff3d6 100%);
+            border: 1px solid rgba(245, 166, 35, .34);
+            border-left: 6px solid #f97316;
+            border-radius: 22px;
+            padding: 20px 22px;
+            margin: 0 0 26px 0;
+            box-shadow: 0 14px 32px rgba(15, 23, 42, .08);
+        }
+
+        .payment-suspension-warning-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            box-shadow: var(--shadow-orange);
+            flex-shrink: 0;
+        }
+
+        .payment-suspension-warning-title {
+            font-family: var(--font-accent);
+            font-size: 17px;
+            font-weight: 900;
+            color: #9a3412;
+            margin-bottom: 5px;
+        }
+
+        .payment-suspension-warning-text {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+
+        .payment-suspension-warning-reason {
+            margin-top: 8px;
+            font-size: 13px;
+            font-weight: 900;
+            color: #7c2d12;
+        }
+
+
         .student-info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));

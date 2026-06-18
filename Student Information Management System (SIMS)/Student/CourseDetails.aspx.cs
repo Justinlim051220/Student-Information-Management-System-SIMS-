@@ -13,6 +13,8 @@ namespace Student_Information_Management_System__SIMS_.Student
         {
             SessionHelper.RequireStudent(Session, Response);
 
+            if (RedirectIfSuspended()) return;
+
             if (!IsPostBack)
             {
                 if (string.IsNullOrEmpty(GetCourseIdParam()) || string.IsNullOrEmpty(GetSessionParam()))
@@ -339,5 +341,38 @@ namespace Student_Information_Management_System__SIMS_.Student
 
             pnlNotifBadge.Visible = count != null && count != DBNull.Value && Convert.ToInt32(count) > 0;
         }
+
+        private bool RedirectIfSuspended()
+        {
+            string studentId = SessionHelper.GetProfileId(Session);
+
+            if (string.IsNullOrWhiteSpace(studentId))
+            {
+                object studentObj = DatabaseHelper.ExecuteScalar(
+                    "SELECT StudentId FROM StudentDetails WHERE UserId = @UserId",
+                    new[] { new SqlParameter("@UserId", SessionHelper.GetUserId(Session)) });
+
+                studentId = studentObj == null || studentObj == DBNull.Value ? "" : studentObj.ToString();
+            }
+
+            if (string.IsNullOrWhiteSpace(studentId))
+                return false;
+
+            object result = DatabaseHelper.ExecuteScalar(
+                "SELECT ISNULL(IsSuspended, 0) FROM StudentDetails WHERE StudentId = @StudentId",
+                new[] { new SqlParameter("@StudentId", studentId) });
+
+            bool isSuspended = result != null && result != DBNull.Value && Convert.ToBoolean(result);
+
+            if (isSuspended)
+            {
+                Response.Redirect("Student_Payment.aspx?Suspended=1", false);
+                Context.ApplicationInstance.CompleteRequest();
+                return true;
+            }
+
+            return false;
+        }
+
     }
 }

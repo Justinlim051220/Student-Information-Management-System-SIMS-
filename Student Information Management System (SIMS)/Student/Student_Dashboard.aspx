@@ -382,6 +382,84 @@
             font-weight: 700;
         }
 
+
+        .suspension-warning {
+            display: none;
+            align-items: flex-start;
+            gap: 16px;
+            background: linear-gradient(135deg, #fff7ed 0%, #ffffff 72%, #fff3d6 100%);
+            border: 1px solid rgba(245, 166, 35, .34);
+            border-left: 6px solid #f97316;
+            border-radius: 22px;
+            padding: 20px 22px;
+            margin-bottom: 26px;
+            box-shadow: 0 14px 32px rgba(15, 23, 42, .08);
+        }
+
+        .suspension-warning-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            box-shadow: var(--shadow-orange);
+            flex-shrink: 0;
+        }
+
+        .suspension-warning-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .suspension-warning-title {
+            font-family: var(--font-accent);
+            font-size: 17px;
+            font-weight: 900;
+            color: #9a3412;
+            margin-bottom: 5px;
+        }
+
+        .suspension-warning-text {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+
+        .suspension-warning-reason {
+            margin-top: 8px;
+            font-size: 13px;
+            font-weight: 900;
+            color: #7c2d12;
+        }
+
+        .suspension-warning-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: var(--orange-gradient);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 900;
+            box-shadow: var(--shadow-orange);
+            white-space: nowrap;
+            transition: .18s ease;
+            margin-top: 2px;
+        }
+
+        .suspension-warning-btn:hover {
+            transform: translateY(-2px);
+            color: #ffffff;
+        }
+
         @media (max-width: 1250px) {
             .stu-stats-grid {
                 grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -410,6 +488,15 @@
 
             .hero-actions {
                 justify-content: flex-start;
+            }
+
+
+            .suspension-warning {
+                flex-direction: column;
+            }
+
+            .suspension-warning-btn {
+                width: 100%;
             }
         }
 
@@ -493,6 +580,27 @@
                         <i class="fa-solid fa-chart-line"></i> Results
                     </a>
                 </div>
+            </div>
+
+            <div id="suspensionBanner" class="suspension-warning" style="display:none;">
+                <div class="suspension-warning-icon">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+
+                <div class="suspension-warning-body">
+                    <div class="suspension-warning-title">Account temporarily suspended</div>
+                    <div class="suspension-warning-text">
+                        Your student account access is limited because there is an unpaid or pending fee.
+                        Please complete your payment or upload the receipt before accessing courses, attendance, results, and enrollment pages.
+                    </div>
+                    <div class="suspension-warning-reason">
+                        Reason: <span id="suspensionReasonText">Payment not completed</span>
+                    </div>
+                </div>
+
+                <a href="Student_Payment.aspx?suspended=1" class="suspension-warning-btn">
+                    <i class="fa-solid fa-credit-card"></i> Go to Payment
+                </a>
             </div>
 
             <div class="stu-stats-grid">

@@ -150,24 +150,6 @@ namespace Student_Information_Management_System__SIMS_
         protected global::System.Web.UI.WebControls.Repeater rptRecentStudents;
 
         /// <summary>
-        /// rptAnnouncements control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Repeater rptAnnouncements;
-
-        /// <summary>
-        /// rptCourses control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Repeater rptCourses;
-
-        /// <summary>
         /// lblPaidFees control.
         /// </summary>
         /// <remarks>
@@ -184,6 +166,24 @@ namespace Student_Information_Management_System__SIMS_
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label lblOverdueFees;
+
+        /// <summary>
+        /// rptCourses control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Repeater rptCourses;
+
+        /// <summary>
+        /// rptAnnouncements control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Repeater rptAnnouncements;
 
         /// <summary>
         /// btnConfirmLogout control.

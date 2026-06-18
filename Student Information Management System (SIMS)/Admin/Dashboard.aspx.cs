@@ -4,58 +4,40 @@ using System.Data.SqlClient;
 using System.Web.UI;
 using SIMS.Helpers;
 
-/// <summary>
-/// Code-behind for Admin/Dashboard.aspx
-///
-/// Responsibilities:
-///   - Enforce Admin-only access via SessionHelper.
-///   - Load dashboard statistics from the DB.
-///   - Bind the recent students and announcements repeaters.
-/// </summary>
-/// 
-
 namespace Student_Information_Management_System__SIMS_
 {
     public partial class Admin_Dashboard : Page
     {
-        // ---------------------------------------------------------------
-        // Page_Load
-        // ---------------------------------------------------------------
+        private const string CURRENT_SESSION = "April 2026";
+
         protected void Page_Load(object sender, EventArgs e)
         {
-            // ── Guard: Admin only ──────────────────────────────────────
             SessionHelper.RequireAdmin(Session, Response);
 
             if (!IsPostBack)
             {
-                // Personalise the UI
                 string fullName = SessionHelper.GetFullName(Session);
+                if (string.IsNullOrWhiteSpace(fullName)) fullName = "Admin";
+
                 lblWelcomeName.Text = fullName;
                 lblSidebarName.Text = fullName;
                 lblAvatarInitial.Text = fullName.Length > 0
-                                        ? fullName[0].ToString().ToUpper()
-                                        : "A";
+                    ? fullName[0].ToString().ToUpper()
+                    : "A";
 
-                // Load admin profile picture for the sidebar footer.
                 LoadAdminProfilePicture();
-
-                // Today's date
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
 
-                // Load all dashboard data
                 LoadStats();
                 LoadRecentStudents();
                 LoadAnnouncements();
                 LoadCourses();
                 LoadFeeStats();
+                RegisterDashboardFeeChart();
                 CheckUnreadNotifications();
             }
         }
 
-        // ---------------------------------------------------------------
-        // Load admin profile picture in the sidebar footer.
-        // Shows uploaded photo if available, otherwise keeps the first-letter icon.
-        // ---------------------------------------------------------------
         private void LoadAdminProfilePicture()
         {
             divSidebarPhoto.Visible = false;
@@ -67,8 +49,8 @@ namespace Student_Information_Management_System__SIMS_
 
                 object pictureObj = DatabaseHelper.ExecuteScalar(
                     @"SELECT ProfilePicture
-                      FROM   HoPDetails
-                      WHERE  UserId = @UserId",
+                      FROM HoPDetails
+                      WHERE UserId = @UserId",
                     new[] { new SqlParameter("@UserId", userId) });
 
                 string picture = pictureObj == null || pictureObj == DBNull.Value
@@ -84,44 +66,36 @@ namespace Student_Information_Management_System__SIMS_
             }
             catch
             {
-                // If the ProfilePicture column has not been added yet,
-                // dashboard still works using the first-letter avatar.
                 divSidebarPhoto.Visible = false;
                 divSidebarInitial.Visible = true;
             }
         }
 
-        // ---------------------------------------------------------------
-        // Load headline statistics.
-        // ---------------------------------------------------------------
         private void LoadStats()
         {
-            // Total active students
-            object stuCount = DatabaseHelper.ExecuteScalar(
-                "SELECT COUNT(*) FROM StudentDetails s " +
-                "INNER JOIN Users u ON u.UserId = s.UserId WHERE u.IsActive = 1");
-            lblTotalStudents.Text = stuCount?.ToString() ?? "0";
+            object stuCount = DatabaseHelper.ExecuteScalar(@"
+                SELECT COUNT(*)
+                FROM StudentDetails s
+                INNER JOIN Users u ON u.UserId = s.UserId
+                WHERE u.IsActive = 1");
+            lblTotalStudents.Text = ConvertDbInt(stuCount).ToString();
 
-            // Total active lecturers
-            object lecCount = DatabaseHelper.ExecuteScalar(
-                "SELECT COUNT(*) FROM LecturerDetails l " +
-                "INNER JOIN Users u ON u.UserId = l.UserId WHERE u.IsActive = 1");
-            lblTotalLecturers.Text = lecCount?.ToString() ?? "0";
+            object lecCount = DatabaseHelper.ExecuteScalar(@"
+                SELECT COUNT(*)
+                FROM LecturerDetails l
+                INNER JOIN Users u ON u.UserId = l.UserId
+                WHERE u.IsActive = 1");
+            lblTotalLecturers.Text = ConvertDbInt(lecCount).ToString();
 
-            // Total programmes
-            object progCount = DatabaseHelper.ExecuteScalar(
-                "SELECT COUNT(*) FROM Programmes");
-            lblTotalProgrammes.Text = progCount?.ToString() ?? "0";
+            object progCount = DatabaseHelper.ExecuteScalar("SELECT COUNT(*) FROM Programmes");
+            lblTotalProgrammes.Text = ConvertDbInt(progCount).ToString();
 
-            // Pending fee records
-            object pendingCount = DatabaseHelper.ExecuteScalar(
-                "SELECT COUNT(*) FROM Fees WHERE Status IN ('Pending', 'Overdue')");
-            lblPendingFees.Text = pendingCount?.ToString() ?? "0";
+            // Important fix:
+            // Dashboard pending count now follows Manage Fees display logic.
+            // It excludes dropped / not-active payment history, so the number will match Manage Fees Pending filter.
+            lblPendingFees.Text = GetActionablePaymentCount("Pending").ToString();
         }
 
-        // ---------------------------------------------------------------
-        // Load the 5 most recently enrolled students.
-        // ---------------------------------------------------------------
         private void LoadRecentStudents()
         {
             string sql = @"
@@ -130,8 +104,10 @@ namespace Student_Information_Management_System__SIMS_
                        s.FirstName + ' ' + s.LastName AS FullName,
                        p.ProgrammeCode,
                        s.EnrollmentDate
-                FROM   StudentDetails s
+                FROM StudentDetails s
+                INNER JOIN Users u ON u.UserId = s.UserId
                 INNER JOIN Programmes p ON p.ProgrammeId = s.ProgrammeId
+                WHERE u.IsActive = 1
                 ORDER BY s.EnrollmentDate DESC";
 
             DataTable dt = DatabaseHelper.ExecuteQuery(sql);
@@ -139,20 +115,14 @@ namespace Student_Information_Management_System__SIMS_
             rptRecentStudents.DataBind();
         }
 
-        // ---------------------------------------------------------------
-        // Load the 5 most recent announcements.
-        // ---------------------------------------------------------------
         private void LoadAnnouncements()
         {
-            // Admin Dashboard should only show announcements posted by Admin users.
-            // Lecturer announcements use the same Announcements table, but they should
-            // stay on the Lecturer side and must not appear in the Admin dashboard.
             string sql = @"
                 SELECT TOP 5
                        a.Title,
                        a.TargetRole,
                        a.CreatedAt
-                FROM   Announcements a
+                FROM Announcements a
                 INNER JOIN Users u
                         ON u.UserId = a.PostedByUserId
                        AND u.Role = 1
@@ -163,58 +133,99 @@ namespace Student_Information_Management_System__SIMS_
             rptAnnouncements.DataBind();
         }
 
-        // ---------------------------------------------------------------
-        // Load courses with enrollment counts for the current session.
-        // ---------------------------------------------------------------
         private void LoadCourses()
         {
             string sql = @"
-                SELECT   c.CourseCode,
-                         c.CourseName,
-                         c.Credits,
-                         COUNT(e.StudentId) AS EnrolledCount
-                FROM     Courses c
+                SELECT c.CourseCode,
+                       c.CourseName,
+                       c.Credits,
+                       COUNT(e.StudentId) AS EnrolledCount
+                FROM Courses c
                 LEFT JOIN Enrollment e
                        ON e.CourseId = c.CourseId
-                      AND e.Session  = 'April 2026'
+                      AND e.Session = @Session
+                      AND e.Status = 'Active'
                 GROUP BY c.CourseCode, c.CourseName, c.Credits
                 ORDER BY c.CourseName";
 
-            DataTable dt = DatabaseHelper.ExecuteQuery(sql);
+            DataTable dt = DatabaseHelper.ExecuteQuery(sql,
+                new[] { new SqlParameter("@Session", CURRENT_SESSION) });
+
             rptCourses.DataSource = dt;
             rptCourses.DataBind();
         }
 
-        // ---------------------------------------------------------------
-        // Load fee status counts.
-        // ---------------------------------------------------------------
         private void LoadFeeStats()
         {
-            object paid = DatabaseHelper.ExecuteScalar(
-                "SELECT COUNT(*) FROM Fees WHERE Status = 'Paid'");
-            lblPaidFees.Text = paid?.ToString() ?? "0";
-
-            object overdue = DatabaseHelper.ExecuteScalar(
-                "SELECT COUNT(*) FROM Fees WHERE Status = 'Overdue'");
-            lblOverdueFees.Text = overdue?.ToString() ?? "0";
+            lblPaidFees.Text = GetPaymentCount("Paid", false).ToString();
+            lblOverdueFees.Text = GetPaymentCount("Overdue", true).ToString();
         }
 
-        // ---------------------------------------------------------------
-        // Show notification dot if there are unread notifications.
-        // ---------------------------------------------------------------
+        private void RegisterDashboardFeeChart()
+        {
+            int paid = GetPaymentCount("Paid", false);
+            int pending = GetActionablePaymentCount("Pending");
+            int overdue = GetPaymentCount("Overdue", true);
+
+            string script = string.Format(
+                "window.dashboardFeeData = {{ paid: {0}, pending: {1}, overdue: {2} }}; if (window.renderDashboardFeeChart) renderDashboardFeeChart(window.dashboardFeeData);",
+                paid,
+                pending,
+                overdue);
+
+            ClientScript.RegisterStartupScript(
+                GetType(),
+                "DashboardFeeChartData",
+                script,
+                true);
+        }
+
+        private int GetActionablePaymentCount(string status)
+        {
+            return GetPaymentCount(status, true);
+        }
+
+        private int GetPaymentCount(string status, bool excludeDroppedNotActiveHistory)
+        {
+            string sql = @"
+                SELECT COUNT(*)
+                FROM Fees f
+                LEFT JOIN Enrollment e ON e.EnrollmentId = f.EnrollmentId
+                WHERE f.Status = @Status";
+
+            if (excludeDroppedNotActiveHistory)
+            {
+                sql += @"
+                  AND NOT (
+                        ISNULL(f.PaymentReceiptPath, '') = ''
+                        AND e.EnrollmentId IS NOT NULL
+                        AND ISNULL(e.Status, '') IN ('Dropped', 'Drop Approved', 'Not Active', 'Inactive')
+                  )";
+            }
+
+            object result = DatabaseHelper.ExecuteScalar(sql,
+                new[] { new SqlParameter("@Status", status) });
+
+            return ConvertDbInt(result);
+        }
+
+        private int ConvertDbInt(object value)
+        {
+            if (value == null || value == DBNull.Value) return 0;
+            return Convert.ToInt32(value);
+        }
+
         private void CheckUnreadNotifications()
         {
             int userId = SessionHelper.GetUserId(Session);
+
             object count = DatabaseHelper.ExecuteScalar(
                 "SELECT COUNT(*) FROM Notifications WHERE UserId = @Uid AND IsRead = 0",
-                new[] { new System.Data.SqlClient.SqlParameter("@Uid", userId) });
+                new[] { new SqlParameter("@Uid", userId) });
 
-            pnlNotifBadge.Visible = (count != null && Convert.ToInt32(count) > 0);
+            pnlNotifBadge.Visible = ConvertDbInt(count) > 0;
         }
 
-        // ---------------------------------------------------------------
-        // Logout button
-        // ---------------------------------------------------------------
         protected void lbLogout_Click(object sender, EventArgs e)
         {
             SessionHelper.Logout(Session);
