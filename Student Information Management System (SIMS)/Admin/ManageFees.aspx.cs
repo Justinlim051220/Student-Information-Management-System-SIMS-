@@ -10,6 +10,8 @@ namespace Student_Information_Management_System__SIMS_
 {
     public partial class Admin_ManageFees : Page
     {
+        private string _lastCourseFeeSession = null;
+        private string _lastPaymentSession = null;
         protected void Page_Load(object sender, EventArgs e)
         {
             SessionHelper.RequireAdmin(Session, Response);
@@ -18,6 +20,8 @@ namespace Student_Information_Management_System__SIMS_
             {
                 LoadSessions();
                 LoadProgrammes();
+                LoadCourseFeeFilterProgrammes();
+                LoadPaymentProgrammes();
                 LoadCourses();
                 LoadStats();
                 LoadCourseFees();
@@ -30,14 +34,17 @@ namespace Student_Information_Management_System__SIMS_
             string[] sessions = { "April 2026", "August 2026", "January 2027", "April 2027", "August 2027" };
 
             ddlFeeSession.Items.Clear();
+            ddlCourseFeeFilterSession.Items.Clear();
             ddlPaymentSession.Items.Clear();
 
             foreach (string session in sessions)
             {
                 ddlFeeSession.Items.Add(new ListItem(session, session));
+                ddlCourseFeeFilterSession.Items.Add(new ListItem(session, session));
                 ddlPaymentSession.Items.Add(new ListItem(session, session));
             }
 
+            ddlCourseFeeFilterSession.Items.Insert(0, new ListItem("All Sessions", ""));
             ddlPaymentSession.Items.Insert(0, new ListItem("All Sessions", ""));
         }
 
@@ -53,6 +60,35 @@ namespace Student_Information_Management_System__SIMS_
             ddlProgramme.DataValueField = "ProgrammeId";
             ddlProgramme.DataBind();
             ddlProgramme.Items.Insert(0, new ListItem("-- Select Programme --", ""));
+        }
+
+
+        private void LoadCourseFeeFilterProgrammes()
+        {
+            string sql = @"
+                SELECT ProgrammeId, ProgrammeCode + ' - ' + ProgrammeName AS ProgrammeDisplay
+                FROM Programmes
+                ORDER BY ProgrammeName";
+
+            ddlCourseFeeFilterProgramme.DataSource = DatabaseHelper.ExecuteQuery(sql);
+            ddlCourseFeeFilterProgramme.DataTextField = "ProgrammeDisplay";
+            ddlCourseFeeFilterProgramme.DataValueField = "ProgrammeId";
+            ddlCourseFeeFilterProgramme.DataBind();
+            ddlCourseFeeFilterProgramme.Items.Insert(0, new ListItem("All Programmes", ""));
+        }
+
+        private void LoadPaymentProgrammes()
+        {
+            string sql = @"
+                SELECT ProgrammeId, ProgrammeCode + ' - ' + ProgrammeName AS ProgrammeDisplay
+                FROM Programmes
+                ORDER BY ProgrammeName";
+
+            ddlPaymentProgramme.DataSource = DatabaseHelper.ExecuteQuery(sql);
+            ddlPaymentProgramme.DataTextField = "ProgrammeDisplay";
+            ddlPaymentProgramme.DataValueField = "ProgrammeId";
+            ddlPaymentProgramme.DataBind();
+            ddlPaymentProgramme.Items.Insert(0, new ListItem("All Programmes", ""));
         }
 
         private void LoadCourses()
@@ -106,20 +142,51 @@ namespace Student_Information_Management_System__SIMS_
 
         private void LoadCourseFees()
         {
+            string selectedSession = ddlCourseFeeFilterSession.SelectedValue ?? "";
+            string selectedProgramme = ddlCourseFeeFilterProgramme.SelectedValue ?? "";
+            string search = txtCourseFeeSearch.Text.Trim();
+
             string sql = @"
-                SELECT cf.CourseFeeId, p.ProgrammeCode, c.CourseCode, c.CourseName, cf.Session, cf.Amount
+                SELECT
+                    cf.Session,
+                    p.ProgrammeId,
+                    p.ProgrammeCode,
+                    p.ProgrammeName,
+                    COUNT(cf.CourseFeeId) AS CourseCount,
+                    SUM(cf.Amount) AS TotalAmount
                 FROM CourseFees cf
                 INNER JOIN Courses c ON cf.CourseId = c.CourseId
                 INNER JOIN Programmes p ON c.ProgrammeId = p.ProgrammeId
-                ORDER BY cf.Session DESC, p.ProgrammeCode, c.CourseCode";
+                WHERE (@Session = '' OR cf.Session = @Session)
+                  AND (@ProgrammeId = '' OR CONVERT(VARCHAR(20), p.ProgrammeId) = @ProgrammeId)
+                  AND (
+                        @Search = ''
+                        OR c.CourseCode LIKE '%' + @Search + '%'
+                        OR c.CourseName LIKE '%' + @Search + '%'
+                        OR p.ProgrammeCode LIKE '%' + @Search + '%'
+                        OR p.ProgrammeName LIKE '%' + @Search + '%'
+                        OR cf.Session LIKE '%' + @Search + '%'
+                  )
+                GROUP BY cf.Session, p.ProgrammeId, p.ProgrammeCode, p.ProgrammeName
+                ORDER BY cf.Session DESC, p.ProgrammeCode";
 
-            gvCourseFees.DataSource = DatabaseHelper.ExecuteQuery(sql);
-            gvCourseFees.DataBind();
+            DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
+                new SqlParameter("@Session", selectedSession),
+                new SqlParameter("@ProgrammeId", selectedProgramme),
+                new SqlParameter("@Search", search)
+            });
+
+            pnlNoCourseFees.Visible = dt.Rows.Count == 0;
+            rptCourseFeeGroups.DataSource = dt;
+            rptCourseFeeGroups.DataBind();
         }
 
         private void LoadPayments()
         {
             string selectedStatus = ddlStatus.SelectedValue ?? "";
+            string selectedProgramme = ddlPaymentProgramme.SelectedValue ?? "";
+            string search = txtPaymentSearch.Text.Trim();
 
             string sql = @"
                 SELECT *
@@ -131,6 +198,7 @@ namespace Student_Information_Management_System__SIMS_
                            f.StudentId,
                            s.FirstName + ' ' + s.LastName AS StudentName,
                            p.ProgrammeCode,
+                           p.ProgrammeName,
                            f.Session,
                            f.FeeType,
                            f.Amount,
@@ -174,29 +242,52 @@ namespace Student_Information_Management_System__SIMS_
                                    ).value('.', 'NVARCHAR(MAX)'), 1, 0, ''),
                                    '<span class=""receipt-empty"">No active enrolled course found</span>'
                                )
-                           END AS CoursePaymentList
+                           END AS CoursePaymentList,
+                           ISNULL((
+                                SELECT TOP 1 c.CourseCode + ' ' + c.CourseName
+                                FROM Enrollment e3
+                                INNER JOIN Courses c ON c.CourseId = e3.CourseId
+                                WHERE e3.EnrollmentId = f.EnrollmentId
+                           ), '') AS CourseSearchText
                     FROM Fees f
                     INNER JOIN StudentDetails s ON f.StudentId = s.StudentId
                     INNER JOIN Programmes p ON s.ProgrammeId = p.ProgrammeId
                     LEFT JOIN Enrollment e ON e.EnrollmentId = f.EnrollmentId
                     WHERE (@Session = '' OR f.Session = @Session)
+                      AND (@ProgrammeId = '' OR CONVERT(VARCHAR(20), s.ProgrammeId) = @ProgrammeId)
                 ) x
                 WHERE (@Status = '' OR x.DisplayStatus = @Status)
+                  AND (
+                        @Search = ''
+                        OR x.StudentId LIKE '%' + @Search + '%'
+                        OR x.StudentName LIKE '%' + @Search + '%'
+                        OR x.PaymentRef LIKE '%' + @Search + '%'
+                        OR x.Session LIKE '%' + @Search + '%'
+                        OR x.ProgrammeCode LIKE '%' + @Search + '%'
+                        OR x.CourseSearchText LIKE '%' + @Search + '%'
+                  )
                 ORDER BY 
+                    x.Session DESC,
                     CASE 
                         WHEN x.DisplayStatus = 'Pending' THEN 0
-                        WHEN x.DisplayStatus = 'Not Active' THEN 2
-                        ELSE 1
+                        WHEN x.DisplayStatus = 'Rejected' THEN 1
+                        WHEN x.DisplayStatus = 'Overdue' THEN 2
+                        WHEN x.DisplayStatus = 'Paid' THEN 3
+                        WHEN x.DisplayStatus = 'Not Active' THEN 4
+                        ELSE 5
                     END,
-                    x.Session DESC,
-                    x.StudentName";
+                    x.StudentName,
+                    x.FeeId DESC";
 
             SqlParameter[] pms =
             {
                 new SqlParameter("@Session", ddlPaymentSession.SelectedValue ?? ""),
-                new SqlParameter("@Status", selectedStatus)
+                new SqlParameter("@ProgrammeId", selectedProgramme),
+                new SqlParameter("@Status", selectedStatus),
+                new SqlParameter("@Search", search)
             };
 
+            _lastPaymentSession = null;
             gvPayments.DataSource = DatabaseHelper.ExecuteQuery(sql, pms);
             gvPayments.DataBind();
         }
@@ -206,7 +297,81 @@ namespace Student_Information_Management_System__SIMS_
             LoadCourses();
         }
 
+
+        protected void ddlCourseFeeFilterSession_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            LoadCourseFees();
+        }
+
+        protected void ddlCourseFeeFilterProgramme_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            LoadCourseFees();
+        }
+
+        protected void btnSearchCourseFee_Click(object sender, EventArgs e)
+        {
+            LoadCourseFees();
+        }
+
+        protected void btnResetCourseFeeFilter_Click(object sender, EventArgs e)
+        {
+            ddlCourseFeeFilterSession.SelectedIndex = 0;
+            ddlCourseFeeFilterProgramme.SelectedIndex = 0;
+            txtCourseFeeSearch.Text = string.Empty;
+            LoadCourseFees();
+        }
+
+        protected void rptCourseFeeGroups_ItemDataBound(object sender, RepeaterItemEventArgs e)
+        {
+            if (e.Item.ItemType != ListItemType.Item && e.Item.ItemType != ListItemType.AlternatingItem)
+                return;
+
+            DataRowView row = e.Item.DataItem as DataRowView;
+            if (row == null) return;
+
+            Repeater inner = e.Item.FindControl("rptCourseFeeItems") as Repeater;
+            if (inner == null) return;
+
+            string session = Convert.ToString(row["Session"]);
+            string programmeId = Convert.ToString(row["ProgrammeId"]);
+            string search = txtCourseFeeSearch.Text.Trim();
+
+            string sql = @"
+                SELECT
+                    cf.CourseFeeId,
+                    c.CourseCode,
+                    c.CourseName,
+                    cf.Amount
+                FROM CourseFees cf
+                INNER JOIN Courses c ON cf.CourseId = c.CourseId
+                INNER JOIN Programmes p ON c.ProgrammeId = p.ProgrammeId
+                WHERE cf.Session = @Session
+                  AND CONVERT(VARCHAR(20), p.ProgrammeId) = @ProgrammeId
+                  AND (
+                        @Search = ''
+                        OR c.CourseCode LIKE '%' + @Search + '%'
+                        OR c.CourseName LIKE '%' + @Search + '%'
+                        OR p.ProgrammeCode LIKE '%' + @Search + '%'
+                        OR p.ProgrammeName LIKE '%' + @Search + '%'
+                        OR cf.Session LIKE '%' + @Search + '%'
+                  )
+                ORDER BY c.CourseCode";
+
+            inner.DataSource = DatabaseHelper.ExecuteQuery(sql, new[]
+            {
+                new SqlParameter("@Session", session),
+                new SqlParameter("@ProgrammeId", programmeId),
+                new SqlParameter("@Search", search)
+            });
+            inner.DataBind();
+        }
+
         protected void ddlPaymentSession_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            LoadPayments();
+        }
+
+        protected void ddlPaymentProgramme_SelectedIndexChanged(object sender, EventArgs e)
         {
             LoadPayments();
         }
@@ -216,12 +381,28 @@ namespace Student_Information_Management_System__SIMS_
             LoadPayments();
         }
 
+        protected void btnSearchPayment_Click(object sender, EventArgs e)
+        {
+            LoadPayments();
+        }
+
+        protected void btnResetPaymentFilter_Click(object sender, EventArgs e)
+        {
+            ddlPaymentSession.SelectedIndex = 0;
+            ddlPaymentProgramme.SelectedIndex = 0;
+            ddlStatus.SelectedValue = "Pending";
+            txtPaymentSearch.Text = string.Empty;
+            LoadPayments();
+        }
+
         protected void btnSaveCourseFee_Click(object sender, EventArgs e)
         {
             if (!ValidateCourseFee()) return;
 
             try
             {
+                int courseId = int.Parse(ddlCourse.SelectedValue);
+                string session = ddlFeeSession.SelectedValue;
                 decimal amount = decimal.Parse(txtAmount.Text.Trim());
 
                 if (string.IsNullOrWhiteSpace(hfCourseFeeId.Value))
@@ -238,12 +419,12 @@ namespace Student_Information_Management_System__SIMS_
 
                     SqlParameter[] p =
                     {
-                        new SqlParameter("@CourseId", int.Parse(ddlCourse.SelectedValue)),
-                        new SqlParameter("@Session", ddlFeeSession.SelectedValue),
+                        new SqlParameter("@CourseId", courseId),
+                        new SqlParameter("@Session", session),
                         new SqlParameter("@Amount", amount)
                     };
+
                     DatabaseHelper.ExecuteNonQuery(sql, p);
-                    ShowMessage("Success", "Course fee saved successfully.");
                 }
                 else
                 {
@@ -255,16 +436,29 @@ namespace Student_Information_Management_System__SIMS_
                     SqlParameter[] p =
                     {
                         new SqlParameter("@CourseFeeId", int.Parse(hfCourseFeeId.Value)),
-                        new SqlParameter("@CourseId", int.Parse(ddlCourse.SelectedValue)),
-                        new SqlParameter("@Session", ddlFeeSession.SelectedValue),
+                        new SqlParameter("@CourseId", courseId),
+                        new SqlParameter("@Session", session),
                         new SqlParameter("@Amount", amount)
                     };
+
                     DatabaseHelper.ExecuteNonQuery(sql, p);
-                    ShowMessage("Success", "Course fee updated successfully.");
                 }
 
+                int synced = SyncPendingStudentFeesForCourse(courseId, session, amount);
+
                 ClearCourseFeeForm();
+                LoadStats();
                 LoadCourseFees();
+                LoadPayments();
+
+                if (synced > 0)
+                {
+                    ShowMessage("Success", "Course fee saved successfully. " + synced + " pending student payment record(s) were updated to the latest fee amount.");
+                }
+                else
+                {
+                    ShowMessage("Success", "Course fee saved successfully.");
+                }
             }
             catch (Exception ex)
             {
@@ -290,18 +484,42 @@ namespace Student_Information_Management_System__SIMS_
             return true;
         }
 
-        protected void gvCourseFees_RowCommand(object sender, GridViewCommandEventArgs e)
+        private int SyncPendingStudentFeesForCourse(int courseId, string session, decimal amount)
         {
-            int courseFeeId = int.Parse(e.CommandArgument.ToString());
+            string sql = @"
+                UPDATE f
+                SET f.Amount = @Amount
+                FROM Fees f
+                INNER JOIN Enrollment e ON e.EnrollmentId = f.EnrollmentId
+                WHERE e.CourseId = @CourseId
+                  AND e.Session = @Session
+                  AND f.Session = @Session
+                  AND f.Status IN ('Pending', 'Rejected', 'Overdue')
+                  AND ISNULL(f.PaymentReceiptPath, '') = ''";
+
+            SqlParameter[] p =
+            {
+                new SqlParameter("@CourseId", courseId),
+                new SqlParameter("@Session", session),
+                new SqlParameter("@Amount", amount)
+            };
+
+            return DatabaseHelper.ExecuteNonQuery(sql, p);
+        }
+
+
+        protected void rptCourseFeeItems_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            int courseFeeId;
+            if (!int.TryParse(Convert.ToString(e.CommandArgument), out courseFeeId) || courseFeeId <= 0)
+            {
+                ShowMessage("Error", "Invalid course fee selected.");
+                return;
+            }
 
             if (e.CommandName == "EditFee")
             {
                 LoadCourseFeeForEdit(courseFeeId);
-            }
-            else if (e.CommandName == "DeleteFee")
-            {
-                hfDeleteCourseFeeId.Value = courseFeeId.ToString();
-                ShowMessage("Confirm Delete", "Please confirm delete from the popup.");
             }
         }
 
@@ -561,9 +779,22 @@ namespace Student_Information_Management_System__SIMS_
             });
         }
 
+        protected void gvCourseFees_RowDataBound(object sender, GridViewRowEventArgs e)
+        {
+            // Course Fee table is ordered by session only.
+            // No separator rows are inserted because they caused blank rows with action buttons in the GridView.
+        }
+
         protected void gvPayments_RowDataBound(object sender, GridViewRowEventArgs e)
         {
             if (e.Row.RowType != DataControlRowType.DataRow) return;
+
+            string session = Convert.ToString(DataBinder.Eval(e.Row.DataItem, "Session"));
+            if (!string.Equals(_lastPaymentSession, session, StringComparison.OrdinalIgnoreCase))
+            {
+                _lastPaymentSession = session;
+                InsertGroupRow(e.Row, "Session: " + session, 6);
+            }
 
             string status = DataBinder.Eval(e.Row.DataItem, "DisplayStatus").ToString();
             string receiptPath = DataBinder.Eval(e.Row.DataItem, "PaymentReceiptPath").ToString();
@@ -606,6 +837,44 @@ namespace Student_Information_Management_System__SIMS_
                 unsuspend.Visible = isSuspended;
         }
 
+
+        private void InsertGroupRow(GridViewRow currentRow, string text, int columnSpan)
+        {
+            Table table = currentRow.Parent as Table;
+            if (table == null) return;
+
+            GridViewRow groupRow = new GridViewRow(-1, -1, DataControlRowType.Separator, DataControlRowState.Normal);
+            groupRow.CssClass = "session-group-row";
+
+            TableCell cell = new TableCell();
+            cell.ColumnSpan = columnSpan;
+            cell.Controls.Add(new LiteralControl("<i class='fa-solid fa-calendar-days'></i> " + HttpUtility.HtmlEncode(text)));
+            groupRow.Cells.Add(cell);
+
+            int rowIndex = 0;
+            for (int i = 0; i < table.Rows.Count; i++)
+            {
+                if (object.ReferenceEquals(table.Rows[i], currentRow))
+                {
+                    rowIndex = i;
+                    break;
+                }
+            }
+
+            table.Rows.AddAt(rowIndex, groupRow);
+        }
+
+        protected string FormatPaymentDate(object paymentDateObj)
+        {
+            if (paymentDateObj == null || paymentDateObj == DBNull.Value)
+                return "Not approved yet";
+
+            DateTime date;
+            if (!DateTime.TryParse(paymentDateObj.ToString(), out date))
+                return "Not approved yet";
+
+            return "Approved: " + date.ToString("yyyy-MM-dd");
+        }
 
         protected string GetAccountStatusText(object isSuspendedObj)
         {

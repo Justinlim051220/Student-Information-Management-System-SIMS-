@@ -204,22 +204,13 @@ namespace Student_Information_Management_System__SIMS_
         protected global::System.Web.UI.WebControls.DropDownList ddlSession;
 
         /// <summary>
-        /// ddlCourse control.
+        /// cblCourses control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.DropDownList ddlCourse;
-
-        /// <summary>
-        /// lblRule control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblRule;
+        protected global::System.Web.UI.WebControls.CheckBoxList cblCourses;
 
         /// <summary>
         /// btnEnroll control.

@@ -182,14 +182,64 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 return false;
             }
 
-            if (GetSelectedCourseIds().Length == 0)
+            int[] selectedCourseIds = GetSelectedCourseIds();
+            if (selectedCourseIds.Length == 0)
             {
                 ShowMessage("⚠ Warning", "Please select at least one course.");
                 return false;
             }
 
+            string missingFeeMessage;
+            if (!ValidateSelectedCourseFees(selectedCourseIds, out missingFeeMessage))
+            {
+                ShowMessage("⚠ Course Fee Required", missingFeeMessage);
+                return false;
+            }
+
             return true;
         }
+
+        private bool ValidateSelectedCourseFees(int[] selectedCourseIds, out string message)
+        {
+            message = "";
+            string missingCourses = "";
+
+            foreach (int courseId in selectedCourseIds)
+            {
+                string sql = @"
+                    SELECT TOP 1 c.CourseCode + ' - ' + c.CourseName
+                    FROM Courses c
+                    LEFT JOIN CourseFees cf
+                           ON cf.CourseId = c.CourseId
+                          AND cf.Session = @Session
+                          AND cf.Amount > 0
+                    WHERE c.CourseId = @CourseId
+                      AND cf.CourseFeeId IS NULL";
+
+                object result = DatabaseHelper.ExecuteScalar(sql, new[]
+                {
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", ddlSession.SelectedValue)
+                });
+
+                if (result != null && result != DBNull.Value)
+                {
+                    missingCourses += "<br/>• " + HttpUtility.HtmlEncode(result.ToString());
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(missingCourses))
+            {
+                message = "Course offering cannot be opened because the following course fee(s) have not been set for "
+                    + HttpUtility.HtmlEncode(ddlSession.SelectedValue)
+                    + ":" + missingCourses
+                    + "<br/><br/>Please set the course fee in Manage Fees first.";
+                return false;
+            }
+
+            return true;
+        }
+
 
         private int[] GetSelectedCourseIds()
         {

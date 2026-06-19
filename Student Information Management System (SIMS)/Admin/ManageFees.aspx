@@ -120,6 +120,178 @@
             font-weight: 700;
             white-space: nowrap;
         }
+
+
+        /* ===== Professional grouped fee/payment tables ===== */
+        .filter-panel {
+            display: grid;
+            grid-template-columns: minmax(150px, 1fr) minmax(220px, 1.25fr) minmax(145px, .9fr) minmax(240px, 1.35fr) auto auto;
+            gap: 14px;
+            align-items: end;
+            margin-bottom: 18px;
+            padding: 16px 18px;
+            border: 1px solid #edf0f6;
+            background: #fafafa;
+            border-radius: 18px;
+        }
+        .filter-panel .form-group { margin-bottom: 0; }
+        .filter-panel label { margin-bottom: 7px; }
+        .filter-button-group .btn {
+            height: 44px;
+            min-width: 105px;
+            padding: 0 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+        .filter-button-group label { visibility: hidden; }
+        .session-group-row td,
+        .session-group-row th {
+            background: #fff8e7 !important;
+            color: #9a650f !important;
+            font-weight: 800 !important;
+            font-size: 13px !important;
+            letter-spacing: .2px;
+            padding: 12px 18px !important;
+            border-top: 2px solid #f1d18b !important;
+            border-bottom: 1px solid #f1d18b !important;
+        }
+        .payment-ref-box { min-width: 140px; }
+        .payment-ref-main { font-weight: 800; color: #1f2937; margin-bottom: 4px; }
+        .payment-ref-sub { font-size: 12px; color: #64748b; font-weight: 600; }
+        .student-pay-box { min-width: 170px; }
+        .student-pay-name { font-weight: 800; color: #1f2937; margin-bottom: 4px; }
+        .student-pay-meta { font-size: 12px; color: #64748b; font-weight: 600; }
+        .amount-status-box { display:flex; flex-direction:column; gap:8px; min-width: 150px; }
+        .amount-line { font-size: 15px; font-weight: 900; color: #1f2937; }
+        .paid-date-line { font-size: 12px; color: #64748b; font-weight: 600; }
+        .table-subtitle-small { color:#64748b; font-size:13px; font-weight:600; margin-top:4px; }
+        .data-table th { white-space: nowrap; }
+        .data-table td { vertical-align: top; }
+
+
+        /* ===== Grouped Course Fee Table ===== */
+        .course-fee-filter-panel {
+            display: grid;
+            grid-template-columns: minmax(160px, 1fr) minmax(230px, 1.25fr) minmax(250px, 1.35fr) auto auto;
+            gap: 14px;
+            align-items: end;
+            margin: 24px 0 18px;
+            padding: 16px 18px;
+            border: 1px solid #edf0f6;
+            background: #fafafa;
+            border-radius: 18px;
+        }
+        .course-fee-filter-panel .form-group { margin-bottom: 0; }
+        .course-fee-filter-panel label { margin-bottom: 7px; }
+        .course-fee-groups { display: flex; flex-direction: column; gap: 16px; }
+        .course-fee-group-card {
+            border: 1px solid #edf0f6;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+        }
+        .course-fee-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 18px;
+            background: #fff8e7;
+            border-bottom: 1px solid #f1d18b;
+        }
+        .course-fee-group-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .course-fee-group-subtitle {
+            margin-top: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #8a5a0a;
+        }
+        .course-fee-group-total {
+            text-align: right;
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            white-space: nowrap;
+        }
+        .course-fee-group-total strong {
+            display: block;
+            font-size: 18px;
+            color: #1f2937;
+            margin-top: 4px;
+        }
+        .course-fee-mini-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .course-fee-mini-table th {
+            background: #f8fafc;
+            color: #334155;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+        .course-fee-mini-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #edf0f6;
+            vertical-align: middle;
+        }
+        .course-fee-mini-table tr:last-child td { border-bottom: none; }
+        .course-code-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #f3f6fa;
+            color: #1f2937;
+            font-weight: 800;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .course-fee-name { font-weight: 750; color: #1f2937; }
+        .course-fee-amount { font-weight: 900; color: #b7791f; white-space: nowrap; }
+        .empty-state {
+            padding: 22px;
+            border: 1px dashed #d7dee8;
+            border-radius: 18px;
+            color: #64748b;
+            font-weight: 700;
+            text-align: center;
+            background: #fafafa;
+        }
+        @media(max-width: 1100px) {
+            .course-fee-filter-panel { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+            .course-fee-group-header { flex-direction: column; align-items: flex-start; }
+            .course-fee-group-total { text-align: left; }
+        }
+        @media(max-width: 700px) {
+            .course-fee-filter-panel { grid-template-columns: 1fr; }
+            .course-fee-mini-table th:nth-child(3),
+            .course-fee-mini-table td:nth-child(3) { display: none; }
+        }
+
+        @media(max-width: 1250px) {
+            .filter-panel { grid-template-columns: repeat(3, minmax(180px, 1fr)); }
+            .filter-button-group .btn { width: 100%; }
+        }
+        @media(max-width: 800px) {
+            .filter-panel { grid-template-columns: 1fr; }
+            .filter-button-group label { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -173,35 +345,106 @@
                     <asp:Button ID="btnConfirmDeleteCourseFee" runat="server" Text="Confirm Delete" OnClick="btnConfirmDeleteCourseFee_Click" CausesValidation="false" Style="display:none;" />
                 </div>
 
-                <div class="table-wrapper" style="margin-top:25px;">
-                    <asp:GridView ID="gvCourseFees" runat="server" CssClass="data-table" AutoGenerateColumns="false" EmptyDataText="No course fee found." OnRowCommand="gvCourseFees_RowCommand">
-                        <Columns>
-                            <asp:BoundField DataField="ProgrammeCode" HeaderText="Programme" />
-                            <asp:BoundField DataField="CourseCode" HeaderText="Code" />
-                            <asp:BoundField DataField="CourseName" HeaderText="Course" />
-                            <asp:BoundField DataField="Session" HeaderText="Session" />
-                            <asp:BoundField DataField="Amount" HeaderText="Amount (RM)" DataFormatString="{0:N2}" />
-                            <asp:TemplateField HeaderText="Action">
-                                <ItemTemplate>
-                                    <div class="action-row">
-                                        <asp:LinkButton ID="btnEditFee" runat="server" CssClass="action-btn edit-btn" CommandName="EditFee" CommandArgument='<%# Eval("CourseFeeId") %>'><i class="fa-solid fa-pen-to-square"></i> Edit</asp:LinkButton>
-                                        <asp:LinkButton ID="btnDeleteFee" runat="server" CssClass="action-btn delete-btn" CommandName="DeleteFee" CommandArgument='<%# Eval("CourseFeeId") %>' OnClientClick='<%# "showDeleteConfirm(\"" + Eval("CourseFeeId") + "\"); return false;" %>'><i class="fa-solid fa-trash"></i> Delete</asp:LinkButton>
+                <div class="course-fee-filter-panel">
+                    <div class="form-group">
+                        <label>Session</label>
+                        <asp:DropDownList ID="ddlCourseFeeFilterSession" runat="server" CssClass="form-control" AutoPostBack="true" OnSelectedIndexChanged="ddlCourseFeeFilterSession_SelectedIndexChanged" />
+                    </div>
+                    <div class="form-group">
+                        <label>Programme</label>
+                        <asp:DropDownList ID="ddlCourseFeeFilterProgramme" runat="server" CssClass="form-control" AutoPostBack="true" OnSelectedIndexChanged="ddlCourseFeeFilterProgramme_SelectedIndexChanged" />
+                    </div>
+                    <div class="form-group">
+                        <label>Search</label>
+                        <asp:TextBox ID="txtCourseFeeSearch" runat="server" CssClass="form-control" placeholder="Course code / course name" />
+                    </div>
+                    <div class="form-group filter-button-group">
+                        <label>Search Button</label>
+                        <asp:Button ID="btnSearchCourseFee" runat="server" Text="Search" CssClass="btn btn-primary" OnClick="btnSearchCourseFee_Click" CausesValidation="false" />
+                    </div>
+                    <div class="form-group filter-button-group">
+                        <label>Reset Button</label>
+                        <asp:Button ID="btnResetCourseFeeFilter" runat="server" Text="Reset" CssClass="btn btn-outline" OnClick="btnResetCourseFeeFilter_Click" CausesValidation="false" />
+                    </div>
+                </div>
+
+                <asp:Panel ID="pnlNoCourseFees" runat="server" CssClass="empty-state" Visible="false">
+                    No course fee records found for the selected filter.
+                </asp:Panel>
+
+                <div class="course-fee-groups">
+                    <asp:Repeater ID="rptCourseFeeGroups" runat="server" OnItemDataBound="rptCourseFeeGroups_ItemDataBound">
+                        <ItemTemplate>
+                            <div class="course-fee-group-card">
+                                <div class="course-fee-group-header">
+                                    <div>
+                                        <div class="course-fee-group-title">
+                                            <i class="fa-solid fa-calendar-days"></i>
+                                            <%# Eval("Session") %> · <%# Eval("ProgrammeCode") %>
+                                        </div>
+                                        <div class="course-fee-group-subtitle"><%# Eval("ProgrammeName") %> · <%# Eval("CourseCount") %> course(s)</div>
                                     </div>
-                                </ItemTemplate>
-                            </asp:TemplateField>
-                        </Columns>
-                    </asp:GridView>
+                                    <div class="course-fee-group-total">
+                                        Total course fee value
+                                        <strong>RM <%# Eval("TotalAmount", "{0:N2}") %></strong>
+                                    </div>
+                                </div>
+                                <asp:HiddenField ID="hfGroupSession" runat="server" Value='<%# Eval("Session") %>' />
+                                <asp:HiddenField ID="hfGroupProgrammeId" runat="server" Value='<%# Eval("ProgrammeId") %>' />
+                                <asp:Repeater ID="rptCourseFeeItems" runat="server" OnItemCommand="rptCourseFeeItems_ItemCommand">
+                                    <HeaderTemplate>
+                                        <table class="course-fee-mini-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Code</th>
+                                                    <th>Course</th>
+                                                    <th>Amount (RM)</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                    </HeaderTemplate>
+                                    <ItemTemplate>
+                                                <tr>
+                                                    <td><span class="course-code-pill"><%# Eval("CourseCode") %></span></td>
+                                                    <td><div class="course-fee-name"><%# Eval("CourseName") %></div></td>
+                                                    <td><span class="course-fee-amount">RM <%# Eval("Amount", "{0:N2}") %></span></td>
+                                                    <td>
+                                                        <div class="action-row">
+                                                            <asp:LinkButton ID="btnEditFee" runat="server" CssClass="action-btn edit-btn" CommandName="EditFee" CommandArgument='<%# Eval("CourseFeeId") %>'><i class="fa-solid fa-pen-to-square"></i> Edit</asp:LinkButton>
+                                                            <asp:LinkButton ID="btnDeleteFee" runat="server" CssClass="action-btn delete-btn" CommandName="DeleteFee" CommandArgument='<%# Eval("CourseFeeId") %>' OnClientClick='<%# "showDeleteConfirm(\"" + Eval("CourseFeeId") + "\"); return false;" %>'><i class="fa-solid fa-trash"></i> Delete</asp:LinkButton>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                    </ItemTemplate>
+                                    <FooterTemplate>
+                                            </tbody>
+                                        </table>
+                                    </FooterTemplate>
+                                </asp:Repeater>
+                            </div>
+                        </ItemTemplate>
+                    </asp:Repeater>
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header"><span class="card-title"><i class="fa-solid fa-receipt"></i> Pending Student Payments</span></div>
+            <div class="card-header">
+                <div>
+                    <span class="card-title"><i class="fa-solid fa-receipt"></i> Student Payment Records</span>
+                    <div class="table-subtitle-small">Records are grouped by session. Each enrolled course remains as its own payment row for clear audit history.</div>
+                </div>
+            </div>
             <div class="card-body">
-                <div class="grid-2">
+                <div class="filter-panel">
                     <div class="form-group">
-                        <label>Filter Session</label>
+                        <label>Session</label>
                         <asp:DropDownList ID="ddlPaymentSession" runat="server" CssClass="form-control" AutoPostBack="true" OnSelectedIndexChanged="ddlPaymentSession_SelectedIndexChanged" />
+                    </div>
+                    <div class="form-group">
+                        <label>Programme</label>
+                        <asp:DropDownList ID="ddlPaymentProgramme" runat="server" CssClass="form-control" AutoPostBack="true" OnSelectedIndexChanged="ddlPaymentProgramme_SelectedIndexChanged" />
                     </div>
                     <div class="form-group">
                         <label>Status</label>
@@ -214,38 +457,61 @@
                             <asp:ListItem Text="All" Value="" />
                         </asp:DropDownList>
                     </div>
+                    <div class="form-group">
+                        <label>Search</label>
+                        <asp:TextBox ID="txtPaymentSearch" runat="server" CssClass="form-control" placeholder="Student / payment / course" />
+                    </div>
+                    <div class="form-group filter-button-group">
+                        <label>Search Button</label>
+                        <asp:Button ID="btnSearchPayment" runat="server" Text="Search" CssClass="btn btn-primary" OnClick="btnSearchPayment_Click" />
+                    </div>
+                    <div class="form-group filter-button-group">
+                        <label>Reset Button</label>
+                        <asp:Button ID="btnResetPaymentFilter" runat="server" Text="Reset" CssClass="btn btn-outline" OnClick="btnResetPaymentFilter_Click" CausesValidation="false" />
+                    </div>
                 </div>
+
                 <div class="table-wrapper">
                     <asp:GridView ID="gvPayments" runat="server" CssClass="data-table" AutoGenerateColumns="false" EmptyDataText="No fee records found." OnRowCommand="gvPayments_RowCommand" OnRowDataBound="gvPayments_RowDataBound">
                         <Columns>
-                            <asp:BoundField DataField="StudentId" HeaderText="Student ID" />
-                            <asp:BoundField DataField="StudentName" HeaderText="Student" />
-                            <asp:BoundField DataField="ProgrammeCode" HeaderText="Programme" />
-                            <asp:BoundField DataField="Session" HeaderText="Session" />
-                            <asp:TemplateField HeaderText="Courses to Pay">
+                            <asp:TemplateField HeaderText="Payment">
+                                <ItemTemplate>
+                                    <div class="payment-ref-box">
+                                        <div class="payment-ref-main"><%# Eval("PaymentRef") %></div>
+                                        <div class="payment-ref-sub"><%# Eval("Session") %></div>
+                                    </div>
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                            <asp:TemplateField HeaderText="Student">
+                                <ItemTemplate>
+                                    <div class="student-pay-box">
+                                        <div class="student-pay-name"><%# Eval("StudentName") %></div>
+                                        <div class="student-pay-meta"><%# Eval("StudentId") %> · <%# Eval("ProgrammeCode") %></div>
+                                        <asp:Label ID="lblAccountStatus" runat="server"
+                                            Text='<%# GetAccountStatusText(Eval("IsSuspended")) %>'
+                                            CssClass='<%# "status-badge " + GetAccountStatusCss(Eval("IsSuspended")) %>' />
+                                        <%# GetSuspensionReason(Eval("IsSuspended"), Eval("SuspensionReason")) %>
+                                    </div>
+                                </ItemTemplate>
+                            </asp:TemplateField>
+                            <asp:TemplateField HeaderText="Course / Fee Item">
                                 <ItemTemplate>
                                     <div class="course-list">
                                         <%# Eval("CoursePaymentList") %>
                                     </div>
                                 </ItemTemplate>
                             </asp:TemplateField>
-                            <asp:BoundField DataField="DisplayAmount" HeaderText="Total Amount (RM)" DataFormatString="{0:N2}" />
-                            <asp:TemplateField HeaderText="Status">
+                            <asp:TemplateField HeaderText="Amount / Status">
                                 <ItemTemplate>
-                                    <asp:Label ID="lblStatus" runat="server"
-                                        Text='<%# Eval("DisplayStatus") %>'
-                                        CssClass='<%# "status-badge " + GetStatusCss(Eval("DisplayStatus")) %>' />
+                                    <div class="amount-status-box">
+                                        <div class="amount-line">RM <%# Eval("DisplayAmount", "{0:N2}") %></div>
+                                        <asp:Label ID="lblStatus" runat="server"
+                                            Text='<%# Eval("DisplayStatus") %>'
+                                            CssClass='<%# "status-badge " + GetStatusCss(Eval("DisplayStatus")) %>' />
+                                        <div class="paid-date-line"><%# FormatPaymentDate(Eval("PaymentDate")) %></div>
+                                    </div>
                                 </ItemTemplate>
                             </asp:TemplateField>
-                            <asp:TemplateField HeaderText="Account">
-                                <ItemTemplate>
-                                    <asp:Label ID="lblAccountStatus" runat="server"
-                                        Text='<%# GetAccountStatusText(Eval("IsSuspended")) %>'
-                                        CssClass='<%# "status-badge " + GetAccountStatusCss(Eval("IsSuspended")) %>' />
-                                    <%# GetSuspensionReason(Eval("IsSuspended"), Eval("SuspensionReason")) %>
-                                </ItemTemplate>
-                            </asp:TemplateField>
-                            <asp:BoundField DataField="PaymentDate" HeaderText="Payment Date" DataFormatString="{0:yyyy-MM-dd}" />
                             <asp:TemplateField HeaderText="Receipt">
                                 <ItemTemplate>
                                     <%# GetReceiptLink(Eval("PaymentReceiptPath")) %>

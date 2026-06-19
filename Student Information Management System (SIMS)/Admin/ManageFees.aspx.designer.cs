@@ -141,13 +141,67 @@ namespace Student_Information_Management_System__SIMS_
         protected global::System.Web.UI.WebControls.Button btnConfirmDeleteCourseFee;
 
         /// <summary>
-        /// gvCourseFees control.
+        /// ddlCourseFeeFilterSession control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.GridView gvCourseFees;
+        protected global::System.Web.UI.WebControls.DropDownList ddlCourseFeeFilterSession;
+
+        /// <summary>
+        /// ddlCourseFeeFilterProgramme control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.DropDownList ddlCourseFeeFilterProgramme;
+
+        /// <summary>
+        /// txtCourseFeeSearch control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtCourseFeeSearch;
+
+        /// <summary>
+        /// btnSearchCourseFee control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnSearchCourseFee;
+
+        /// <summary>
+        /// btnResetCourseFeeFilter control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnResetCourseFeeFilter;
+
+        /// <summary>
+        /// pnlNoCourseFees control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlNoCourseFees;
+
+        /// <summary>
+        /// rptCourseFeeGroups control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Repeater rptCourseFeeGroups;
 
         /// <summary>
         /// ddlPaymentSession control.
@@ -159,6 +213,15 @@ namespace Student_Information_Management_System__SIMS_
         protected global::System.Web.UI.WebControls.DropDownList ddlPaymentSession;
 
         /// <summary>
+        /// ddlPaymentProgramme control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.DropDownList ddlPaymentProgramme;
+
+        /// <summary>
         /// ddlStatus control.
         /// </summary>
         /// <remarks>
@@ -166,6 +229,33 @@ namespace Student_Information_Management_System__SIMS_
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.DropDownList ddlStatus;
+
+        /// <summary>
+        /// txtPaymentSearch control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtPaymentSearch;
+
+        /// <summary>
+        /// btnSearchPayment control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnSearchPayment;
+
+        /// <summary>
+        /// btnResetPaymentFilter control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnResetPaymentFilter;
 
         /// <summary>
         /// gvPayments control.
