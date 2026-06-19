@@ -1,4 +1,4 @@
-﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Results.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Results" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Results.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Student.Results" %>
 <%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 <!DOCTYPE html>
 <html lang="en">
@@ -247,6 +247,107 @@
             color: #ffffff !important;
         }
         
+         /* ===== No Results Modal Styles ===== */
+        #noResultsModal.modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.62);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #noResultsModal.modal-overlay.show {
+            display: flex;
+        }
+
+        #noResultsModal .modal-card {
+            width: 100%;
+            max-width: 400px;
+            background: #ffffff;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28);
+            text-align: center;
+            font-family: var(--font-primary);
+            animation: modalPop 0.18s ease-out;
+        }
+
+        @keyframes modalPop {
+            from { transform: translateY(8px) scale(0.98); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        #noResultsModal .modal-top {
+            padding: 36px 32px 20px;
+        }
+
+        #noResultsModal .warning-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            color: #f59e0b;
+            font-size: 56px;
+            line-height: 1;
+        }
+
+        #noResultsModal .warning-icon i {
+            color: #f59e0b;
+        }
+
+        #noResultsModal .modal-title {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        #noResultsModal .modal-message {
+            margin: 0;
+            padding: 20px 32px;
+            border-top: 1px solid var(--border-light);
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        #noResultsModal .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 18px 28px 28px;
+        }
+
+        #noResultsModal .modal-btn {
+            min-width: 118px;
+            height: 44px;
+            border-radius: 999px;
+            font-family: var(--font-primary);
+            font-size: 14px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+            border: 2px solid var(--orange-main);
+            background: #ffffff;
+            color: var(--orange-main);
+        }
+
+        #noResultsModal .modal-btn:hover {
+            background: #fff7ed;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 
@@ -303,8 +404,17 @@
             </div>
 
             <asp:Panel ID="pnlResults" runat="server" CssClass="card">
-                <div class="card-header">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                     <span class="card-title">Published Result Sheet</span>
+                    <asp:LinkButton ID="btnExportResultSlip"
+                        runat="server"
+                        CssClass="btn btn-sm"
+                        Style="background: var(--orange-gradient); color:white; padding:8px 14px; border-radius:50px; box-shadow: var(--shadow-orange);"
+                        OnClick="btnExportResultSlip_Click"
+                        ToolTip="Export Result Slip as PDF">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        Export Result Slip
+                    </asp:LinkButton>
                 </div>
 
                 <div class="card-body">
@@ -368,6 +478,36 @@
         </div>
     </div>
 
+        <!-- No Results Modal -->
+    <div id="noResultsModal" class="modal-overlay" onclick="hideNoResultsModal(event)">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="noResultsTitle">
+            <div class="modal-top">
+                <div class="warning-icon">
+                    <i class="fa-solid fa-folder-open"></i>
+                </div>
+                <h3 id="noResultsTitle" class="modal-title">No Results Available</h3>
+            </div>
+
+            <p class="modal-message">Please select an academic session and semester with available results before exporting.</p>
+
+            <div class="modal-actions">
+                <button type="button" class="modal-btn" onclick="hideNoResultsModal()">Okay</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showNoResultsModal() {
+            var modal = document.getElementById('noResultsModal');
+            if (modal) modal.classList.add('show');
+        }
+
+        function hideNoResultsModal(event) {
+            if (event && event.target && event.target.id !== 'noResultsModal') return;
+            var modal = document.getElementById('noResultsModal');
+            if (modal) modal.classList.remove('show');
+        }
+    </script>
 
     <script>
         function showLogoutModal() {

@@ -1,5 +1,4 @@
-﻿﻿﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Notification.aspx.cs"
-    Inherits="Student_Information_Management_System__SIMS_.Notification" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Notification.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Notification" %>
 <%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 
 <!DOCTYPE html>
@@ -432,17 +431,17 @@
             scrollbar-width: thin;
         }
 
-        .main-wrapper {
+       .main-wrapper {
             margin-left: 260px;
-            width: calc(100% - 260px);
-            min-height: 100vh;
-            box-sizing: border-box;
+            background: var(--bg-page);
         }
 
-        .content-area {
+        .content-area,
+        .page-content {
             padding: 30px 40px;
             width: 100%;
             box-sizing: border-box;
+            background: var(--bg-page);
         }
 
         .sidebar-user {
@@ -714,7 +713,68 @@
         .logout-btn-confirm:hover {
             transform: translateY(-1px);
             color: #ffffff !important;
-}
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #form1 {
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-wrapper {
+            margin-left: 260px;
+        }
+
+        .page-content {
+            padding: 30px 40px;
+        
+        body,
+        #form1 {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .main-wrapper {
+            margin-left: 260px !important;
+            padding-top: 0 !important;
+        }
+
+        .topbar {
+            height: 88px !important;
+            min-height: 88px !important;
+            padding: 16px 32px !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+        }
+
+        .topbar-title {
+            margin: 0 !important;
+            padding: 0 !important;
+            font-size: 20px !important;
+            line-height: 1.2 !important;
+        }
+
+        .topbar-date {
+            margin: 0 !important;
+            padding: 0 !important;
+            margin-top: 4px !important;
+        }
+
+        .topbar-hidden-server-avatar {
+            display: none !important;
+        }
+
+        .page-content {
+            padding: 30px 40px !important;
+        }
     </style>
 </head>
 
@@ -749,13 +809,11 @@
 
                 <!-- Kept hidden only so existing code-behind references will not break. -->
                 <asp:Label ID="lblTopbarInitial" runat="server" Text="A" Style="display:none;" />
-                <asp:Image ID="imgTopbarAvatar" runat="server"
-                    ImageUrl="~/ProfilePicture/default-profile.png"
-                    CssClass="topbar-hidden-server-avatar" />
+                
             </div>
         </div>
 
-        <div class="content-area">
+        <div class="page-content">
             <div class="notif-stats">
                 <div class="notif-stat-card">
                     <div class="notif-stat-icon"><i class="fa-solid fa-bell"></i></div>

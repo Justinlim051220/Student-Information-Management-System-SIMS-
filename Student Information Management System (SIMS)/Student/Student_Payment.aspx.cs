@@ -20,10 +20,17 @@ namespace Student_Information_Management_System__SIMS_
         {
             SessionHelper.RequireStudent(Session, Response);
 
+            string studentId = SessionHelper.GetProfileId(Session);
+
+            if (string.IsNullOrWhiteSpace(studentId))
+                studentId = GetCurrentStudentId();
+
+            // Keep the suspension warning visible after Refresh / filter postbacks.
+            LoadSuspensionPaymentWarning(studentId);
+
             if (!IsPostBack)
             {
                 string fullName = SessionHelper.GetFullName(Session);
-                string studentId = SessionHelper.GetProfileId(Session);
 
                 lblStudentName.Text = string.IsNullOrWhiteSpace(fullName) ? "Student" : fullName;
                 lblStudentId.Text = studentId;
@@ -34,6 +41,87 @@ namespace Student_Information_Management_System__SIMS_
                 LoadStats(studentId);
                 LoadPayments(studentId);
             }
+        }
+
+
+
+        private void LoadSuspensionPaymentWarning(string studentId)
+        {
+            bool isSuspended = false;
+            string reason = "Payment not completed";
+
+            try
+            {
+                object columnExists = DatabaseHelper.ExecuteScalar(@"
+                    SELECT CASE
+                        WHEN COL_LENGTH('dbo.StudentDetails', 'IsSuspended') IS NULL THEN 0
+                        ELSE 1
+                    END");
+
+                if (columnExists != null && columnExists != DBNull.Value && Convert.ToInt32(columnExists) == 1)
+                {
+                    DataTable dt = DatabaseHelper.ExecuteQuery(@"
+                        SELECT TOP 1
+                               IsSuspended,
+                               ISNULL(NULLIF(LTRIM(RTRIM(SuspensionReason)), ''), 'Payment not completed') AS SuspensionReason
+                        FROM StudentDetails
+                        WHERE StudentId = @StudentId",
+                        new[] { new SqlParameter("@StudentId", studentId) });
+
+                    if (dt.Rows.Count > 0)
+                    {
+                        isSuspended = dt.Rows[0]["IsSuspended"] != DBNull.Value && Convert.ToBoolean(dt.Rows[0]["IsSuspended"]);
+                        reason = Convert.ToString(dt.Rows[0]["SuspensionReason"]);
+                    }
+                }
+            }
+            catch
+            {
+                isSuspended = false;
+            }
+
+            bool redirectedForSuspension = string.Equals(Request.QueryString["suspended"], "1", StringComparison.OrdinalIgnoreCase);
+
+            if (!isSuspended && !redirectedForSuspension)
+                return;
+
+            if (string.IsNullOrWhiteSpace(reason))
+                reason = "Payment not completed";
+
+            string safeReason = HttpUtility.JavaScriptStringEncode(reason);
+
+            string script = @"
+                (function () {
+                    function showPaymentSuspensionWarning() {
+                        var pageHeader = document.querySelector('.page-header');
+                        if (!pageHeader || document.getElementById('paymentSuspensionWarning')) return;
+
+                        var warning = document.createElement('div');
+                        warning.id = 'paymentSuspensionWarning';
+                        warning.className = 'payment-suspension-warning';
+                        warning.innerHTML =
+                            '<div class=""payment-suspension-warning-icon""><i class=""fa-solid fa-triangle-exclamation""></i></div>' +
+                            '<div>' +
+                                '<div class=""payment-suspension-warning-title"">Account temporarily suspended</div>' +
+                                '<div class=""payment-suspension-warning-text"">Your account access is limited because there is an unpaid or pending fee. Please upload your payment receipt and wait for admin approval to restore access.</div>' +
+                                '<div class=""payment-suspension-warning-reason"">Reason: " + safeReason + @"</div>' +
+                            '</div>';
+
+                        pageHeader.parentNode.insertBefore(warning, pageHeader.nextSibling);
+                    }
+
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', showPaymentSuspensionWarning);
+                    } else {
+                        showPaymentSuspensionWarning();
+                    }
+                })();";
+
+            ClientScript.RegisterStartupScript(
+                GetType(),
+                "ShowPaymentSuspensionWarning",
+                script,
+                true);
         }
 
         private void LoadStudentInfo(string studentId)

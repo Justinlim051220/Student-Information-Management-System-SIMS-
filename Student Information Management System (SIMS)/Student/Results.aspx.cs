@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Text;
+using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using SIMS.Helpers;
@@ -9,9 +12,14 @@ namespace Student_Information_Management_System__SIMS_.Student
 {
     public partial class Results : Page
     {
+        private const string ResultsSessionKey = "SIMS_StudentResultsData";
+        private const string ResultsSessionTitleKey = "SIMS_StudentResultsTitle";
+
         protected void Page_Load(object sender, EventArgs e)
         {
             SessionHelper.RequireStudent(Session, Response);
+
+            if (RedirectIfSuspended()) return;
 
             if (!IsPostBack)
             {
@@ -212,6 +220,9 @@ namespace Student_Information_Management_System__SIMS_.Student
                 ? Math.Round((previousQualityPoints + totalQualityPoints) / (previousCredits + totalCredits), 2)
                 : gpa;
 
+            // Check if this is the first time results are being generated for this session/semester
+            bool isFirstTimeGeneration = previousDt.Rows.Count == 0;
+
             foreach (DataRow row in courseDt.Rows)
             {
                 decimal mark = Convert.ToDecimal(row["FinalMark"]);
@@ -236,6 +247,34 @@ namespace Student_Information_Management_System__SIMS_.Student
                         new SqlParameter("@GPA", gpa),
                         new SqlParameter("@CGPA", cgpa)
                     });
+            }
+
+            // Send notification to student when results are generated
+            if (courseDt.Rows.Count > 0)
+            {
+                SendResultsNotification(studentId, session, semester);
+            }
+        }
+
+        private void SendResultsNotification(string studentId, string session, int semester)
+        {
+            try
+            {
+                DatabaseHelper.ExecuteNonQuery(@"
+                    INSERT INTO Notifications
+                    (UserId, Title, Message, IsRead, CreatedAt)
+                    VALUES
+                    (@UserId, @Title, @Message, 0, GETDATE())",
+                    new[]
+                    {
+                        new SqlParameter("@UserId", CurrentUserId),
+                        new SqlParameter("@Title", "Results Published"),
+                        new SqlParameter("@Message", "Your results for " + session + " Semester " + semester + " are now available. You may visit the Results Section to view.")
+                    });
+            }
+            catch
+            {
+                // Silently catch errors to not interfere with result generation
             }
         }
 
@@ -361,5 +400,260 @@ namespace Student_Information_Management_System__SIMS_.Student
             if (result != null && int.TryParse(result.ToString(), out unreadCount))
                 pnlNotifBadge.Visible = unreadCount > 0;
         }
+
+        protected void btnExportResultSlip_Click(object sender, EventArgs e)
+        {
+            // Validate selections before attempting to retrieve results
+            if (string.IsNullOrWhiteSpace(ddlSession.SelectedValue) ||
+                string.IsNullOrWhiteSpace(ddlSemester.SelectedValue) ||
+                !int.TryParse(ddlSemester.SelectedValue, out int semester))
+            {
+                ShowNoResultsModal();
+                return;
+            }
+
+            // Validate that results are available before exporting
+            DataTable resultsData = GetResultsDataTable();
+            if (resultsData == null || resultsData.Rows.Count == 0)
+            {
+                ShowNoResultsModal();
+                return;
+            }
+
+            StoreResultsForExport();
+            ExportPdf();
+        }
+
+        private void StoreResultsForExport()
+        {
+            DataTable dt = GetResultsDataTable();
+            if (dt == null || dt.Rows.Count == 0)
+                return;
+
+            Session[ResultsSessionKey] = dt;
+            Session[ResultsSessionTitleKey] = "Student Result Slip";
+        }
+
+        private DataTable GetResultsDataTable()
+        {
+            string studentId = CurrentStudentId;
+            string session = ddlSession.SelectedValue;
+
+            // Parse semester (already validated in btnExportResultSlip_Click)
+            if (!int.TryParse(ddlSemester.SelectedValue, out int semester))
+            {
+                return null;
+            }
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(@"
+                SELECT
+                    r.ResultId,
+                    r.CourseId,
+                    c.CourseCode + ' - ' + c.CourseName AS CourseDisplay,
+                    r.Credits,
+                    CAST(r.FinalMark AS DECIMAL(5,2)) AS FinalMark,
+                    r.Grade,
+                    CAST(r.GradePoint AS DECIMAL(4,2)) AS GradePoint,
+                    r.GPA,
+                    r.CGPA
+                FROM Results r
+                INNER JOIN Courses c ON c.CourseId = r.CourseId
+                WHERE r.StudentId = @StudentId
+                    AND r.Session = @Session
+                    AND r.Semester = @Semester
+                ORDER BY c.CourseCode",
+                new[]
+                {
+                   new SqlParameter("@StudentId", studentId),
+                   new SqlParameter("@Session", session),
+                   new SqlParameter("@Semester", semester)
+                });
+
+            return dt;
+        }
+
+        private void ExportPdf()
+        {
+            DataTable dt = Session[ResultsSessionKey] as DataTable;
+            if (dt == null || dt.Rows.Count == 0)
+            {
+                ShowExportMessage("Export Failed", "Please generate a report before exporting.");
+                return;
+            }
+
+            string studentId = CurrentStudentId;
+            string session = ddlSession.SelectedValue;
+            int semester = Convert.ToInt32(ddlSemester.SelectedValue);
+
+            DataTable filterTable = BuildPdfFilterTable(studentId, session, semester);
+            DataTable summaryTable = BuildPdfSummaryTable(dt);
+
+            DataTable exportTable = new DataTable();
+            exportTable.Columns.Add("Course Code & Name");
+            exportTable.Columns.Add("Credits");
+            exportTable.Columns.Add("Final Mark (%)");
+            exportTable.Columns.Add("Grade");
+            exportTable.Columns.Add("Grade Point");
+
+            foreach (DataRow row in dt.Rows)
+            {
+                DataRow newRow = exportTable.NewRow();
+                newRow[0] = row["CourseDisplay"];
+                newRow[1] = row["Credits"];
+                newRow[2] = string.Format("{0:0.00}%", row["FinalMark"]);
+                newRow[3] = row["Grade"];
+                newRow[4] = row["GradePoint"];
+                exportTable.Rows.Add(newRow);
+            }
+
+            string title = "Student Result Slip - " + session + " Semester " + semester;
+            byte[] pdfBytes = SimplePdfHelper.CreateProfessionalReportPdf(
+                title,
+                filterTable,
+                summaryTable,
+                null,
+                exportTable,
+                "Result Details");
+
+            SendFileToClient(pdfBytes, GetSafeFileName(title) + ".pdf", "application/pdf");
+        }
+
+        private DataTable BuildPdfFilterTable(string studentId, string session, int semester)
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("Field");
+            dt.Columns.Add("Value");
+
+            string studentName = "Unknown Student";
+            object result = DatabaseHelper.ExecuteScalar(
+                "SELECT FirstName + ' ' + LastName FROM StudentDetails WHERE StudentId = @StudentId",
+                new[] { new SqlParameter("@StudentId", studentId) });
+            if (result != null)
+                studentName = result.ToString();
+
+            AddPdfInfoRow(dt, "Student ID", studentId);
+            AddPdfInfoRow(dt, "Student Name", studentName);
+            AddPdfInfoRow(dt, "Academic Session", session);
+            AddPdfInfoRow(dt, "Semester", "Semester " + semester);
+            AddPdfInfoRow(dt, "Generated On", DateTime.Now.ToString("dd MMM yyyy, hh:mm tt"));
+
+            return dt;
+        }
+
+        private DataTable BuildPdfSummaryTable(DataTable resultsTable)
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("Metric");
+            dt.Columns.Add("Value");
+
+            if (resultsTable.Rows.Count > 0)
+            {
+                decimal gpa = Convert.ToDecimal(resultsTable.Rows[0]["GPA"]);
+                decimal cgpa = Convert.ToDecimal(resultsTable.Rows[0]["CGPA"]);
+                int totalCredits = 0;
+                int courseCount = resultsTable.Rows.Count;
+
+                foreach (DataRow row in resultsTable.Rows)
+                    totalCredits += Convert.ToInt32(row["Credits"]);
+
+                AddPdfInfoRow(dt, "Total Courses", courseCount.ToString());
+                AddPdfInfoRow(dt, "Total Credits", totalCredits.ToString());
+                AddPdfInfoRow(dt, "GPA (Current Semester)", gpa.ToString("0.00"));
+                AddPdfInfoRow(dt, "CGPA (All Time)", cgpa.ToString("0.00"));
+            }
+
+            return dt;
+        }
+
+        private void AddPdfInfoRow(DataTable dt, string label, string value)
+        {
+            if (string.IsNullOrWhiteSpace(label))
+                return;
+
+            DataRow row = dt.NewRow();
+            row[0] = label;
+            row[1] = string.IsNullOrWhiteSpace(value) ? "-" : value;
+            dt.Rows.Add(row);
+        }
+
+        private string GetSafeFileName(string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+                title = "SIMS_Result_Slip";
+
+            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+                title = title.Replace(c, '_');
+
+            return title.Replace(" ", "_");
+        }
+
+        private void SendFileToClient(byte[] fileBytes, string fileName, string contentType)
+        {
+            try
+            {
+                Response.Clear();
+                Response.Buffer = true;
+                Response.ContentType = contentType;
+                Response.AddHeader("Content-Disposition", "attachment;filename=" + fileName);
+                Response.Charset = "";
+                Response.BinaryWrite(fileBytes);
+                Response.End();
+            }
+            catch (HttpRequestValidationException)
+            {
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void ShowExportMessage(string title, string message)
+        {
+            string script = string.Format(
+                "alert('{0}: {1}');",
+                HttpUtility.JavaScriptStringEncode(title),
+                HttpUtility.JavaScriptStringEncode(message));
+
+            ClientScript.RegisterStartupScript(GetType(), Guid.NewGuid().ToString("N"), script, true);
+        }
+
+        private void ShowNoResultsModal()
+        {
+            const string script = "showNoResultsModal();";
+            ClientScript.RegisterStartupScript(GetType(), Guid.NewGuid().ToString("N"), script, true);
+        }
+
+        private bool RedirectIfSuspended()
+        {
+            string studentId = SessionHelper.GetProfileId(Session);
+
+            if (string.IsNullOrWhiteSpace(studentId))
+            {
+                object studentObj = DatabaseHelper.ExecuteScalar(
+                    "SELECT StudentId FROM StudentDetails WHERE UserId = @UserId",
+                    new[] { new SqlParameter("@UserId", SessionHelper.GetUserId(Session)) });
+
+                studentId = studentObj == null || studentObj == DBNull.Value ? "" : studentObj.ToString();
+            }
+
+            if (string.IsNullOrWhiteSpace(studentId))
+                return false;
+
+            object result = DatabaseHelper.ExecuteScalar(
+                "SELECT ISNULL(IsSuspended, 0) FROM StudentDetails WHERE StudentId = @StudentId",
+                new[] { new SqlParameter("@StudentId", studentId) });
+
+            bool isSuspended = result != null && result != DBNull.Value && Convert.ToBoolean(result);
+
+            if (isSuspended)
+            {
+                Response.Redirect("Student_Payment.aspx?Suspended=1", false);
+                Context.ApplicationInstance.CompleteRequest();
+                return true;
+            }
+
+            return false;
+        }
+
     }
 }

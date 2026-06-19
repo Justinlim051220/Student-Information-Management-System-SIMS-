@@ -207,90 +207,101 @@
 
     <div class="sidebar" id="sidebar">
 
-        <div class="sidebar-brand">
-            <img src="~/Images/Logo_Dashboard.png" runat="server" alt="ONTI SIMS" class="brand-logo" />
-            <div class="brand-text">
-                <div class="brand-name">SIMS</div>
-                <div class="brand-sub">Admin Portal</div>
-            </div>
-        </div>
-
-        <nav class="sidebar-nav">
-            <div class="sidebar-section-label">Main</div>
-
-            <a href="Dashboard.aspx" class="sidebar-link">
-                <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
-            </a>
-            <a href="ManageStudents.aspx" class="sidebar-link">
-                <i class="fa-solid fa-user-graduate nav-icon"></i> Students
-            </a>
-            <a href="ManageLecturers.aspx" class="sidebar-link">
-                <i class="fa-solid fa-chalkboard-teacher nav-icon"></i> Lecturers
-            </a>
-            <a href="ManageProgrammes.aspx" class="sidebar-link">
-                <i class="fa-solid fa-layer-group nav-icon"></i> Programmes
-            </a>
-            <a href="ManageCourses.aspx" class="sidebar-link">
-                <i class="fa-solid fa-book-open nav-icon"></i> Courses
-            </a>
-            <a href="AssignLecturerCourse.aspx" class="sidebar-link">
-                <i class="fa-solid fa-user-check nav-icon"></i> Assign Course
-            </a>
-            <a href="Admin_enrolment.aspx" class="sidebar-link">
-                <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Finance & Reports</div>
-
-            <a href="ManageFees.aspx" class="sidebar-link">
-                <i class="fa-solid fa-money-bill-wave nav-icon"></i> Fees
-            </a>
-            <a href="Reports.aspx" class="sidebar-link">
-                <i class="fa-solid fa-chart-bar nav-icon"></i> Reports
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
-
-            <a href="Admin_Announcement.aspx" class="sidebar-link">
-                <i class="fa-solid fa-bullhorn nav-icon"></i> Announcements
-            </a>
-
-            <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
-
-            <a href="Admin_Profile.aspx" class="sidebar-link active">
-                <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-user">
-                <div class="user-avatar" id="divSidebarInitial" runat="server">
-                    <asp:Label ID="lblAvatarInitial" runat="server" Text="A" />
-                </div>
-                <div class="user-avatar sidebar-photo-avatar" id="divSidebarPhoto" runat="server" visible="false">
-                    <asp:Image ID="imgSidebarAvatar"
-                        runat="server"
-                        CssClass="sidebar-avatar-img" />
-                </div>
-                <div class="user-info">
-                    <div class="user-name">
-                        <asp:Label ID="lblSidebarName" runat="server" Text="Admin" />
-                    </div>
-                    <div class="user-role">Head of Programme</div>
-                </div>
-            </div>
-
-            <asp:LinkButton ID="lbLogout"
-                runat="server"
-                CssClass="sidebar-link"
-                OnClientClick="showLogoutModal(); return false;">
-                <i class="fa-solid fa-right-from-bracket"></i> Log Out
-            </asp:LinkButton>
-        </div>
-
+ <!-- Brand -->
+<div class="sidebar-brand">
+    <img src="~/Images/Logo_Dashboard.png" runat="server" alt="ONTI SIMS" class="brand-logo" />
+    
+    <div class="brand-text">
+        <div class="brand-name">SIMS</div>
+        <div class="brand-sub">Admin Portal</div>
     </div>
+</div>
 
-    <div class="main-wrapper">
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Overview</div>
+    <a href="Dashboard.aspx" class="sidebar-link">
+      <i class="fa-solid fa-gauge-high nav-icon"></i> Dashboard
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">User Management</div>
+    <a href="ManageStudents.aspx" class="sidebar-link">
+      <i class="fa-solid fa-user-graduate nav-icon"></i> Students
+    </a>
+    <a href="ManageLecturers.aspx" class="sidebar-link">
+      <i class="fa-solid fa-chalkboard-teacher nav-icon"></i> Lecturers
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Academic Setup</div>
+    <a href="ManageProgrammes.aspx" class="sidebar-link">
+      <i class="fa-solid fa-layer-group nav-icon"></i> Programmes
+    </a>
+    <a href="ManageCourses.aspx" class="sidebar-link">
+      <i class="fa-solid fa-book-open nav-icon"></i> Courses
+    </a>
+    <a href="AssignLecturerCourse.aspx" class="sidebar-link">
+      <i class="fa-solid fa-user-check nav-icon"></i> Assign Course
+    </a>
+    <a href="CourseOffering.aspx" class="sidebar-link">
+      <i class="fa-solid fa-calendar-check nav-icon"></i> Course Offering
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Enrollment</div>
+    <a href="Admin_enrolment.aspx" class="sidebar-link">
+      <i class="fa-solid fa-clipboard-list nav-icon"></i> Enrollment
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Finance & Reports</div>
+    <a href="ManageFees.aspx" class="sidebar-link">
+      <i class="fa-solid fa-money-bill-wave nav-icon"></i> Fees
+    </a>
+    <a href="Reports.aspx" class="sidebar-link">
+      <i class="fa-solid fa-chart-bar nav-icon"></i> Reports
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Communication</div>
+    <a href="Admin_Announcement.aspx" class="sidebar-link">
+      <i class="fa-solid fa-bullhorn nav-icon"></i> Announcements
+    </a>
+    <a href="Admin_Notification.aspx" class="sidebar-link">
+      <i class="fa-solid fa-bell nav-icon"></i> Notifications
+    </a>
+
+    <div class="sidebar-section-label" style="margin-top:12px;">Account</div>
+    <a href="Admin_Profile.aspx" class="sidebar-link active">
+      <i class="fa-solid fa-circle-user nav-icon"></i> My Profile
+    </a>
+  </nav>
+
+  <!-- Sidebar user footer -->
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="user-avatar" id="divSidebarInitial" runat="server">
+        <asp:Label ID="lblAvatarInitial" runat="server" Text="A" />
+      </div>
+      <div class="user-avatar sidebar-photo-avatar" id="divSidebarPhoto" runat="server" visible="false">
+        <asp:Image ID="imgSidebarAvatar" runat="server" CssClass="sidebar-avatar-img" />
+      </div>
+      <div class="user-info">
+        <div class="user-name">
+          <asp:Label ID="lblSidebarName" runat="server" Text="Admin" />
+        </div>
+        <div class="user-role">Head of Programme</div>
+      </div>
+    </div>
+    <!-- Log Out -->
+        <asp:LinkButton ID="lbLogout" runat="server" CssClass="sidebar-link" OnClientClick="showLogoutModal(); return false;">
+        <i class="fa-solid fa-right-from-bracket"></i> Log Out
+    </asp:LinkButton>
+  </div>
+
+</div><!-- /sidebar -->
+
+<!-- ================================================================
+     MAIN CONTENT
+     ================================================================ -->
+
+<div class="main-wrapper">
 
         <div class="topbar">
             <div>

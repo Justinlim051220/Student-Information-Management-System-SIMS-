@@ -129,6 +129,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                         COUNT(e.CourseId) AS CourseCount,
                         SUM(ISNULL(cf.Amount, 0)) AS TotalAmount,
                         'Active' AS Status,
+                        CAST(NULL AS NVARCHAR(MAX)) AS DropReason,
                         STUFF((
                             SELECT
                                 '<div class=''course-line''>' +
@@ -171,6 +172,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                         1 AS CourseCount,
                         ISNULL(cf.Amount, 0) AS TotalAmount,
                         e.Status,
+                        e.DropReason,
                         '<div class=''course-line''>' +
                         '<span class=''course-code''>' + c.CourseCode + '</span>' +
                         '<span class=''course-name''>' + c.CourseName + '</span>' +
@@ -605,6 +607,12 @@ namespace Student_Information_Management_System__SIMS_.Admin
             if (Session["Username"] != null) return Session["Username"].ToString();
 
             return "Admin";
+        }
+
+        protected string FormatDropReason(object reason)
+        {
+            string value = reason == null || reason == DBNull.Value ? string.Empty : reason.ToString().Trim();
+            return string.IsNullOrWhiteSpace(value) ? "-" : value;
         }
 
         protected bool IsEnrollmentPending(object status)

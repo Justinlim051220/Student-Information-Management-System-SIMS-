@@ -149,6 +149,117 @@
         transform: translateY(-1px);
         color: #ffffff !important;
     }
+
+
+    #suspensionAccessModal.student-suspension-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(17, 24, 39, 0.62);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    #suspensionAccessModal .student-suspension-modal-card {
+        width: 100%;
+        max-width: 440px;
+        background: #ffffff;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.30);
+        text-align: center;
+        font-family: var(--font-primary);
+        animation: logoutPop 0.18s ease-out;
+    }
+
+    #suspensionAccessModal .student-suspension-modal-top {
+        padding: 34px 32px 16px;
+    }
+
+    #suspensionAccessModal .student-suspension-icon {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #fff7ed;
+        color: #f97316;
+        font-size: 32px;
+        border: 3px solid #fed7aa;
+    }
+
+    #suspensionAccessModal .student-suspension-title {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 900;
+        color: #9a3412;
+    }
+
+    #suspensionAccessModal .student-suspension-message {
+        padding: 0 34px 8px;
+        margin: 0;
+        color: #4b5563;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.65;
+    }
+
+    #suspensionAccessModal .student-suspension-reason {
+        margin: 14px 34px 0;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #fff7ed;
+        color: #7c2d12;
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1.45;
+    }
+
+    #suspensionAccessModal .student-suspension-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        padding: 26px 28px 32px;
+    }
+
+    #suspensionAccessModal .student-suspension-btn {
+        min-width: 118px;
+        border-radius: 999px;
+        padding: 11px 22px;
+        font-size: 14px;
+        font-weight: 900;
+        cursor: pointer;
+        transition: .18s ease;
+        text-decoration: none;
+        border: 2px solid transparent;
+    }
+
+    #suspensionAccessModal .student-suspension-btn-cancel {
+        background: #ffffff;
+        color: var(--orange-main);
+        border-color: var(--orange-main);
+    }
+
+    #suspensionAccessModal .student-suspension-btn-cancel:hover {
+        background: #fff7ed;
+        transform: translateY(-1px);
+    }
+
+    #suspensionAccessModal .student-suspension-btn-pay {
+        background: var(--orange-gradient);
+        color: #ffffff !important;
+        box-shadow: var(--shadow-orange);
+    }
+
+    #suspensionAccessModal .student-suspension-btn-pay:hover {
+        transform: translateY(-1px);
+        color: #ffffff !important;
+    }
+
 </style>
 
 <div class="sidebar" id="sidebar">
@@ -260,6 +371,33 @@
     </div>
 </div>
 
+
+
+<div id="suspensionAccessModal" class="student-suspension-modal-overlay" onclick="hideStudentSuspensionModalOnBackdrop(event)">
+    <div class="student-suspension-modal-card" role="dialog" aria-modal="true" aria-labelledby="suspensionAccessTitle">
+        <div class="student-suspension-modal-top">
+            <div class="student-suspension-icon">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 id="suspensionAccessTitle" class="student-suspension-title">Account Suspended</h3>
+        </div>
+
+        <p class="student-suspension-message">
+            Your access to this page is currently limited because there is an unpaid or pending fee.
+            Please complete your payment before continuing.
+        </p>
+
+        <div class="student-suspension-reason">
+            Reason: <span id="studentSuspensionReasonText">Payment not completed</span>
+        </div>
+
+        <div class="student-suspension-actions">
+            <button type="button" class="student-suspension-btn student-suspension-btn-cancel" onclick="hideStudentSuspensionModal()">Cancel</button>
+            <button type="button" class="student-suspension-btn student-suspension-btn-pay" onclick="goToSuspensionPayment()">Pay Now</button>
+        </div>
+    </div>
+</div>
+
 <script>
     function showLogoutModal() {
         var modal = document.getElementById('logoutModal');
@@ -276,4 +414,73 @@
             hideLogoutModal();
         }
     }
+
+    function showStudentSuspensionModal(targetUrl) {
+        window.SIMS_SUSPENSION_TARGET_URL = targetUrl || '';
+
+        var modal = document.getElementById('suspensionAccessModal');
+        var reason = document.getElementById('studentSuspensionReasonText');
+
+        if (reason) {
+            reason.textContent = window.SIMS_SUSPENSION_REASON || 'Payment not completed';
+        }
+
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function hideStudentSuspensionModal() {
+        var modal = document.getElementById('suspensionAccessModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function hideStudentSuspensionModalOnBackdrop(event) {
+        if (event.target && event.target.id === 'suspensionAccessModal') {
+            hideStudentSuspensionModal();
+        }
+    }
+
+    function goToSuspensionPayment() {
+        window.location.href = 'Student_Payment.aspx?suspended=1';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var restrictedPages = [
+            'mycourses.aspx',
+            'coursedetails.aspx',
+            'attendance.aspx',
+            'results.aspx',
+            'student_enrollment.aspx'
+        ];
+
+        document.addEventListener('click', function (event) {
+            if (window.SIMS_STUDENT_SUSPENDED !== true) return;
+
+            var target = event.target;
+            var link = null;
+
+            while (target && target !== document) {
+                if (target.tagName && target.tagName.toLowerCase() === 'a') {
+                    link = target;
+                    break;
+                }
+                target = target.parentNode;
+            }
+
+            if (!link) return;
+
+            var href = link.getAttribute('href') || '';
+            var lowerHref = href.toLowerCase();
+
+            var blocked = restrictedPages.some(function (page) {
+                return lowerHref.indexOf(page) !== -1;
+            });
+
+            if (!blocked) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+            showStudentSuspensionModal(href);
+        }, true);
+    });
+
 </script>

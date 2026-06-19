@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Text;
+using System.Web;
 using System.Web.UI;
 using SIMS.Helpers;
 
@@ -35,6 +36,7 @@ namespace Student_Information_Management_System__SIMS_
                 LoadAttendance(studentId);
                 LoadEnrolledCourseBadges(studentId);
                 LoadOutstandingFees(studentId);
+                LoadSuspensionWarning(studentId);
                 LoadAnnouncements();
                 BuildAttendanceTrendData(studentId);
                 BuildGpaTrendData(studentId);
@@ -190,6 +192,70 @@ namespace Student_Information_Management_System__SIMS_
                 : 0m;
 
             lblFees.Text = fees.ToString("N2");
+        }
+
+        private void LoadSuspensionWarning(string studentId)
+        {
+            if (string.IsNullOrWhiteSpace(studentId)) return;
+
+            try
+            {
+                object columnExists = DatabaseHelper.ExecuteScalar(@"
+                    SELECT CASE
+                        WHEN COL_LENGTH('dbo.StudentDetails', 'IsSuspended') IS NULL THEN 0
+                        ELSE 1
+                    END");
+
+                if (columnExists == null || columnExists == DBNull.Value || Convert.ToInt32(columnExists) == 0)
+                {
+                    return;
+                }
+
+                string sql = @"
+                    SELECT TOP 1
+                           IsSuspended,
+                           ISNULL(NULLIF(LTRIM(RTRIM(SuspensionReason)), ''), 'Payment not completed') AS SuspensionReason
+                    FROM StudentDetails
+                    WHERE StudentId = @Sid";
+
+                DataTable dt = DatabaseHelper.ExecuteQuery(sql,
+                    new[] { new SqlParameter("@Sid", studentId) });
+
+                if (dt.Rows.Count == 0) return;
+
+                bool isSuspended = dt.Rows[0]["IsSuspended"] != DBNull.Value &&
+                                   Convert.ToBoolean(dt.Rows[0]["IsSuspended"]);
+
+                if (!isSuspended) return;
+
+                string reason = Convert.ToString(dt.Rows[0]["SuspensionReason"]);
+                string safeReason = HttpUtility.JavaScriptStringEncode(reason);
+
+                string script = @"
+                    document.addEventListener('DOMContentLoaded', function () {
+                        var banner = document.getElementById('suspensionBanner');
+                        var reasonText = document.getElementById('suspensionReasonText');
+
+                        if (banner) {
+                            banner.style.display = 'flex';
+                        }
+
+                        if (reasonText) {
+                            reasonText.textContent = '" + safeReason + @"';
+                        }
+                    });";
+
+                ScriptManager.RegisterStartupScript(
+                    this,
+                    GetType(),
+                    "ShowSuspensionWarning",
+                    script,
+                    true);
+            }
+            catch
+            {
+                // Do not block dashboard loading if suspension columns are not available yet.
+            }
         }
 
         private void LoadAnnouncements()

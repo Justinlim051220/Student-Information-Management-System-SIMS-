@@ -87,6 +87,15 @@ namespace Student_Information_Management_System__SIMS_.Student
         protected global::System.Web.UI.WebControls.Panel pnlResults;
 
         /// <summary>
+        /// btnExportResultSlip control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LinkButton btnExportResultSlip;
+
+        /// <summary>
         /// lblGPA control.
         /// </summary>
         /// <remarks>

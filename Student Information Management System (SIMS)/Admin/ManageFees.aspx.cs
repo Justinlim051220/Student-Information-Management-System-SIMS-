@@ -143,6 +143,8 @@ namespace Student_Information_Management_System__SIMS_
                                ELSE f.Amount
                            END AS DisplayAmount,
                            f.Status,
+                           ISNULL(s.IsSuspended, 0) AS IsSuspended,
+                           ISNULL(s.SuspensionReason, '') AS SuspensionReason,
                            CASE 
                                WHEN f.Status = 'Pending'
                                     AND ISNULL(f.PaymentReceiptPath, '') = ''
@@ -367,13 +369,33 @@ namespace Student_Information_Management_System__SIMS_
 
         protected void gvPayments_RowCommand(object sender, GridViewCommandEventArgs e)
         {
+            if (e.CommandName == "SuspendStudent")
+            {
+                string studentId = e.CommandArgument.ToString();
+                SuspendStudent(studentId, "Payment not completed");
+                LoadStats();
+                LoadPayments();
+                ShowMessage("Success", "Student account suspended successfully. The student can still login to complete payment.");
+                return;
+            }
+
+            if (e.CommandName == "UnsuspendStudent")
+            {
+                string studentId = e.CommandArgument.ToString();
+                UnsuspendStudent(studentId);
+                LoadStats();
+                LoadPayments();
+                ShowMessage("Success", "Student account unsuspended successfully.");
+                return;
+            }
+
             int feeId;
             if (!int.TryParse(e.CommandArgument.ToString(), out feeId)) return;
 
             if (e.CommandName == "ApprovePayment")
             {
                 UpdatePaymentStatus(feeId, "Paid");
-                ShowMessage("Success", "Payment approved successfully.");
+                ShowMessage("Success", "Payment approved successfully. Student suspension has been removed if the account was suspended.");
             }
             else if (e.CommandName == "RejectPayment")
             {
@@ -413,8 +435,93 @@ namespace Student_Information_Management_System__SIMS_
 
             if (rows > 0)
             {
+                if (status == "Paid")
+                {
+                    UnsuspendStudent(studentId, false);
+                }
+
                 SendPaymentStatusNotificationToStudent(studentId, session, feeType, "PAY-" + feeId.ToString("D6"), status);
             }
+        }
+
+        private void SuspendStudent(string studentId, string reason)
+        {
+            string sql = @"
+                UPDATE StudentDetails
+                SET IsSuspended = 1,
+                    SuspensionReason = @Reason,
+                    SuspendedAt = GETDATE(),
+                    SuspendedBy = @AdminId
+                WHERE StudentId = @StudentId";
+
+            DatabaseHelper.ExecuteNonQuery(sql, new[]
+            {
+                new SqlParameter("@StudentId", studentId),
+                new SqlParameter("@Reason", reason),
+                new SqlParameter("@AdminId", GetCurrentAdminId())
+            });
+
+            SendSuspensionNotificationToStudent(studentId, true, reason);
+        }
+
+        private void UnsuspendStudent(string studentId, bool sendNotification = true)
+        {
+            string sql = @"
+                UPDATE StudentDetails
+                SET IsSuspended = 0,
+                    SuspensionReason = NULL,
+                    SuspendedAt = NULL,
+                    SuspendedBy = NULL
+                WHERE StudentId = @StudentId";
+
+            DatabaseHelper.ExecuteNonQuery(sql, new[]
+            {
+                new SqlParameter("@StudentId", studentId)
+            });
+
+            if (sendNotification)
+            {
+                SendSuspensionNotificationToStudent(studentId, false, "Payment completed / account reactivated");
+            }
+        }
+
+        private void SendSuspensionNotificationToStudent(string studentId, bool isSuspended, string reason)
+        {
+            string title = isSuspended ? "Account Suspended" : "Account Reactivated";
+            string message = isSuspended
+                ? "Your student account has been suspended because payment has not been completed. You can still login to upload your payment receipt."
+                : "Your student account has been reactivated. You may now access your courses, attendance, enrollment and results again.";
+
+            string sql = @"
+                INSERT INTO Notifications (UserId, Title, Message, IsRead, CreatedAt)
+                SELECT
+                    s.UserId,
+                    @Title,
+                    @Message + CHAR(13) + CHAR(10) + CHAR(13) + CHAR(10) + 'Reason: ' + @Reason,
+                    0,
+                    GETDATE()
+                FROM StudentDetails s
+                INNER JOIN Users u ON u.UserId = s.UserId
+                WHERE s.StudentId = @StudentId
+                  AND u.IsActive = 1";
+
+            DatabaseHelper.ExecuteNonQuery(sql, new[]
+            {
+                new SqlParameter("@StudentId", studentId),
+                new SqlParameter("@Title", title),
+                new SqlParameter("@Message", message),
+                new SqlParameter("@Reason", reason)
+            });
+        }
+
+        private string GetCurrentAdminId()
+        {
+            if (Session["UserId"] != null) return Session["UserId"].ToString();
+            if (Session["HoPId"] != null) return Session["HoPId"].ToString();
+            if (Session["AdminId"] != null) return Session["AdminId"].ToString();
+            if (Session["Username"] != null) return Session["Username"].ToString();
+
+            return "Admin";
         }
 
         private void SendPaymentStatusNotificationToStudent(string studentId, string session, string feeType, string paymentRef, string status)
@@ -461,25 +568,67 @@ namespace Student_Information_Management_System__SIMS_
             string status = DataBinder.Eval(e.Row.DataItem, "DisplayStatus").ToString();
             string receiptPath = DataBinder.Eval(e.Row.DataItem, "PaymentReceiptPath").ToString();
 
+            bool isSuspended = Convert.ToBoolean(DataBinder.Eval(e.Row.DataItem, "IsSuspended"));
+
             LinkButton approve = e.Row.FindControl("btnApprove") as LinkButton;
             LinkButton reject = e.Row.FindControl("btnReject") as LinkButton;
+            LinkButton suspend = e.Row.FindControl("btnSuspend") as LinkButton;
+            LinkButton unsuspend = e.Row.FindControl("btnUnsuspend") as LinkButton;
 
-            // Admin only needs approve/reject for pending records with uploaded receipt.
-            // Dropped-before-payment rows are displayed as Not Active history, but no admin payment action is needed.
-            if (status != "Pending" || string.IsNullOrWhiteSpace(receiptPath))
+            // Dropped-before-payment rows are displayed as Not Active history, so no admin payment action is needed.
+            if (status == "Not Active" && e.Row.Cells.Count > 0)
             {
-                if (approve != null) approve.Visible = false;
-                if (reject != null) reject.Visible = false;
-
-                if (status == "Not Active" && e.Row.Cells.Count > 0)
-                {
-                    TableCell actionCell = e.Row.Cells[e.Row.Cells.Count - 1];
-                    actionCell.Controls.Clear();
-                    actionCell.Controls.Add(new LiteralControl("<span class='no-admin-action'>No payment action required</span>"));
-                }
+                TableCell actionCell = e.Row.Cells[e.Row.Cells.Count - 1];
+                actionCell.Controls.Clear();
+                actionCell.Controls.Add(new LiteralControl("<span class='no-admin-action'>No payment action required</span>"));
+                return;
             }
+
+            // Offline payment support:
+            // Admin can approve Pending / Overdue / Rejected records even if no receipt was uploaded.
+            bool canApprovePayment = status == "Pending" || status == "Overdue" || status == "Rejected";
+
+            // Reject is only useful when a receipt has been uploaded and needs to be rejected.
+            bool canRejectPayment = (status == "Pending" || status == "Overdue") && !string.IsNullOrWhiteSpace(receiptPath);
+
+            if (approve != null)
+                approve.Visible = canApprovePayment;
+
+            if (reject != null)
+                reject.Visible = canRejectPayment;
+
+            bool canSuspendForPayment = status == "Pending" || status == "Rejected" || status == "Overdue";
+
+            if (suspend != null)
+                suspend.Visible = canSuspendForPayment && !isSuspended;
+
+            if (unsuspend != null)
+                unsuspend.Visible = isSuspended;
         }
 
+
+        protected string GetAccountStatusText(object isSuspendedObj)
+        {
+            bool isSuspended = isSuspendedObj != null && isSuspendedObj != DBNull.Value && Convert.ToBoolean(isSuspendedObj);
+            return isSuspended ? "Suspended" : "Active";
+        }
+
+        protected string GetAccountStatusCss(object isSuspendedObj)
+        {
+            bool isSuspended = isSuspendedObj != null && isSuspendedObj != DBNull.Value && Convert.ToBoolean(isSuspendedObj);
+            return isSuspended ? "status-suspended" : "status-active-account";
+        }
+
+        protected string GetSuspensionReason(object isSuspendedObj, object reasonObj)
+        {
+            bool isSuspended = isSuspendedObj != null && isSuspendedObj != DBNull.Value && Convert.ToBoolean(isSuspendedObj);
+            string reason = reasonObj == null || reasonObj == DBNull.Value ? "" : reasonObj.ToString();
+
+            if (!isSuspended || string.IsNullOrWhiteSpace(reason))
+                return "";
+
+            return "<span class='suspension-reason'>Reason: " + HttpUtility.HtmlEncode(reason) + "</span>";
+        }
 
         protected string GetReceiptLink(object receiptPathObj)
         {
