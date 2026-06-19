@@ -8,6 +8,8 @@
    - No ALTER patch commands are used for table design.
    - Includes EnrollmentId + Fees.EnrollmentId relationship.
    - Includes PaymentId as Fees primary key and FeeId auto-filled by trigger.
+   - Includes student suspension fields in StudentDetails.
+   - Includes IX_Fees_EnrollmentId for faster Fees-to-Enrollment lookup.
    ============================================================= */
 
 IF DB_ID('SIMS') IS NOT NULL
@@ -125,8 +127,12 @@ CREATE TABLE dbo.StudentDetails (
     Address          TEXT         NULL,
     ProfilePicture   VARCHAR(255) NULL,
     EnrollmentDate   DATE         NULL,
-    ProgrammeId      INT          NOT NULL,
-    CurrentSemester  INT          NOT NULL CONSTRAINT DF_StudentDetails_CurrentSemester DEFAULT 1,
+    ProgrammeId        INT           NOT NULL,
+    CurrentSemester    INT           NOT NULL CONSTRAINT DF_StudentDetails_CurrentSemester DEFAULT 1,
+    IsSuspended        BIT           NOT NULL CONSTRAINT DF_StudentDetails_IsSuspended DEFAULT (0),
+    SuspensionReason   NVARCHAR(255) NULL,
+    SuspendedAt        DATETIME      NULL,
+    SuspendedBy        NVARCHAR(50)  NULL,
 
     CONSTRAINT PK_StudentDetails PRIMARY KEY (StudentId),
     CONSTRAINT FK_StudentDetails_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(UserId),
@@ -366,6 +372,10 @@ ON dbo.Fees(FeeId)
 WHERE FeeId IS NOT NULL;
 GO
 
+CREATE INDEX IX_Fees_EnrollmentId
+ON dbo.Fees(EnrollmentId);
+GO
+
 CREATE INDEX IX_Fees_Student_Session_Status
 ON dbo.Fees(StudentId, [Session], Status);
 GO
@@ -450,4 +460,7 @@ CREATE TABLE dbo.Results (
     CONSTRAINT CK_Results_ResultStatus CHECK (ResultStatus IN ('Published', 'Void')),
     CONSTRAINT UQ_Results_Student_Session_Semester_Course UNIQUE (StudentId, [Session], Semester, CourseId)
 );
+GO
 
+PRINT 'SIMS final reset clean database created successfully.';
+GO
