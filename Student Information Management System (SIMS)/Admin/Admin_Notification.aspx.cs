@@ -32,7 +32,8 @@ namespace Student_Information_Management_System__SIMS_
                 SELECT
                     COUNT(*) AS TotalCount,
                     SUM(CASE WHEN IsRead = 0 THEN 1 ELSE 0 END) AS UnreadCount,
-                    SUM(CASE WHEN Title LIKE '%Payment%' OR Message LIKE '%payment%' OR Message LIKE '%receipt%' THEN 1 ELSE 0 END) AS PaymentCount
+                    SUM(CASE WHEN Title LIKE '%Payment%' OR CONVERT(VARCHAR(MAX), Message) LIKE '%payment%' OR CONVERT(VARCHAR(MAX), Message) LIKE '%receipt%' THEN 1 ELSE 0 END) AS PaymentCount,
+                    SUM(CASE WHEN (Title LIKE '%Payment%' OR CONVERT(VARCHAR(MAX), Message) LIKE '%payment%' OR CONVERT(VARCHAR(MAX), Message) LIKE '%receipt%') AND IsRead = 0 THEN 1 ELSE 0 END) AS PaymentUnreadCount
                 FROM Notifications
                 WHERE UserId = @UserId";
 
@@ -43,6 +44,7 @@ namespace Student_Information_Management_System__SIMS_
                 lblTotal.Text = "0";
                 lblUnread.Text = "0";
                 lblPaymentAlerts.Text = "0";
+                lblPaymentUnread.Text = "0";
                 return;
             }
 
@@ -50,6 +52,7 @@ namespace Student_Information_Management_System__SIMS_
             lblTotal.Text = row["TotalCount"] == DBNull.Value ? "0" : row["TotalCount"].ToString();
             lblUnread.Text = row["UnreadCount"] == DBNull.Value ? "0" : row["UnreadCount"].ToString();
             lblPaymentAlerts.Text = row["PaymentCount"] == DBNull.Value ? "0" : row["PaymentCount"].ToString();
+            lblPaymentUnread.Text = row["PaymentUnreadCount"] == DBNull.Value ? "0" : row["PaymentUnreadCount"].ToString();
         }
 
         private void BindNotifications()

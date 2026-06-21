@@ -205,7 +205,13 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+        }
+
+        .filter-button-row .btn {
+            width: auto !important;
+            min-width: 116px;
+            flex: 0 0 auto;
         }
 
         .main-action-row {
@@ -240,9 +246,9 @@
         }
 
         .btn-outline {
-            border: 1px solid #e5eaf2;
+            border: 2px solid var(--orange-main, #f5a623);
             background: #fff;
-            color: var(--text-primary, #1f2a44);
+            color: var(--orange-dark, #e8890a);
         }
 
         .btn-dark {
@@ -256,7 +262,7 @@
         .btn-back { min-width: 210px; }
 
         .btn:hover { transform: translateY(-1px); }
-        .btn-outline:hover { border-color: var(--orange-main, #f5a623); color: var(--orange-dark, #e8890a); }
+        .btn-outline:hover { background: #fff8e1; border-color: var(--orange-dark, #e8890a); color: var(--orange-dark, #e8890a); }
 
         .notification-card {
             border: 1px solid var(--border-light, #edf0f6);
@@ -461,6 +467,7 @@
             .admin-page-shell { padding: 24px 18px 40px; }
             .card-body { padding: 22px; }
             .filter-grid { grid-template-columns: 1fr; }
+            .filter-button-row .btn { flex: 1 1 0; min-width: 0; }
             .btn-wide { width: 100%; }
             .notification-top { flex-direction: column; }
         }
@@ -494,8 +501,15 @@
             <div class="summary-card">
                 <div class="summary-icon"><i class="fa-solid fa-receipt"></i></div>
                 <div>
-                    <div class="summary-label">Payment Messages</div>
+                    <div class="summary-label">Total Payment Messages</div>
                     <asp:Label ID="lblPaymentAlerts" runat="server" CssClass="summary-value" Text="0" />
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon"><i class="fa-solid fa-envelope"></i></div>
+                <div>
+                    <div class="summary-label">Unread Payment Messages</div>
+                    <asp:Label ID="lblPaymentUnread" runat="server" CssClass="summary-value" Text="0" />
                 </div>
             </div>
         </div>
@@ -529,7 +543,7 @@
                     </div>
 
                     <div class="filter-button-row">
-                        <asp:Button ID="btnFilter" runat="server" Text="Search" CssClass="btn btn-dark" OnClick="btnFilter_Click" />
+                        <asp:Button ID="btnFilter" runat="server" Text="Search" CssClass="btn btn-primary" OnClick="btnFilter_Click" />
                         <asp:Button ID="btnClear" runat="server" Text="Clear" CssClass="btn btn-outline" OnClick="btnClear_Click" />
                     </div>
                 </div>
