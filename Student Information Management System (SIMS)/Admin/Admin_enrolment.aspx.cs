@@ -246,32 +246,48 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 return;
             }
 
+            string feeMessage;
+            if (!ValidateSelectedCourseFees(out feeMessage))
+            {
+                ShowMessage("Warning", feeMessage);
+                return;
+            }
+
             try
             {
                 int inserted = 0;
                 int reactivated = 0;
+                int paymentSynced = 0;
 
                 foreach (ListItem item in cblCourses.Items)
                 {
                     if (!item.Selected) continue;
 
+                    int courseId = int.Parse(item.Value);
+                    int enrollmentId;
                     string result = SaveOrReactivateEnrollment(
                         ddlStudent.SelectedValue,
-                        int.Parse(item.Value),
+                        courseId,
                         ddlSession.SelectedValue,
-                        int.Parse(txtSemester.Text.Trim())
+                        int.Parse(txtSemester.Text.Trim()),
+                        out enrollmentId
                     );
 
                     if (result == "Inserted") inserted++;
                     else if (result == "Reactivated") reactivated++;
+
+                    if ((result == "Inserted" || result == "Reactivated") && enrollmentId > 0)
+                    {
+                        CreateOrUpdatePendingPaymentForEnrollment(enrollmentId, ddlStudent.SelectedValue, courseId, ddlSession.SelectedValue);
+                        paymentSynced++;
+                    }
                 }
 
-                UpdateStudentTuitionFee(ddlStudent.SelectedValue, ddlSession.SelectedValue);
                 LoadStats();
                 LoadCourses();
                 LoadSummary();
 
-                ShowMessage("Success", "Enrolment updated successfully. New: " + inserted + ", Reactivated: " + reactivated + ". Tuition fee has been sent to Manage Fees as Pending.");
+                ShowMessage("Success", "Enrolment updated successfully. New: " + inserted + ", Reactivated: " + reactivated + ". Payment record(s) prepared: " + paymentSynced + ".");
             }
             catch (Exception ex)
             {
@@ -358,14 +374,17 @@ namespace Student_Information_Management_System__SIMS_.Admin
             return false;
         }
 
-        private string SaveOrReactivateEnrollment(string studentId, int courseId, string session, int semester)
+        private string SaveOrReactivateEnrollment(string studentId, int courseId, string session, int semester, out int enrollmentId)
         {
+            enrollmentId = 0;
+
             string statusSql = @"
-                SELECT Status
+                SELECT TOP 1 EnrollmentId, Status
                 FROM Enrollment
                 WHERE StudentId = @StudentId
                   AND CourseId = @CourseId
-                  AND Session = @Session";
+                  AND Session = @Session
+                ORDER BY EnrollmentId DESC";
 
             SqlParameter[] statusParams =
             {
@@ -374,13 +393,14 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 new SqlParameter("@Session", session)
             };
 
-            object statusObj = DatabaseHelper.ExecuteScalar(statusSql, statusParams);
+            DataTable existing = DatabaseHelper.ExecuteQuery(statusSql, statusParams);
 
-            if (statusObj == null || statusObj == DBNull.Value)
+            if (existing.Rows.Count == 0)
             {
                 string insertSql = @"
                     INSERT INTO Enrollment (StudentId, CourseId, Session, Semester, Status, EnrollmentDate)
-                    VALUES (@StudentId, @CourseId, @Session, @Semester, 'Active', GETDATE())";
+                    VALUES (@StudentId, @CourseId, @Session, @Semester, 'Active', GETDATE());
+                    SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
                 SqlParameter[] insertParams =
                 {
@@ -390,11 +410,12 @@ namespace Student_Information_Management_System__SIMS_.Admin
                     new SqlParameter("@Semester", semester)
                 };
 
-                DatabaseHelper.ExecuteNonQuery(insertSql, insertParams);
+                enrollmentId = Convert.ToInt32(DatabaseHelper.ExecuteScalar(insertSql, insertParams));
                 return "Inserted";
             }
 
-            string currentStatus = statusObj.ToString();
+            enrollmentId = Convert.ToInt32(existing.Rows[0]["EnrollmentId"]);
+            string currentStatus = existing.Rows[0]["Status"].ToString();
 
             if (currentStatus == "Dropped" || currentStatus == "Drop Rejected" || currentStatus == "Enrollment Rejected")
             {
@@ -407,16 +428,12 @@ namespace Student_Information_Management_System__SIMS_.Admin
                         DropRequestedAt = NULL,
                         DropReviewedAt = NULL,
                         DropReviewedBy = NULL
-                    WHERE StudentId = @StudentId
-                      AND CourseId = @CourseId
-                      AND Session = @Session
+                    WHERE EnrollmentId = @EnrollmentId
                       AND Status IN ('Dropped', 'Drop Rejected', 'Enrollment Rejected')";
 
                 SqlParameter[] updateParams =
                 {
-                    new SqlParameter("@StudentId", studentId),
-                    new SqlParameter("@CourseId", courseId),
-                    new SqlParameter("@Session", session),
+                    new SqlParameter("@EnrollmentId", enrollmentId),
                     new SqlParameter("@Semester", semester)
                 };
 
@@ -429,44 +446,119 @@ namespace Student_Information_Management_System__SIMS_.Admin
 
         private void UpdateStudentTuitionFee(string studentId, string session)
         {
-            string totalSql = @"
-                SELECT ISNULL(SUM(ISNULL(cf.Amount, 0)), 0)
-                FROM Enrollment e
-                LEFT JOIN CourseFees cf ON e.CourseId = cf.CourseId AND e.Session = cf.Session
-                WHERE e.StudentId = @StudentId
-                  AND e.Session = @Session
-                  AND e.Status = 'Active'";
+            // Legacy method kept because drop approval still calls it.
+            // The new fee model is one Fees row per EnrollmentId, so this method only refreshes existing unpaid active enrollment fees.
+            string sql = @"
+                UPDATE f
+                SET f.Amount = ISNULL(cf.Amount, f.Amount)
+                FROM Fees f
+                INNER JOIN Enrollment e ON e.EnrollmentId = f.EnrollmentId
+                LEFT JOIN CourseFees cf ON cf.CourseId = e.CourseId AND cf.Session = e.Session
+                WHERE f.StudentId = @StudentId
+                  AND f.Session = @Session
+                  AND e.Status = 'Active'
+                  AND f.Status IN ('Pending', 'Rejected', 'Overdue')
+                  AND ISNULL(f.PaymentReceiptPath, '') = ''
+                  AND cf.Amount > 0";
 
-            SqlParameter[] p =
+            DatabaseHelper.ExecuteNonQuery(sql, new[]
             {
                 new SqlParameter("@StudentId", studentId),
                 new SqlParameter("@Session", session)
-            };
+            });
+        }
 
-            decimal total = Convert.ToDecimal(DatabaseHelper.ExecuteScalar(totalSql, p));
+        private bool ValidateSelectedCourseFees(out string message)
+        {
+            message = "";
+            string missingCourses = "";
 
-            string upsertSql = @"
-                IF EXISTS (SELECT 1 FROM Fees WHERE StudentId = @StudentId AND Session = @Session AND FeeType = 'Tuition')
+            foreach (ListItem item in cblCourses.Items)
+            {
+                if (!item.Selected) continue;
+
+                string sql = @"
+                    SELECT TOP 1 c.CourseCode + ' - ' + c.CourseName
+                    FROM Courses c
+                    LEFT JOIN CourseFees cf
+                           ON cf.CourseId = c.CourseId
+                          AND cf.Session = @Session
+                          AND cf.Amount > 0
+                    WHERE c.CourseId = @CourseId
+                      AND cf.CourseFeeId IS NULL";
+
+                object result = DatabaseHelper.ExecuteScalar(sql, new[]
+                {
+                    new SqlParameter("@CourseId", int.Parse(item.Value)),
+                    new SqlParameter("@Session", ddlSession.SelectedValue)
+                });
+
+                if (result != null && result != DBNull.Value)
+                {
+                    missingCourses += "<br/>• " + HttpUtility.HtmlEncode(result.ToString());
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(missingCourses))
+            {
+                message = "The following course fee(s) have not been set for "
+                    + HttpUtility.HtmlEncode(ddlSession.SelectedValue)
+                    + ":" + missingCourses
+                    + "<br/><br/>Please set the course fee in Manage Fees before enrolling the student.";
+                return false;
+            }
+
+            return true;
+        }
+
+        private decimal GetCourseFeeAmount(int courseId, string session)
+        {
+            object result = DatabaseHelper.ExecuteScalar(@"
+                SELECT Amount
+                FROM CourseFees
+                WHERE CourseId = @CourseId
+                  AND Session = @Session
+                  AND Amount > 0",
+                new[]
+                {
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session)
+                });
+
+            if (result == null || result == DBNull.Value)
+                return 0m;
+
+            return Convert.ToDecimal(result);
+        }
+
+        private void CreateOrUpdatePendingPaymentForEnrollment(int enrollmentId, string studentId, int courseId, string session)
+        {
+            decimal amount = GetCourseFeeAmount(courseId, session);
+            if (amount <= 0) return;
+
+            string sql = @"
+                IF EXISTS (SELECT 1 FROM Fees WHERE EnrollmentId = @EnrollmentId)
                 BEGIN
                     UPDATE Fees
                     SET Amount = @Amount,
-                        Status = CASE WHEN Status = 'Paid' THEN 'Paid' ELSE 'Pending' END
-                    WHERE StudentId = @StudentId AND Session = @Session AND FeeType = 'Tuition'
+                        Status = CASE WHEN Status = 'Paid' THEN 'Paid' ELSE 'Pending' END,
+                        PaymentDate = CASE WHEN Status = 'Paid' THEN PaymentDate ELSE NULL END
+                    WHERE EnrollmentId = @EnrollmentId
+                      AND Status <> 'Paid'
                 END
                 ELSE
                 BEGIN
-                    INSERT INTO Fees (StudentId, Session, FeeType, Amount, Status, PaymentDate)
-                    VALUES (@StudentId, @Session, 'Tuition', @Amount, 'Pending', NULL)
+                    INSERT INTO Fees (EnrollmentId, StudentId, Session, FeeType, Amount, Status, PaymentDate)
+                    VALUES (@EnrollmentId, @StudentId, @Session, 'Tuition', @Amount, 'Pending', NULL)
                 END";
 
-            SqlParameter[] p2 =
+            DatabaseHelper.ExecuteNonQuery(sql, new[]
             {
+                new SqlParameter("@EnrollmentId", enrollmentId),
                 new SqlParameter("@StudentId", studentId),
                 new SqlParameter("@Session", session),
-                new SqlParameter("@Amount", total)
-            };
-
-            DatabaseHelper.ExecuteNonQuery(upsertSql, p2);
+                new SqlParameter("@Amount", amount)
+            });
         }
 
 

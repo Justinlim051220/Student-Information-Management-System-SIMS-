@@ -206,6 +206,35 @@
         display: block !important;
     }
 
+
+
+    /* ===== Multi-course enrollment list ===== */
+    .course-check-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        max-height: 320px;
+        overflow-y: auto;
+        padding: 12px;
+        border: 1px solid #edf0f6;
+        border-radius: 16px;
+        background: #ffffff;
+    }
+    .course-check-list table { width:100%; border-collapse:collapse; }
+    .course-check-list td { padding: 8px 6px; border-bottom: 1px dashed #edf0f6; }
+    .course-check-list tr:last-child td { border-bottom: none; }
+    .course-check-list input[type="checkbox"] { margin-right: 10px; transform: scale(1.1); }
+    .course-check-list label { font-weight: 700; color:#1f2937; line-height:1.45; cursor:pointer; }
+    .multi-course-hint {
+        margin-top: 8px;
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -273,18 +302,13 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Available Course</label>
-            <asp:DropDownList ID="ddlCourse" runat="server" CssClass="form-control" />
-            <div class="helper-text">Only courses opened by admin in Course Offering will appear here.</div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Enrollment Rule</label>
-            <div class="readonly-box"><asp:Label ID="lblRule" runat="server" /></div>
+            <label class="form-label">Available Courses</label>
+            <asp:CheckBoxList ID="cblCourses" runat="server" CssClass="course-check-list" RepeatLayout="Table" />
+            <div class="multi-course-hint"><i class="fa-solid fa-circle-info"></i><span>Select one or more courses from the same open session, then submit once.</span></div>
           </div>
 
           <div class="btn-row">
-            <asp:Button ID="btnEnroll" runat="server" Text="Submit Enrollment Request" CssClass="btn-orange" OnClick="btnEnroll_Click" />
+            <asp:Button ID="btnEnroll" runat="server" Text="Submit Selected Courses" CssClass="btn-orange" OnClick="btnEnroll_Click" />
             <asp:Button ID="btnRefresh" runat="server" Text="Refresh" CssClass="btn-outline-custom" OnClick="btnRefresh_Click" />
           </div>
         </div>

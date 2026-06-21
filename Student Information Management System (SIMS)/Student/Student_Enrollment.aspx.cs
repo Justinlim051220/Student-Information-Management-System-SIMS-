@@ -64,7 +64,6 @@ namespace Student_Information_Management_System__SIMS_
             lblSemester.Text = row["CurrentSemester"].ToString();
             lblProgrammeTop.Text = row["ProgrammeDisplay"].ToString();
             lblSemesterTop.Text = row["CurrentSemester"].ToString();
-            lblRule.Text = "Programme = " + row["ProgrammeDisplay"] + ", Semester = " + row["CurrentSemester"] + ", Status = Open";
         }
 
         private void LoadOpenSessions()
@@ -106,12 +105,13 @@ namespace Student_Information_Management_System__SIMS_
 
         private void LoadAvailableCourses()
         {
-            ddlCourse.Items.Clear();
+            cblCourses.Items.Clear();
 
             if (string.IsNullOrWhiteSpace(ddlSession.SelectedValue) ||
                 string.IsNullOrWhiteSpace(hfProgrammeId.Value))
             {
-                ddlCourse.Items.Insert(0, new ListItem("-- Select Session First --", ""));
+                cblCourses.Items.Add(new ListItem("Please select an open session first", ""));
+                cblCourses.Items[0].Enabled = false;
                 return;
             }
 
@@ -119,9 +119,15 @@ namespace Student_Information_Management_System__SIMS_
 
             string sql = @"
                 SELECT c.CourseId,
-                       c.CourseCode + ' - ' + c.CourseName + ' (' + CAST(c.Credits AS VARCHAR(10)) + ' credit)' AS CourseDisplay
+                       c.CourseCode + ' - ' + c.CourseName + ' (' + CAST(c.Credits AS VARCHAR(10)) + ' credit)' +
+                       CASE
+                           WHEN cf.CourseFeeId IS NULL OR ISNULL(cf.Amount, 0) <= 0
+                           THEN ' | Fee not set'
+                           ELSE ' | RM ' + CONVERT(VARCHAR(20), CAST(cf.Amount AS DECIMAL(10,2)))
+                       END AS CourseDisplay
                 FROM CourseOffering co
                 INNER JOIN Courses c ON c.CourseId = co.CourseId
+                LEFT JOIN CourseFees cf ON cf.CourseId = co.CourseId AND cf.Session = co.Session
                 WHERE co.Status = 'Open'
                   AND co.Session = @Session
                   AND co.ProgrammeId = @ProgrammeId
@@ -143,14 +149,16 @@ namespace Student_Information_Management_System__SIMS_
             };
 
             DataTable dt = DatabaseHelper.ExecuteQuery(sql, p);
-            ddlCourse.DataSource = dt;
-            ddlCourse.DataTextField = "CourseDisplay";
-            ddlCourse.DataValueField = "CourseId";
-            ddlCourse.DataBind();
+            cblCourses.DataSource = dt;
+            cblCourses.DataTextField = "CourseDisplay";
+            cblCourses.DataValueField = "CourseId";
+            cblCourses.DataBind();
 
-            ddlCourse.Items.Insert(0, dt.Rows.Count == 0
-                ? new ListItem("-- No Available Course --", "")
-                : new ListItem("-- Select Course --", ""));
+            if (cblCourses.Items.Count == 0)
+            {
+                cblCourses.Items.Add(new ListItem("No available course for the selected session", ""));
+                cblCourses.Items[0].Enabled = false;
+            }
         }
 
         protected void btnEnroll_Click(object sender, EventArgs e)
@@ -163,43 +171,80 @@ namespace Student_Information_Management_System__SIMS_
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(ddlCourse.SelectedValue))
-            {
-                ShowMessage("Please select an available course.", "error");
-                return;
-            }
-
-            int courseId = int.Parse(ddlCourse.SelectedValue);
-            string session = ddlSession.SelectedValue;
             int programmeId = int.Parse(hfProgrammeId.Value);
+            string session = ddlSession.SelectedValue;
             int semester = GetSemesterForSelectedSession(studentId, session);
 
-            if (!IsOfferingOpen(courseId, session, programmeId))
+            int selectedCount = 0;
+            int insertedCount = 0;
+            decimal totalPendingAmount = 0m;
+            string skippedCourses = "";
+
+            foreach (ListItem item in cblCourses.Items)
             {
-                ShowMessage("This course is not open for your programme or selected session.", "error");
-                LoadAvailableCourses();
+                if (!item.Selected || !item.Enabled || string.IsNullOrWhiteSpace(item.Value))
+                    continue;
+
+                selectedCount++;
+                int courseId = int.Parse(item.Value);
+
+                if (!IsOfferingOpen(courseId, session, programmeId))
+                {
+                    skippedCourses += "\n• " + item.Text + " - not open";
+                    continue;
+                }
+
+                decimal courseFee;
+                if (!TryGetCourseFeeAmount(courseId, session, out courseFee))
+                {
+                    skippedCourses += "\n• " + item.Text + " - fee not set";
+                    continue;
+                }
+
+                int enrollmentId;
+                string saveResult = SaveOrReactivateEnrollment(studentId, courseId, session, semester, out enrollmentId);
+
+                if (saveResult == "Inserted")
+                {
+                    decimal pendingAmount = CreatePendingPaymentForEnrollment(enrollmentId, studentId, courseId, session, courseFee);
+                    totalPendingAmount += pendingAmount;
+                    insertedCount++;
+                    NotifyAdminsStudentEnrollment(studentId, courseId, session, semester, "New Student Enrollment");
+                }
+                else if (saveResult == "Drop Pending")
+                {
+                    skippedCourses += "\n• " + item.Text + " - drop request still pending";
+                }
+                else
+                {
+                    skippedCourses += "\n• " + item.Text + " - already enrolled";
+                }
+            }
+
+            if (selectedCount == 0)
+            {
+                ShowMessage("Please select at least one available course.", "error");
                 return;
             }
 
-            int enrollmentId;
-            string saveResult = SaveOrReactivateEnrollment(studentId, courseId, session, semester, out enrollmentId);
-
-            if (saveResult == "Inserted")
+            if (insertedCount > 0)
             {
                 MarkPreviousSessionsCompleted(studentId, session);
-                decimal pendingAmount = CreatePendingPaymentForEnrollment(enrollmentId, studentId, courseId, session);
                 UpdateStudentCurrentSemester(studentId, semester);
                 LoadStudentInfo(studentId);
-                NotifyAdminsStudentEnrollment(studentId, courseId, session, semester, "New Student Enrollment");
-                ShowPaymentMessage("Enrollment completed successfully. Your tuition fee for this subject is RM " + pendingAmount.ToString("N2") + ". Please go to the Payment page to upload your receipt.");
-            }
-            else if (saveResult == "Drop Pending")
-            {
-                ShowMessage("Your drop request for this course is still pending admin review.", "error");
+
+                string message = "Enrollment completed successfully. " + insertedCount + " course(s) enrolled. Total pending tuition fee is RM " + totalPendingAmount.ToString("N2") + ". Please go to the Payment page to upload your receipt.";
+
+                if (!string.IsNullOrWhiteSpace(skippedCourses))
+                {
+                    message += "\n\nSome course(s) were skipped:" + skippedCourses;
+                }
+
+                ShowPaymentMessage(message);
             }
             else
             {
-                ShowMessage("You already enrolled in this course for the selected session.", "error");
+                ShowMessage("No course was enrolled." + skippedCourses, "error");
             }
 
             LoadAvailableCourses();
@@ -298,23 +343,23 @@ namespace Student_Information_Management_System__SIMS_
             // This keeps the UI clean without breaking lecturer/admin academic records.
         }
 
-        private decimal CreatePendingPaymentForEnrollment(int enrollmentId, string studentId, int courseId, string session)
+        private decimal CreatePendingPaymentForEnrollment(int enrollmentId, string studentId, int courseId, string session, decimal amount)
         {
-            string amountSql = @"
-                SELECT ISNULL(cf.Amount, 0)
-                FROM Courses c
-                LEFT JOIN CourseFees cf ON cf.CourseId = c.CourseId AND cf.Session = @Session
-                WHERE c.CourseId = @CourseId";
-
-            decimal amount = Convert.ToDecimal(DatabaseHelper.ExecuteScalar(amountSql, new[]
-            {
-                new SqlParameter("@CourseId", courseId),
-                new SqlParameter("@Session", session)
-            }));
-
             string insertSql = @"
-                INSERT INTO Fees (EnrollmentId, StudentId, Session, FeeType, Amount, Status, PaymentDate)
-                VALUES (@EnrollmentId, @StudentId, @Session, 'Tuition', @Amount, 'Pending', NULL)";
+                IF EXISTS (SELECT 1 FROM Fees WHERE EnrollmentId = @EnrollmentId)
+                BEGIN
+                    UPDATE Fees
+                    SET Amount = @Amount,
+                        Status = CASE WHEN Status = 'Paid' THEN 'Paid' ELSE 'Pending' END,
+                        PaymentDate = CASE WHEN Status = 'Paid' THEN PaymentDate ELSE NULL END
+                    WHERE EnrollmentId = @EnrollmentId
+                      AND Status <> 'Paid'
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO Fees (EnrollmentId, StudentId, Session, FeeType, Amount, Status, PaymentDate)
+                    VALUES (@EnrollmentId, @StudentId, @Session, 'Tuition', @Amount, 'Pending', NULL)
+                END";
 
             DatabaseHelper.ExecuteNonQuery(insertSql, new[]
             {
@@ -325,6 +370,29 @@ namespace Student_Information_Management_System__SIMS_
             });
 
             return amount;
+        }
+
+        private bool TryGetCourseFeeAmount(int courseId, string session, out decimal amount)
+        {
+            amount = 0m;
+
+            object result = DatabaseHelper.ExecuteScalar(@"
+                SELECT Amount
+                FROM CourseFees
+                WHERE CourseId = @CourseId
+                  AND Session = @Session
+                  AND Amount > 0",
+                new[]
+                {
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session)
+                });
+
+            if (result == null || result == DBNull.Value)
+                return false;
+
+            amount = Convert.ToDecimal(result);
+            return amount > 0;
         }
 
         private string SaveOrReactivateEnrollment(string studentId, int courseId, string session, int semester, out int enrollmentId)

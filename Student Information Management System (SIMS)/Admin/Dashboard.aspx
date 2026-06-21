@@ -562,19 +562,7 @@
     .fee-status-fill.paid { background: linear-gradient(135deg, #16a34a, #4ade80); }
     .fee-status-fill.pending { background: var(--orange-gradient); }
     .fee-status-fill.overdue { background: linear-gradient(135deg, #ef4444, #fb7185); }
-
-    .fee-chart-note {
-        margin-top: 14px;
-        padding: 12px 14px;
-        border-radius: 14px;
-        background: #f8fafc;
-        color: var(--text-muted);
-        font-size: 12px;
-        line-height: 1.5;
-        font-weight: 700;
-    }
-
-    @media (max-width: 1180px) {
+@media (max-width: 1180px) {
         .admin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .admin-card-grid,
         .admin-card-grid.equal { grid-template-columns: 1fr; }
@@ -883,11 +871,7 @@
               <strong id="feeOverdueValue">0</strong>
             </div>
           </div>
-
-          <div class="fee-chart-note">
-            Dashboard pending count now follows the same logic as Manage Fees: dropped / not-active payment history is not counted as pending action.
-          </div>
-        </div>
+</div>
       </div>
     </section>
 
@@ -984,7 +968,7 @@
         items.forEach(function (item) {
             var bar = document.getElementById(item.bar);
             var value = document.getElementById(item.value);
-            var width = Math.max(6, Math.round((item.count / max) * 100));
+            var width = item.count <= 0 ? 0 : Math.max(6, Math.round((item.count / max) * 100));
 
             if (bar) bar.style.width = width + '%';
             if (value) value.textContent = item.count;

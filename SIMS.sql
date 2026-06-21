@@ -9,6 +9,7 @@
    - Includes EnrollmentId + Fees.EnrollmentId relationship.
    - Includes PaymentId as Fees primary key and FeeId auto-filled by trigger.
    - Includes student suspension fields in StudentDetails.
+   - Includes IX_Fees_EnrollmentId for faster Fees-to-Enrollment lookup.
    ============================================================= */
 
 IF DB_ID('SIMS') IS NOT NULL
@@ -369,6 +370,10 @@ GO
 CREATE UNIQUE INDEX IX_Fees_FeeId
 ON dbo.Fees(FeeId)
 WHERE FeeId IS NOT NULL;
+GO
+
+CREATE INDEX IX_Fees_EnrollmentId
+ON dbo.Fees(EnrollmentId);
 GO
 
 CREATE INDEX IX_Fees_Student_Session_Status
