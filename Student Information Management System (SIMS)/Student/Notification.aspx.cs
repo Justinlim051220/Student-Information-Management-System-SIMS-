@@ -17,7 +17,7 @@ namespace Student_Information_Management_System__SIMS_
             if (!IsPostBack)
             {
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
-                SyncVisibleAnnouncementsToInbox();
+                SyncAnnouncementNotifications();
                 LoadNotifications();
                 CheckUnreadNotifications();
             }
@@ -31,45 +31,55 @@ namespace Student_Information_Management_System__SIMS_
         private void LoadNotifications()
         {
             string sql = @"
-                ;WITH InboxItems AS
-                (
                 SELECT
-                    NotificationId,
+                    n.NotificationId,
                     'Notification' AS ItemType,
-                    Title,
-                    CONVERT(VARCHAR(MAX), Message) AS Message,
-                    IsRead,
-                    CreatedAt,
+                    n.Title,
+                    CASE
+                        WHEN LEFT(msg.RawMessage, 5) = '[ANN:' AND CHARINDEX(CHAR(10), msg.RawMessage) > 0
+                            THEN LTRIM(SUBSTRING(msg.RawMessage, CHARINDEX(CHAR(10), msg.RawMessage) + 1, LEN(msg.RawMessage)))
+                        ELSE msg.RawMessage
+                    END AS Message,
+                    n.IsRead,
+                    n.CreatedAt,
                     CASE 
-                        WHEN Title LIKE '%announcement%' THEN 'Admin'
-                        WHEN Title LIKE '%payment%' OR CONVERT(VARCHAR(MAX), Message) LIKE '%payment%' THEN 'Admin'
-                        WHEN Title LIKE '%approved%' OR Title LIKE '%rejected%' THEN 'Admin'
-                        WHEN Title LIKE '%enrol%' OR Title LIKE '%enroll%' THEN 'System'
+                        WHEN a.AnnouncementId IS NOT NULL AND postedUser.Role = 2 THEN ISNULL('Lecturer ' + ld.FirstName + ' ' + ld.LastName, postedUser.Email)
+                        WHEN a.AnnouncementId IS NOT NULL AND postedUser.Role = 1 THEN ISNULL('Admin ' + hd.FirstName + ' ' + hd.LastName, postedUser.Email)
+                        WHEN n.Title LIKE '%announcement%' THEN 'Admin'
+                        WHEN n.Title LIKE '%payment%' OR msg.RawMessage LIKE '%payment%' THEN 'Admin'
+                        WHEN n.Title LIKE '%approved%' OR n.Title LIKE '%rejected%' THEN 'Admin'
+                        WHEN n.Title LIKE '%enrol%' OR n.Title LIKE '%enroll%' THEN 'System'
                         ELSE 'System'
                     END AS SenderDisplay
-                FROM Notifications
-                WHERE UserId = @UserId
+                FROM Notifications n
+                OUTER APPLY (SELECT CONVERT(VARCHAR(MAX), n.Message) AS RawMessage) msg
+                OUTER APPLY (
+                    SELECT CASE
+                        WHEN LEFT(msg.RawMessage, 5) = '[ANN:' AND CHARINDEX(']', msg.RawMessage) > 6
+                            THEN SUBSTRING(msg.RawMessage, 6, CHARINDEX(']', msg.RawMessage) - 6)
+                        ELSE NULL
+                    END AS AnnouncementKey
+                ) annRef
+                LEFT JOIN Announcements a
+                    ON annRef.AnnouncementKey IS NOT NULL
+                   AND CAST(a.AnnouncementId AS VARCHAR(20)) = annRef.AnnouncementKey
+                LEFT JOIN Users postedUser ON postedUser.UserId = a.PostedByUserId
+                LEFT JOIN LecturerDetails ld ON ld.UserId = postedUser.UserId
+                LEFT JOIN HoPDetails hd ON hd.UserId = postedUser.UserId
+                WHERE n.UserId = @UserId
                   AND (
                         @Search = ''
-                        OR Title LIKE '%' + @Search + '%'
-                        OR CONVERT(VARCHAR(MAX), Message) LIKE '%' + @Search + '%'
+                        OR n.Title LIKE '%' + @Search + '%'
+                        OR msg.RawMessage LIKE '%' + @Search + '%'
+                        OR ld.FirstName + ' ' + ld.LastName LIKE '%' + @Search + '%'
+                        OR hd.FirstName + ' ' + hd.LastName LIKE '%' + @Search + '%'
                       )
                   AND (
                         @Status = ''
-                        OR (@Status = 'Unread' AND IsRead = 0)
-                        OR (@Status = 'Read' AND IsRead = 1)
+                        OR (@Status = 'Unread' AND n.IsRead = 0)
+                        OR (@Status = 'Read' AND n.IsRead = 1)
                       )
-                )
-                SELECT
-                    NotificationId,
-                    ItemType,
-                    Title,
-                    Message,
-                    IsRead,
-                    CreatedAt,
-                    SenderDisplay
-                FROM InboxItems
-                ORDER BY IsRead ASC, CreatedAt DESC";
+                ORDER BY n.IsRead ASC, n.CreatedAt DESC";
 
             DataTable dt = DatabaseHelper.ExecuteQuery(sql, new[]
             {
@@ -91,7 +101,7 @@ namespace Student_Information_Management_System__SIMS_
             lblUnread.Text = unread == null ? "0" : unread.ToString();
         }
 
-        private void SyncVisibleAnnouncementsToInbox()
+        private void SyncAnnouncementNotifications()
         {
             string sql = @"
                 ;WITH StudentProfile AS
@@ -99,47 +109,145 @@ namespace Student_Information_Management_System__SIMS_
                     SELECT StudentId, ProgrammeId
                     FROM StudentDetails
                     WHERE UserId = @UserId
+                ),
+                VisibleAnnouncements AS
+                (
+                    SELECT
+                        a.AnnouncementId,
+                        a.Title,
+                        CONVERT(VARCHAR(MAX), a.Content) AS Message,
+                        a.PostedByUserId,
+                        '[' + 'ANN:' + CAST(a.AnnouncementId AS VARCHAR(20)) + ']' AS AnnouncementTag
+                    FROM Announcements a
+                    CROSS JOIN StudentProfile sp
+                    WHERE a.TargetRole IN ('Student', 'All')
+                      AND (a.ProgrammeId IS NULL OR a.ProgrammeId = sp.ProgrammeId)
+                      AND (
+                            a.CourseId IS NULL
+                            OR EXISTS (
+                                SELECT 1
+                                FROM Enrollment e
+                                WHERE e.StudentId = sp.StudentId
+                                  AND e.CourseId = a.CourseId
+                                  AND e.Status = 'Active'
+                                  AND (a.Session IS NULL OR e.Session = a.Session)
+                            )
+                          )
+                      AND (
+                            a.Session IS NULL
+                            OR a.CourseId IS NOT NULL
+                            OR EXISTS (
+                                SELECT 1
+                                FROM Enrollment e
+                                WHERE e.StudentId = sp.StudentId
+                                  AND e.Session = a.Session
+                                  AND e.Status = 'Active'
+                            )
+                          )
+                )
+                UPDATE n
+                SET n.Title = va.Title,
+                    n.Message = va.AnnouncementTag + CHAR(10) + va.Message,
+                    n.CreatedAt = CASE
+                        WHEN n.Title <> va.Title OR CONVERT(VARCHAR(MAX), n.Message) <> va.AnnouncementTag + CHAR(10) + va.Message
+                            THEN GETDATE()
+                        ELSE n.CreatedAt
+                    END,
+                    n.IsRead = CASE
+                        WHEN n.Title <> va.Title OR CONVERT(VARCHAR(MAX), n.Message) <> va.AnnouncementTag + CHAR(10) + va.Message
+                            THEN 0
+                        ELSE n.IsRead
+                    END
+                FROM Notifications n
+                INNER JOIN VisibleAnnouncements va
+                    ON n.UserId = @UserId
+                   AND (
+                        LEFT(CONVERT(VARCHAR(MAX), n.Message), LEN(va.AnnouncementTag)) = va.AnnouncementTag
+                        OR (
+                            LEFT(CONVERT(VARCHAR(MAX), n.Message), 5) <> '[ANN:'
+                            AND (
+                                n.Title = va.Title
+                                OR CONVERT(VARCHAR(MAX), n.Message) = va.Message
+                            )
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM Notifications existing
+                                WHERE existing.UserId = @UserId
+                                  AND LEFT(CONVERT(VARCHAR(MAX), existing.Message), LEN(va.AnnouncementTag)) = va.AnnouncementTag
+                            )
+                        )
+                   );
+
+                ;WITH TaggedNotifications AS
+                (
+                    SELECT
+                        n.NotificationId,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY n.UserId, SUBSTRING(msg.RawMessage, 6, CHARINDEX(']', msg.RawMessage) - 6)
+                            ORDER BY n.NotificationId ASC
+                        ) AS RowNumber
+                    FROM Notifications n
+                    OUTER APPLY (SELECT CONVERT(VARCHAR(MAX), n.Message) AS RawMessage) msg
+                    WHERE n.UserId = @UserId
+                      AND LEFT(msg.RawMessage, 5) = '[ANN:'
+                      AND CHARINDEX(']', msg.RawMessage) > 6
+                )
+                DELETE FROM Notifications
+                WHERE NotificationId IN (
+                    SELECT NotificationId
+                    FROM TaggedNotifications
+                    WHERE RowNumber > 1
+                );
+
+                ;WITH StudentProfile AS
+                (
+                    SELECT StudentId, ProgrammeId
+                    FROM StudentDetails
+                    WHERE UserId = @UserId
+                ),
+                VisibleAnnouncements AS
+                (
+                    SELECT
+                        a.AnnouncementId,
+                        a.Title,
+                        CONVERT(VARCHAR(MAX), a.Content) AS Message,
+                        '[' + 'ANN:' + CAST(a.AnnouncementId AS VARCHAR(20)) + ']' AS AnnouncementTag
+                    FROM Announcements a
+                    CROSS JOIN StudentProfile sp
+                    WHERE a.TargetRole IN ('Student', 'All')
+                      AND (a.ProgrammeId IS NULL OR a.ProgrammeId = sp.ProgrammeId)
+                      AND (
+                            a.CourseId IS NULL
+                            OR EXISTS (
+                                SELECT 1
+                                FROM Enrollment e
+                                WHERE e.StudentId = sp.StudentId
+                                  AND e.CourseId = a.CourseId
+                                  AND e.Status = 'Active'
+                                  AND (a.Session IS NULL OR e.Session = a.Session)
+                            )
+                          )
+                      AND (
+                            a.Session IS NULL
+                            OR a.CourseId IS NOT NULL
+                            OR EXISTS (
+                                SELECT 1
+                                FROM Enrollment e
+                                WHERE e.StudentId = sp.StudentId
+                                  AND e.Session = a.Session
+                                  AND e.Status = 'Active'
+                            )
+                          )
                 )
                 INSERT INTO Notifications (UserId, Title, Message, IsRead, CreatedAt)
-                SELECT
-                    @UserId,
-                    a.Title,
-                    CONVERT(VARCHAR(MAX), a.Content),
-                    0,
-                    a.CreatedAt
-                FROM Announcements a
-                CROSS JOIN StudentProfile sp
-                WHERE a.TargetRole IN ('Student', 'All')
-                  AND (a.ProgrammeId IS NULL OR a.ProgrammeId = sp.ProgrammeId)
-                  AND (
-                        a.CourseId IS NULL
-                        OR EXISTS (
-                            SELECT 1
-                            FROM Enrollment e
-                            WHERE e.StudentId = sp.StudentId
-                              AND e.CourseId = a.CourseId
-                              AND e.Status = 'Active'
-                              AND (a.Session IS NULL OR e.Session = a.Session)
-                        )
-                      )
-                  AND (
-                        a.Session IS NULL
-                        OR a.CourseId IS NOT NULL
-                        OR EXISTS (
-                            SELECT 1
-                            FROM Enrollment e
-                            WHERE e.StudentId = sp.StudentId
-                              AND e.Session = a.Session
-                              AND e.Status = 'Active'
-                        )
-                      )
-                  AND NOT EXISTS (
-                        SELECT 1
-                        FROM Notifications n
-                        WHERE n.UserId = @UserId
-                          AND n.Title = a.Title
-                          AND CONVERT(VARCHAR(MAX), n.Message) = CONVERT(VARCHAR(MAX), a.Content)
-                      )";
+                SELECT @UserId, va.Title, va.AnnouncementTag + CHAR(10) + va.Message, 0, GETDATE()
+                FROM VisibleAnnouncements va
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM Notifications n
+                    WHERE n.UserId = @UserId
+                      AND LEFT(CONVERT(VARCHAR(MAX), n.Message), LEN(va.AnnouncementTag)) = va.AnnouncementTag
+                )";
 
             DatabaseHelper.ExecuteNonQuery(sql, new[] { new SqlParameter("@UserId", CurrentUserId) });
         }
@@ -206,8 +314,7 @@ namespace Student_Information_Management_System__SIMS_
 
             if (e.CommandName == "MarkUnread")
             {
-                ShowUnreadConfirmation(notificationId);
-                return;
+                MarkNotificationReadStatus(notificationId, false);
             }
             else if (e.CommandName == "DeleteNotification")
             {
@@ -239,16 +346,6 @@ namespace Student_Information_Management_System__SIMS_
                 true);
         }
 
-        private void ShowUnreadConfirmation(int notificationId)
-        {
-            ScriptManager.RegisterStartupScript(
-                this,
-                GetType(),
-                "confirmUnreadNotification" + notificationId,
-                "showUnreadConfirm(" + notificationId + ");",
-                true);
-        }
-
         protected void btnReadConfirmed_Click(object sender, EventArgs e)
         {
             int notificationId;
@@ -261,23 +358,6 @@ namespace Student_Information_Management_System__SIMS_
 
             MarkNotificationReadStatus(notificationId, true);
             hfReadTarget.Value = "";
-
-            LoadNotifications();
-            CheckUnreadNotifications();
-        }
-
-        protected void btnUnreadConfirmed_Click(object sender, EventArgs e)
-        {
-            int notificationId;
-
-            if (!int.TryParse(hfUnreadTarget.Value, out notificationId))
-            {
-                ShowMessage("Error", "Invalid notification selected.");
-                return;
-            }
-
-            MarkNotificationReadStatus(notificationId, false);
-            hfUnreadTarget.Value = "";
 
             LoadNotifications();
             CheckUnreadNotifications();

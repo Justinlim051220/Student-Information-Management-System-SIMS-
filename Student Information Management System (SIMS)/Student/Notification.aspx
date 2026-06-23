@@ -1,4 +1,5 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Notification.aspx.cs" Inherits="Student_Information_Management_System__SIMS_.Notification" %>
+﻿﻿﻿﻿﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Notification.aspx.cs"
+    Inherits="Student_Information_Management_System__SIMS_.Notification" %>
 <%@ Register Src="~/Student/StudentSidebar.ascx" TagPrefix="uc" TagName="StudentSidebar" %>
 
 <!DOCTYPE html>
@@ -13,17 +14,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
 
     <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-        }
-
-        #form1 {
-            margin: 0;
-            padding: 0;
-        }
-
         .notification-header {
             display:flex;
             align-items:center;
@@ -342,10 +332,22 @@
             align-items:center;
             justify-content:center;
             margin:0 auto 16px;
-            background:#fff8e1;
         }
 
-        #customModal svg {
+        #customModal .cm-icon-wrap.icon-success { background:#fff8e1; }
+        #customModal .cm-icon-wrap.icon-error { background:#fdecea; }
+        #customModal .cm-icon-wrap.icon-warning { background:#fff3e0; }
+        #customModal .cm-icon-wrap.icon-delete { background:#fdecea; }
+
+        #customModal .cm-icon-wrap #cmIcon {
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            width:32px;
+            height:32px;
+        }
+
+        #customModal .cm-icon-wrap svg {
             width:32px;
             height:32px;
             display:block;
@@ -374,25 +376,45 @@
         #customModal .cm-footer {
             display:flex;
             justify-content:center;
-            gap:14px;
-            flex-wrap:wrap;
+            gap:16px;
         }
 
         #customModal .cm-btn {
-            padding:10px 30px;
+            padding:10px 28px;
             border-radius:50px;
             font-size:.95rem;
             font-weight:700;
             cursor:pointer;
             transition:all .18s;
             min-width:110px;
+        }
+
+        #customModal .cm-btn-cancel,
+        #customModal .cm-btn-ok {
             background:transparent;
             border:2px solid #e8a838;
             color:#e8a838;
         }
 
-        #customModal .cm-btn:hover {
+        #customModal .cm-btn-cancel:hover,
+        #customModal .cm-btn-ok:hover {
             background:#fdf3e0;
+        }
+
+        #customModal .cm-btn-delete,
+        #customModal .cm-btn-read {
+            background:transparent;
+            border:none;
+            color:#e8a838;
+            font-weight:800;
+            font-size:.97rem;
+            padding:10px 8px;
+        }
+
+        #customModal .cm-btn-delete:hover,
+        #customModal .cm-btn-read:hover {
+            color:#c8881a;
+            text-decoration:underline;
         }
 
         .sidebar-user {
@@ -431,17 +453,14 @@
             scrollbar-width: thin;
         }
 
-       .main-wrapper {
+        .main-wrapper {
             margin-left: 260px;
-            background: var(--bg-page);
+            width: calc(100% - 260px);
+            min-height: 100vh;
         }
 
-        .content-area,
-        .page-content {
-            padding: 30px 40px;
-            width: 100%;
-            box-sizing: border-box;
-            background: var(--bg-page);
+        .content-area {
+            padding: 28px 34px 40px;
         }
 
         .sidebar-user {
@@ -567,6 +586,25 @@
 
         .system-dialog .modal-cancel:hover { background: #fff8e1; }
         .system-dialog .modal-submit:hover { background: #d99a2e; border-color: #d99a2e; }
+
+
+
+        .notif-wrap {
+            position:relative;
+            display:inline-block;
+        }
+
+        .notif-dot {
+            position:absolute;
+            top:-2px;
+            right:-2px;
+            width:10px;
+            height:10px;
+            border-radius:50%;
+            background:#ef4444;
+            border:2px solid #fff;
+            z-index:999;
+        }
 
         .topbar-hidden-server-avatar {
             display:none !important;
@@ -713,68 +751,7 @@
         .logout-btn-confirm:hover {
             transform: translateY(-1px);
             color: #ffffff !important;
-        }
-
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-        }
-
-        #form1 {
-            margin: 0;
-            padding: 0;
-        }
-
-        .main-wrapper {
-            margin-left: 260px;
-        }
-
-        .page-content {
-            padding: 30px 40px;
-        
-        body,
-        #form1 {
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        .main-wrapper {
-            margin-left: 260px !important;
-            padding-top: 0 !important;
-        }
-
-        .topbar {
-            height: 88px !important;
-            min-height: 88px !important;
-            padding: 16px 32px !important;
-            margin: 0 !important;
-            box-sizing: border-box !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-        }
-
-        .topbar-title {
-            margin: 0 !important;
-            padding: 0 !important;
-            font-size: 20px !important;
-            line-height: 1.2 !important;
-        }
-
-        .topbar-date {
-            margin: 0 !important;
-            padding: 0 !important;
-            margin-top: 4px !important;
-        }
-
-        .topbar-hidden-server-avatar {
-            display: none !important;
-        }
-
-        .page-content {
-            padding: 30px 40px !important;
-        }
+}
     </style>
 </head>
 
@@ -784,7 +761,6 @@
 
     <asp:HiddenField ID="hfDeleteTarget" runat="server" />
     <asp:HiddenField ID="hfReadTarget" runat="server" />
-    <asp:HiddenField ID="hfUnreadTarget" runat="server" />
 
     <uc:StudentSidebar ID="StudentSidebar1" runat="server" />
 
@@ -799,8 +775,10 @@
 
             <div class="topbar-right">
                 <a href="Notification.aspx" class="topbar-icon-btn" title="Notifications">
-                    <i class="fa-solid fa-bell"></i>
-                    <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="badge-dot" Visible="false" />
+                    <span class="notif-wrap">
+                        <i class="fa-solid fa-bell"></i>
+                        <asp:Panel ID="pnlNotifBadge" runat="server" CssClass="notif-dot" Visible="false" />
+                    </span>
                 </a>
 
                 <a href="MyProfile.aspx" class="topbar-icon-btn" title="My Profile">
@@ -809,11 +787,13 @@
 
                 <!-- Kept hidden only so existing code-behind references will not break. -->
                 <asp:Label ID="lblTopbarInitial" runat="server" Text="A" Style="display:none;" />
-                
+                <asp:Image ID="imgTopbarAvatar" runat="server"
+                    ImageUrl="~/ProfilePicture/default-profile.png"
+                    CssClass="topbar-hidden-server-avatar" />
             </div>
         </div>
 
-        <div class="page-content">
+        <div class="content-area">
             <div class="notif-stats">
                 <div class="notif-stat-card">
                     <div class="notif-stat-icon"><i class="fa-solid fa-bell"></i></div>
@@ -901,7 +881,7 @@
                         <div class='notification-item <%# Convert.ToBoolean(Eval("IsRead")) ? "" : "unread" %>'>
                             <div class="notification-main">
                                 <div class="notification-top">
-                                    <span class="notification-title"><%# Eval("Title") %></span>
+                                    <span class="notification-title"><%# Server.HtmlEncode(Convert.ToString(Eval("Title"))) %></span>
                                     <%# Eval("ItemType").ToString() == "Announcement" ? "<span class='notification-badge'>ANNOUNCEMENT</span>" : (Convert.ToBoolean(Eval("IsRead")) ? "" : "<span class='notification-badge'>NEW</span>") %>
                                 </div>
 
@@ -912,10 +892,10 @@
 
                                 <div class="sender-info">
                                     <i class="fa-solid fa-user-pen"></i>
-                                    From: <%# Eval("SenderDisplay") %>
+                                    From: <%# Server.HtmlEncode(Convert.ToString(Eval("SenderDisplay"))) %>
                                 </div>
 
-                                <div class="notification-content"><%# Eval("Message") %></div>
+                                <div class="notification-content"><%# Server.HtmlEncode(Convert.ToString(Eval("Message"))) %></div>
                             </div>
 
                             <div class="notification-actions">
@@ -923,7 +903,6 @@
                                     CssClass="icon-btn read-btn"
                                     CommandName="MarkRead"
                                     CommandArgument='<%# Eval("NotificationId") %>'
-                                    OnClientClick='<%# "showReadConfirm(" + Eval("NotificationId") + "); return false;" %>'
                                     ToolTip="Mark as read"
                                     Visible='<%# Eval("ItemType").ToString() == "Notification" && !Convert.ToBoolean(Eval("IsRead")) %>'>
                                     <i class="fa-solid fa-check"></i>
@@ -933,7 +912,6 @@
                                     CssClass="icon-btn unread-btn"
                                     CommandName="MarkUnread"
                                     CommandArgument='<%# Eval("NotificationId") %>'
-                                    OnClientClick='<%# "showUnreadConfirm(" + Eval("NotificationId") + "); return false;" %>'
                                     ToolTip="Mark as unread"
                                     Visible='<%# Eval("ItemType").ToString() == "Notification" && Convert.ToBoolean(Eval("IsRead")) %>'>
                                     <i class="fa-regular fa-envelope"></i>
@@ -944,7 +922,6 @@
                                     Visible='<%# Eval("ItemType").ToString() == "Notification" %>'
                                     CommandName="DeleteNotification"
                                     CommandArgument='<%# Eval("NotificationId") %>'
-                                    OnClientClick='<%# "showDeleteConfirm(" + Eval("NotificationId") + "); return false;" %>'
                                     ToolTip="Delete">
                                     <i class="fa-solid fa-trash"></i>
                                 </asp:LinkButton>
@@ -966,19 +943,25 @@
             <hr class="cm-divider" />
             <div class="cm-body" id="cmBody"></div>
             <div class="cm-footer">
-                <button type="button" class="cm-btn" id="cmCancelBtn" style="display:none;" onclick="closeMessageModal()">Cancel</button>
-                <button type="button" class="cm-btn" id="cmOkBtn" onclick="closeMessageModal()">OK</button>
+                <button type="button" class="cm-btn cm-btn-cancel" id="cmBtnCancel" style="display:none;" onclick="closeCustomModal()">Cancel</button>
+                <button type="button" class="cm-btn cm-btn-read" id="cmBtnRead" style="display:none;">Yes, Mark Read</button>
+                <button type="button" class="cm-btn cm-btn-delete" id="cmBtnDelete" style="display:none;">Yes, Delete</button>
+                <button type="button" class="cm-btn cm-btn-ok" id="cmBtnOk" style="display:none;" onclick="closeCustomModal()">OK</button>
             </div>
         </div>
     </div>
 
 
     <asp:Button ID="btnReadConfirmed" runat="server" Style="display:none;" OnClick="btnReadConfirmed_Click" />
-    <asp:Button ID="btnUnreadConfirmed" runat="server" Style="display:none;" OnClick="btnUnreadConfirmed_Click" />
     <asp:Button ID="btnDeleteConfirmed" runat="server" Style="display:none;" OnClick="btnDeleteConfirmed_Click" />
     <asp:Button ID="btnMarkAllReadConfirmed" runat="server" Style="display:none;" OnClick="btnMarkAllRead_Click" />
 
     <script>
+        var SVG_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        var SVG_CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+        var SVG_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+        var SVG_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
+
         function showLogoutModal() {
             var modal = document.getElementById('logoutModal');
             if (modal) modal.style.display = 'flex';
@@ -995,86 +978,99 @@
             }
         }
 
-        function iconSvg(type) {
-            if (type === 'delete' || type === 'error') {
-                return '<svg viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
-            }
-
-            if (type === 'warning') {
-                return '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>';
-            }
-
-            return '<svg viewBox="0 0 24 24" fill="none" stroke="#e8a838" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+        function resetModalButtons() {
+            document.getElementById('cmBtnOk').style.display = 'none';
+            document.getElementById('cmBtnCancel').style.display = 'none';
+            document.getElementById('cmBtnRead').style.display = 'none';
+            document.getElementById('cmBtnDelete').style.display = 'none';
         }
 
-        function showMessageModal(title, message) {
+        function openModal(title, message, iconClass, iconSvg) {
+            var iconWrap = document.getElementById('cmIconWrap');
+            iconWrap.className = 'cm-icon-wrap ' + iconClass;
+            document.getElementById('cmIcon').innerHTML = iconSvg;
             document.getElementById('cmTitle').innerHTML = title;
             document.getElementById('cmBody').innerHTML = message;
-            document.getElementById('cmIcon').innerHTML = iconSvg(title.indexOf('Error') >= 0 ? 'error' : (title.indexOf('Warning') >= 0 ? 'warning' : 'success'));
-            document.getElementById('cmCancelBtn').style.display = 'none';
-            document.getElementById('cmOkBtn').style.display = '';
-            document.getElementById('cmOkBtn').onclick = closeMessageModal;
+            resetModalButtons();
             document.getElementById('customModalOverlay').classList.add('active');
         }
 
-        function closeMessageModal() {
+        function showMessageModal(title, message) {
+            var iconClass = 'icon-success';
+            var iconSvg = SVG_TICK;
+
+            if (title.indexOf('Error') >= 0) {
+                iconClass = 'icon-error';
+                iconSvg = SVG_CROSS;
+            }
+            else if (title.indexOf('Warning') >= 0) {
+                iconClass = 'icon-warning';
+                iconSvg = SVG_WARN;
+            }
+
+            openModal(title, message, iconClass, iconSvg);
+            document.getElementById('cmBtnOk').style.display = 'inline-block';
+        }
+
+        function closeCustomModal() {
             document.getElementById('customModalOverlay').classList.remove('active');
         }
 
         function showDeleteConfirm(id) {
             document.getElementById('<%= hfDeleteTarget.ClientID %>').value = id;
-        document.getElementById('cmTitle').innerHTML = 'Confirm Delete';
-        document.getElementById('cmBody').innerHTML = 'Are you sure you want to delete this notification?';
-        document.getElementById('cmIcon').innerHTML = iconSvg('delete');
-        document.getElementById('cmCancelBtn').style.display = '';
-        document.getElementById('cmOkBtn').style.display = '';
-        document.getElementById('cmOkBtn').onclick = function () {
-            closeMessageModal();
-            document.getElementById('<%= btnDeleteConfirmed.ClientID %>').click();
-        };
-        document.getElementById('customModalOverlay').classList.add('active');
-    }
+            openModal(
+                'Confirm Delete',
+                'Are you sure you want to delete this notification? This action cannot be undone.',
+                'icon-delete',
+                SVG_TRASH
+            );
+
+            document.getElementById('cmBtnCancel').style.display = 'inline-block';
+            document.getElementById('cmBtnDelete').style.display = 'inline-block';
+            document.getElementById('cmBtnDelete').onclick = function () {
+                closeCustomModal();
+                document.getElementById('<%= btnDeleteConfirmed.ClientID %>').click();
+            };
+        }
 
     function showReadConfirm(id) {
         document.getElementById('<%= hfReadTarget.ClientID %>').value = id;
-        document.getElementById('cmTitle').innerHTML = 'Mark as Read';
-        document.getElementById('cmBody').innerHTML = 'Mark this notification as read?';
-        document.getElementById('cmIcon').innerHTML = iconSvg('success');
-        document.getElementById('cmCancelBtn').style.display = '';
-        document.getElementById('cmOkBtn').style.display = '';
-        document.getElementById('cmOkBtn').onclick = function () {
-            closeMessageModal();
-            document.getElementById('<%= btnReadConfirmed.ClientID %>').click();
-            };
-            document.getElementById('customModalOverlay').classList.add('active');
-        }
+        openModal(
+            'Confirm Read',
+            'Are you sure you want to mark this notification as read?',
+            'icon-warning',
+            SVG_WARN
+        );
 
-        function showUnreadConfirm(id) {
-            document.getElementById('<%= hfUnreadTarget.ClientID %>').value = id;
-            document.getElementById('cmTitle').innerHTML = 'Mark as Unread';
-            document.getElementById('cmBody').innerHTML = 'Mark this notification as unread?';
-            document.getElementById('cmIcon').innerHTML = iconSvg('warning');
-            document.getElementById('cmCancelBtn').style.display = '';
-            document.getElementById('cmOkBtn').style.display = '';
-            document.getElementById('cmOkBtn').onclick = function () {
-                closeMessageModal();
-                document.getElementById('<%= btnUnreadConfirmed.ClientID %>').click();
-            };
-            document.getElementById('customModalOverlay').classList.add('active');
-        }
+        document.getElementById('cmBtnCancel').style.display = 'inline-block';
+        document.getElementById('cmBtnRead').style.display = 'inline-block';
+        document.getElementById('cmBtnRead').innerHTML = 'Yes, Mark Read';
+        document.getElementById('cmBtnRead').onclick = function () {
+            closeCustomModal();
+            document.getElementById('<%= btnReadConfirmed.ClientID %>').click();
+        };
+    }
 
         function showMarkAllReadConfirm() {
-            document.getElementById('cmTitle').innerHTML = 'Mark All as Read';
-            document.getElementById('cmBody').innerHTML = 'Mark all unread notifications as read?';
-            document.getElementById('cmIcon').innerHTML = iconSvg('warning');
-            document.getElementById('cmCancelBtn').style.display = '';
-            document.getElementById('cmOkBtn').style.display = '';
-            document.getElementById('cmOkBtn').onclick = function () {
-                closeMessageModal();
+            openModal(
+                'Confirm Read',
+                'Are you sure you want to mark all notifications as read?',
+                'icon-warning',
+                SVG_WARN
+            );
+
+            document.getElementById('cmBtnCancel').style.display = 'inline-block';
+            document.getElementById('cmBtnRead').style.display = 'inline-block';
+            document.getElementById('cmBtnRead').innerHTML = 'Yes, Mark Read';
+            document.getElementById('cmBtnRead').onclick = function () {
+                closeCustomModal();
                 document.getElementById('<%= btnMarkAllReadConfirmed.ClientID %>').click();
             };
-            document.getElementById('customModalOverlay').classList.add('active');
         }
+
+        document.getElementById('customModalOverlay').addEventListener('click', function (e) {
+            if (e.target === this) closeCustomModal();
+        });
     </script>
 </form>
 </body>
