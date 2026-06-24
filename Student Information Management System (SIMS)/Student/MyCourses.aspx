@@ -81,6 +81,64 @@
             text-decoration: none;
         }
 
+
+
+        .course-menu-wrap {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 50;
+        }
+
+        .course-menu-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,.95);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-card);
+            cursor: pointer;
+        }
+
+        .course-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 42px;
+            width: 190px;
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            box-shadow: 0 12px 28px rgba(0,0,0,.16);
+            padding: 8px;
+            z-index: 99999;
+        }
+
+        .course-menu.show {
+            display: block;
+        }
+
+        .course-menu .menu-action {
+            display: block;
+            width: 100%;
+            padding: 9px 12px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-align: left;
+            text-decoration: none;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .course-menu .menu-action:hover {
+            background: #fff8e1;
+            color: var(--orange-main);
+        }
+
         .course-name {
             font-family: var(--font-accent);
             font-size: 18px;
@@ -220,13 +278,51 @@
                 </div>
 
                 <div class="card-body">
-                    <asp:Repeater ID="rptCourses" runat="server">
+                    <asp:Repeater ID="rptCourses" runat="server" OnItemCommand="rptCourses_ItemCommand">
                         <HeaderTemplate>
                             <div class="course-grid">
                         </HeaderTemplate>
 
                         <ItemTemplate>
                             <div class="course-card">
+                                <div class="course-menu-wrap" onclick="event.stopPropagation();">
+                                    <button type="button"
+                                        class="course-menu-btn"
+                                        onclick="toggleCourseMenu(this, event)">
+                                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                                    </button>
+
+                                    <div class="course-menu">
+                                        <asp:LinkButton ID="btnMoveTop" runat="server"
+                                            CssClass="menu-action"
+                                            CommandName="MoveTop"
+                                            CommandArgument='<%# Eval("CourseId") + "|" + Eval("Session") + "|" + Eval("Semester") %>'>
+                                            <i class="fa-solid fa-angles-up"></i> Move Highest
+                                        </asp:LinkButton>
+
+                                        <asp:LinkButton ID="btnMoveUp" runat="server"
+                                            CssClass="menu-action"
+                                            CommandName="MoveUp"
+                                            CommandArgument='<%# Eval("CourseId") + "|" + Eval("Session") + "|" + Eval("Semester") %>'>
+                                            <i class="fa-solid fa-angle-up"></i> Move Up
+                                        </asp:LinkButton>
+
+                                        <asp:LinkButton ID="btnMoveDown" runat="server"
+                                            CssClass="menu-action"
+                                            CommandName="MoveDown"
+                                            CommandArgument='<%# Eval("CourseId") + "|" + Eval("Session") + "|" + Eval("Semester") %>'>
+                                            <i class="fa-solid fa-angle-down"></i> Move Down
+                                        </asp:LinkButton>
+
+                                        <asp:LinkButton ID="btnMoveBottom" runat="server"
+                                            CssClass="menu-action"
+                                            CommandName="MoveBottom"
+                                            CommandArgument='<%# Eval("CourseId") + "|" + Eval("Session") + "|" + Eval("Semester") %>'>
+                                            <i class="fa-solid fa-angles-down"></i> Move Bottom
+                                        </asp:LinkButton>
+                                    </div>
+                                </div>
+
                                 <a class="course-body-link"
                                    href='CourseDetails.aspx?courseId=<%# Eval("CourseId") %>&session=<%# Server.UrlEncode(Convert.ToString(Eval("Session"))) %>'>
                                     <div class="course-name"><%# Eval("CourseName") %></div>
@@ -259,6 +355,38 @@
             </div>
         </div>
     </div>
+
+
+    <script>
+        function toggleCourseMenu(button, e) {
+            e.stopPropagation();
+
+            var menu = button.nextElementSibling;
+            var isOpen = menu.classList.contains('show');
+
+            document.querySelectorAll('.course-menu').forEach(function (m) {
+                m.classList.remove('show');
+            });
+
+            if (!isOpen) {
+                menu.classList.add('show');
+            }
+        }
+
+        document.addEventListener('click', function () {
+            document.querySelectorAll('.course-menu').forEach(function (menu) {
+                menu.classList.remove('show');
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.course-menu').forEach(function (menu) {
+                menu.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                });
+            });
+        });
+    </script>
 
 </form>
 </body>

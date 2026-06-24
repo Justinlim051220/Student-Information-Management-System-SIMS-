@@ -259,6 +259,10 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 int reactivated = 0;
                 int paymentSynced = 0;
 
+                // One admin manual enrolment action should create one payment group.
+                // If multiple courses are selected together, they share this same PaymentGroupId.
+                Guid paymentGroupId = Guid.NewGuid();
+
                 foreach (ListItem item in cblCourses.Items)
                 {
                     if (!item.Selected) continue;
@@ -278,7 +282,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
 
                     if ((result == "Inserted" || result == "Reactivated") && enrollmentId > 0)
                     {
-                        CreateOrUpdatePendingPaymentForEnrollment(enrollmentId, ddlStudent.SelectedValue, courseId, ddlSession.SelectedValue);
+                        CreateOrUpdatePendingPaymentForEnrollment(enrollmentId, ddlStudent.SelectedValue, courseId, ddlSession.SelectedValue, paymentGroupId);
                         paymentSynced++;
                     }
                 }
@@ -349,7 +353,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                     WHERE e.StudentId = @StudentId
                       AND e.CourseId = @CourseId
                       AND e.Session = @Session
-                      AND e.Status IN ('Active', 'Drop Pending')";
+                      AND e.Status IN ('Active', 'Drop Pending', 'Drop Rejected')";
 
                 SqlParameter[] p =
                 {
@@ -367,7 +371,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
 
             if (!string.IsNullOrWhiteSpace(blockedCourses))
             {
-                message = "The selected course list contains course(s) that are already enrolled or waiting for drop approval:" + blockedCourses + "<br/><br/>Please untick these course(s) before enrolling.";
+                message = "The selected course list contains course(s) that are already enrolled, waiting for drop approval, or had a drop request rejected:" + blockedCourses + "<br/><br/>Please untick these course(s) before enrolling.";
                 return true;
             }
 
@@ -417,7 +421,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
             enrollmentId = Convert.ToInt32(existing.Rows[0]["EnrollmentId"]);
             string currentStatus = existing.Rows[0]["Status"].ToString();
 
-            if (currentStatus == "Dropped" || currentStatus == "Drop Rejected" || currentStatus == "Enrollment Rejected")
+            if (currentStatus == "Dropped" || currentStatus == "Enrollment Rejected")
             {
                 string updateSql = @"
                     UPDATE Enrollment
@@ -429,7 +433,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                         DropReviewedAt = NULL,
                         DropReviewedBy = NULL
                     WHERE EnrollmentId = @EnrollmentId
-                      AND Status IN ('Dropped', 'Drop Rejected', 'Enrollment Rejected')";
+                      AND Status IN ('Dropped', 'Enrollment Rejected')";
 
                 SqlParameter[] updateParams =
                 {
@@ -531,7 +535,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
             return Convert.ToDecimal(result);
         }
 
-        private void CreateOrUpdatePendingPaymentForEnrollment(int enrollmentId, string studentId, int courseId, string session)
+        private void CreateOrUpdatePendingPaymentForEnrollment(int enrollmentId, string studentId, int courseId, string session, Guid paymentGroupId)
         {
             decimal amount = GetCourseFeeAmount(courseId, session);
             if (amount <= 0) return;
@@ -541,6 +545,7 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 BEGIN
                     UPDATE Fees
                     SET Amount = @Amount,
+                        PaymentGroupId = @PaymentGroupId,
                         Status = CASE WHEN Status = 'Paid' THEN 'Paid' ELSE 'Pending' END,
                         PaymentDate = CASE WHEN Status = 'Paid' THEN PaymentDate ELSE NULL END
                     WHERE EnrollmentId = @EnrollmentId
@@ -548,8 +553,8 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 END
                 ELSE
                 BEGIN
-                    INSERT INTO Fees (EnrollmentId, StudentId, Session, FeeType, Amount, Status, PaymentDate)
-                    VALUES (@EnrollmentId, @StudentId, @Session, 'Tuition', @Amount, 'Pending', NULL)
+                    INSERT INTO Fees (EnrollmentId, StudentId, Session, FeeType, Amount, Status, PaymentDate, PaymentGroupId)
+                    VALUES (@EnrollmentId, @StudentId, @Session, 'Tuition', @Amount, 'Pending', NULL, @PaymentGroupId)
                 END";
 
             DatabaseHelper.ExecuteNonQuery(sql, new[]
@@ -557,7 +562,8 @@ namespace Student_Information_Management_System__SIMS_.Admin
                 new SqlParameter("@EnrollmentId", enrollmentId),
                 new SqlParameter("@StudentId", studentId),
                 new SqlParameter("@Session", session),
-                new SqlParameter("@Amount", amount)
+                new SqlParameter("@Amount", amount),
+                new SqlParameter("@PaymentGroupId", paymentGroupId)
             });
         }
 

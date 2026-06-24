@@ -13,8 +13,6 @@ namespace Student_Information_Management_System__SIMS_.Student
         {
             SessionHelper.RequireStudent(Session, Response);
 
-            if (RedirectIfSuspended()) return;
-
             if (!IsPostBack)
             {
                 lblDate.Text = DateTime.Now.ToString("dddd, dd MMMM yyyy");
@@ -91,6 +89,9 @@ namespace Student_Information_Management_System__SIMS_.Student
         {
             string studentId = SessionHelper.GetProfileId(Session);
 
+            EnsureSortOrderColumn();
+            NormalizeSortOrder(studentId);
+
             string sql = @"
                 SELECT
                     c.CourseId,
@@ -109,7 +110,7 @@ namespace Student_Information_Management_System__SIMS_.Student
             if (!string.IsNullOrEmpty(ddlFilterSemester.SelectedValue))
                 sql += " AND e.Semester = @Semester";
 
-            sql += " ORDER BY e.Session DESC, e.Semester ASC, c.CourseCode ASC";
+            sql += " ORDER BY ISNULL(e.SortOrder, 999999), e.Session DESC, e.Semester ASC, c.CourseCode ASC";
 
             var parameters = new System.Collections.Generic.List<SqlParameter>
             {
@@ -161,36 +162,231 @@ namespace Student_Information_Management_System__SIMS_.Student
             LoadEnrolledCourses();
         }
 
-        private bool RedirectIfSuspended()
+        protected void rptCourses_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
+            string[] parts = Convert.ToString(e.CommandArgument).Split('|');
+
+            if (parts.Length != 3)
+                return;
+
+            string courseId = parts[0];
+            string session = parts[1];
+            string semester = parts[2];
+
+            if (e.CommandName == "MoveTop")
+                MoveCourse(courseId, session, semester, "TOP");
+            else if (e.CommandName == "MoveUp")
+                MoveCourse(courseId, session, semester, "UP");
+            else if (e.CommandName == "MoveDown")
+                MoveCourse(courseId, session, semester, "DOWN");
+            else if (e.CommandName == "MoveBottom")
+                MoveCourse(courseId, session, semester, "BOTTOM");
+
+            LoadEnrolledCourses();
+        }
+
+        private void MoveCourse(string courseId, string session, string semester, string direction)
+        {
+            EnsureSortOrderColumn();
+
             string studentId = SessionHelper.GetProfileId(Session);
+            NormalizeSortOrder(studentId);
 
-            if (string.IsNullOrWhiteSpace(studentId))
+            int currentSort = GetSortOrder(studentId, courseId, session, semester);
+
+            if (currentSort == -1)
+                return;
+
+            if (direction == "TOP")
             {
-                object studentObj = DatabaseHelper.ExecuteScalar(
-                    "SELECT StudentId FROM StudentDetails WHERE UserId = @UserId",
-                    new[] { new SqlParameter("@UserId", SessionHelper.GetUserId(Session)) });
+                if (currentSort == 1)
+                    return;
 
-                studentId = studentObj == null || studentObj == DBNull.Value ? "" : studentObj.ToString();
+                string sql = @"
+                    UPDATE Enrollment
+                    SET SortOrder = SortOrder + 1
+                    WHERE StudentId = @StudentId
+                      AND Status <> 'Dropped'
+                      AND SortOrder < @CurrentSort;
+
+                    UPDATE Enrollment
+                    SET SortOrder = 1
+                    WHERE StudentId = @StudentId
+                      AND CourseId = @CourseId
+                      AND Session = @Session
+                      AND Semester = @Semester
+                      AND Status <> 'Dropped';";
+
+                DatabaseHelper.ExecuteNonQuery(sql, new[]
+                {
+                    new SqlParameter("@StudentId", studentId),
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session),
+                    new SqlParameter("@Semester", semester),
+                    new SqlParameter("@CurrentSort", currentSort)
+                });
             }
+            else if (direction == "BOTTOM")
+            {
+                int maxSort = GetMaxSortOrder(studentId);
 
-            if (string.IsNullOrWhiteSpace(studentId))
-                return false;
+                if (currentSort == maxSort)
+                    return;
 
-            object result = DatabaseHelper.ExecuteScalar(
-                "SELECT ISNULL(IsSuspended, 0) FROM StudentDetails WHERE StudentId = @StudentId",
+                string sql = @"
+                    UPDATE Enrollment
+                    SET SortOrder = SortOrder - 1
+                    WHERE StudentId = @StudentId
+                      AND Status <> 'Dropped'
+                      AND SortOrder > @CurrentSort;
+
+                    UPDATE Enrollment
+                    SET SortOrder = @MaxSort
+                    WHERE StudentId = @StudentId
+                      AND CourseId = @CourseId
+                      AND Session = @Session
+                      AND Semester = @Semester
+                      AND Status <> 'Dropped';";
+
+                DatabaseHelper.ExecuteNonQuery(sql, new[]
+                {
+                    new SqlParameter("@StudentId", studentId),
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session),
+                    new SqlParameter("@Semester", semester),
+                    new SqlParameter("@CurrentSort", currentSort),
+                    new SqlParameter("@MaxSort", maxSort)
+                });
+            }
+            else if (direction == "UP")
+            {
+                int targetSort = currentSort - 1;
+
+                if (targetSort < 1)
+                    return;
+
+                SwapSortOrder(studentId, courseId, session, semester, currentSort, targetSort);
+            }
+            else if (direction == "DOWN")
+            {
+                int maxSort = GetMaxSortOrder(studentId);
+                int targetSort = currentSort + 1;
+
+                if (targetSort > maxSort)
+                    return;
+
+                SwapSortOrder(studentId, courseId, session, semester, currentSort, targetSort);
+            }
+        }
+
+        private void EnsureSortOrderColumn()
+        {
+            string checkSql = @"
+                SELECT COUNT(*)
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'Enrollment'
+                  AND COLUMN_NAME = 'SortOrder'";
+
+            int exists = Convert.ToInt32(DatabaseHelper.ExecuteScalar(checkSql));
+
+            if (exists == 0)
+            {
+                DatabaseHelper.ExecuteNonQuery(@"
+                    ALTER TABLE Enrollment
+                    ADD SortOrder INT NULL");
+            }
+        }
+
+        private void NormalizeSortOrder(string studentId)
+        {
+            string sql = @"
+                ;WITH OrderedCourses AS
+                (
+                    SELECT
+                        EnrollmentId,
+                        ROW_NUMBER() OVER
+                        (
+                            ORDER BY
+                                CASE WHEN SortOrder IS NULL THEN 999999 ELSE SortOrder END,
+                                Session DESC,
+                                Semester ASC,
+                                CourseId ASC
+                        ) AS NewSortOrder
+                    FROM Enrollment
+                    WHERE StudentId = @StudentId
+                      AND Status <> 'Dropped'
+                )
+                UPDATE e
+                SET SortOrder = oc.NewSortOrder
+                FROM Enrollment e
+                INNER JOIN OrderedCourses oc
+                    ON e.EnrollmentId = oc.EnrollmentId";
+
+            DatabaseHelper.ExecuteNonQuery(sql, new[]
+            {
+                new SqlParameter("@StudentId", studentId)
+            });
+        }
+
+        private int GetSortOrder(string studentId, string courseId, string session, string semester)
+        {
+            object result = DatabaseHelper.ExecuteScalar(@"
+                SELECT SortOrder
+                FROM Enrollment
+                WHERE StudentId = @StudentId
+                  AND CourseId = @CourseId
+                  AND Session = @Session
+                  AND Semester = @Semester
+                  AND Status <> 'Dropped'",
+                new[]
+                {
+                    new SqlParameter("@StudentId", studentId),
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@Session", session),
+                    new SqlParameter("@Semester", semester)
+                });
+
+            return result == null || result == DBNull.Value ? -1 : Convert.ToInt32(result);
+        }
+
+        private int GetMaxSortOrder(string studentId)
+        {
+            object result = DatabaseHelper.ExecuteScalar(@"
+                SELECT ISNULL(MAX(SortOrder), 0)
+                FROM Enrollment
+                WHERE StudentId = @StudentId
+                  AND Status <> 'Dropped'",
                 new[] { new SqlParameter("@StudentId", studentId) });
 
-            bool isSuspended = result != null && result != DBNull.Value && Convert.ToBoolean(result);
+            return result == null ? 0 : Convert.ToInt32(result);
+        }
 
-            if (isSuspended)
+        private void SwapSortOrder(string studentId, string courseId, string session, string semester, int currentSort, int targetSort)
+        {
+            string sql = @"
+                UPDATE Enrollment
+                SET SortOrder = @CurrentSort
+                WHERE StudentId = @StudentId
+                  AND Status <> 'Dropped'
+                  AND SortOrder = @TargetSort;
+
+                UPDATE Enrollment
+                SET SortOrder = @TargetSort
+                WHERE StudentId = @StudentId
+                  AND CourseId = @CourseId
+                  AND Session = @Session
+                  AND Semester = @Semester
+                  AND Status <> 'Dropped';";
+
+            DatabaseHelper.ExecuteNonQuery(sql, new[]
             {
-                Response.Redirect("Student_Payment.aspx?Suspended=1", false);
-                Context.ApplicationInstance.CompleteRequest();
-                return true;
-            }
-
-            return false;
+                new SqlParameter("@StudentId", studentId),
+                new SqlParameter("@CourseId", courseId),
+                new SqlParameter("@Session", session),
+                new SqlParameter("@Semester", semester),
+                new SqlParameter("@CurrentSort", currentSort),
+                new SqlParameter("@TargetSort", targetSort)
+            });
         }
 
     }
