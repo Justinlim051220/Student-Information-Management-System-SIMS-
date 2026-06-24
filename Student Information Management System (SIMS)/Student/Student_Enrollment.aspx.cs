@@ -137,7 +137,7 @@ namespace Student_Information_Management_System__SIMS_
                       WHERE e.StudentId = @StudentId
                         AND e.CourseId = co.CourseId
                         AND e.Session = co.Session
-                        AND e.Status NOT IN ('Dropped', 'Drop Rejected', 'Enrollment Rejected')
+                        AND e.Status NOT IN ('Dropped', 'Drop Approved', 'Not Active', 'Inactive', 'Enrollment Rejected')
                   )
                 ORDER BY c.CourseCode";
 
@@ -179,6 +179,7 @@ namespace Student_Information_Management_System__SIMS_
             int insertedCount = 0;
             decimal totalPendingAmount = 0m;
             string skippedCourses = "";
+            Guid paymentGroupId = Guid.NewGuid();
 
             foreach (ListItem item in cblCourses.Items)
             {
@@ -206,7 +207,7 @@ namespace Student_Information_Management_System__SIMS_
 
                 if (saveResult == "Inserted")
                 {
-                    decimal pendingAmount = CreatePendingPaymentForEnrollment(enrollmentId, studentId, courseId, session, courseFee);
+                    decimal pendingAmount = CreatePendingPaymentForEnrollment(enrollmentId, studentId, courseId, session, courseFee, paymentGroupId);
                     totalPendingAmount += pendingAmount;
                     insertedCount++;
                     NotifyAdminsStudentEnrollment(studentId, courseId, session, semester, "New Student Enrollment");
@@ -278,7 +279,7 @@ namespace Student_Information_Management_System__SIMS_
                 FROM Enrollment
                 WHERE StudentId = @StudentId
                   AND Session = @Session
-                  AND Status NOT IN ('Dropped', 'Drop Rejected', 'Enrollment Rejected')
+                  AND Status NOT IN ('Dropped', 'Drop Approved', 'Not Active', 'Inactive', 'Enrollment Rejected')
                 ORDER BY EnrollmentId DESC";
 
             object existingSemester = DatabaseHelper.ExecuteScalar(existingSessionSemesterSql, new[]
@@ -300,7 +301,7 @@ namespace Student_Information_Management_System__SIMS_
                 SELECT COUNT(DISTINCT Session)
                 FROM Enrollment
                 WHERE StudentId = @StudentId
-                  AND Status NOT IN ('Dropped', 'Drop Rejected', 'Enrollment Rejected')";
+                  AND Status NOT IN ('Dropped', 'Drop Approved', 'Not Active', 'Inactive', 'Enrollment Rejected')";
 
             int previousSessionCount = Convert.ToInt32(DatabaseHelper.ExecuteScalar(completedSessionSql, new[]
             {
@@ -343,13 +344,14 @@ namespace Student_Information_Management_System__SIMS_
             // This keeps the UI clean without breaking lecturer/admin academic records.
         }
 
-        private decimal CreatePendingPaymentForEnrollment(int enrollmentId, string studentId, int courseId, string session, decimal amount)
+        private decimal CreatePendingPaymentForEnrollment(int enrollmentId, string studentId, int courseId, string session, decimal amount, Guid paymentGroupId)
         {
             string insertSql = @"
                 IF EXISTS (SELECT 1 FROM Fees WHERE EnrollmentId = @EnrollmentId)
                 BEGIN
                     UPDATE Fees
                     SET Amount = @Amount,
+                        PaymentGroupId = ISNULL(PaymentGroupId, @PaymentGroupId),
                         Status = CASE WHEN Status = 'Paid' THEN 'Paid' ELSE 'Pending' END,
                         PaymentDate = CASE WHEN Status = 'Paid' THEN PaymentDate ELSE NULL END
                     WHERE EnrollmentId = @EnrollmentId
@@ -357,8 +359,8 @@ namespace Student_Information_Management_System__SIMS_
                 END
                 ELSE
                 BEGIN
-                    INSERT INTO Fees (EnrollmentId, StudentId, Session, FeeType, Amount, Status, PaymentDate)
-                    VALUES (@EnrollmentId, @StudentId, @Session, 'Tuition', @Amount, 'Pending', NULL)
+                    INSERT INTO Fees (EnrollmentId, StudentId, Session, FeeType, Amount, Status, PaymentDate, PaymentGroupId)
+                    VALUES (@EnrollmentId, @StudentId, @Session, 'Tuition', @Amount, 'Pending', NULL, @PaymentGroupId)
                 END";
 
             DatabaseHelper.ExecuteNonQuery(insertSql, new[]
@@ -366,7 +368,8 @@ namespace Student_Information_Management_System__SIMS_
                 new SqlParameter("@EnrollmentId", enrollmentId),
                 new SqlParameter("@StudentId", studentId),
                 new SqlParameter("@Session", session),
-                new SqlParameter("@Amount", amount)
+                new SqlParameter("@Amount", amount),
+                new SqlParameter("@PaymentGroupId", paymentGroupId)
             });
 
             return amount;
@@ -405,7 +408,7 @@ namespace Student_Information_Management_System__SIMS_
                 WHERE StudentId = @StudentId
                   AND CourseId = @CourseId
                   AND Session = @Session
-                  AND Status NOT IN ('Dropped', 'Drop Rejected', 'Enrollment Rejected')
+                  AND Status NOT IN ('Dropped', 'Drop Approved', 'Not Active', 'Inactive', 'Enrollment Rejected')
                 ORDER BY EnrollmentId DESC";
 
             object statusObj = DatabaseHelper.ExecuteScalar(activeSql, new[]
@@ -444,7 +447,7 @@ namespace Student_Information_Management_System__SIMS_
             switch (view)
             {
                 case "Active":
-                    statusCondition = " AND e.Session = @LatestSession AND e.Status = 'Active' ";
+                    statusCondition = " AND e.Session = @LatestSession AND e.Status IN ('Active', 'Drop Rejected') ";
                     break;
 
                 case "Pending":
@@ -473,7 +476,7 @@ namespace Student_Information_Management_System__SIMS_
 
                 case "Current":
                 default:
-                    statusCondition = " AND e.Session = @LatestSession AND e.Status IN ('Active', 'Pending', 'Drop Pending') ";
+                    statusCondition = " AND e.Session = @LatestSession AND e.Status IN ('Active', 'Pending', 'Drop Pending', 'Drop Rejected') ";
                     break;
             }
 
@@ -483,7 +486,7 @@ namespace Student_Information_Management_System__SIMS_
                 SELECT TOP 1 @LatestSession = Session
                 FROM Enrollment
                 WHERE StudentId = @StudentId
-                  AND Status IN ('Active', 'Pending', 'Drop Pending')
+                  AND Status IN ('Active', 'Pending', 'Drop Pending', 'Drop Rejected')
                 ORDER BY EnrollmentDate DESC, EnrollmentId DESC;
 
                 IF @LatestSession IS NULL
@@ -507,7 +510,7 @@ namespace Student_Information_Management_System__SIMS_
                         WHEN e.Status = 'Completed' THEN 'Completed'
                         WHEN @LatestSession IS NOT NULL
                              AND e.Session <> @LatestSession
-                             AND e.Status IN ('Active', 'Pending', 'Drop Pending') THEN 'Completed'
+                             AND e.Status IN ('Active', 'Pending', 'Drop Pending', 'Drop Rejected') THEN 'Completed'
                         ELSE e.Status
                     END AS DisplayStatus,
                     e.EnrollmentDate
@@ -520,11 +523,12 @@ namespace Student_Information_Management_System__SIMS_
                     e.EnrollmentDate DESC,
                     CASE 
                         WHEN e.Status = 'Active' THEN 1
-                        WHEN e.Status = 'Pending' THEN 2
-                        WHEN e.Status = 'Drop Pending' THEN 3
-                        WHEN e.Status = 'Completed' THEN 4
-                        WHEN e.Status = 'Dropped' THEN 5
-                        ELSE 6
+                        WHEN e.Status = 'Drop Rejected' THEN 2
+                        WHEN e.Status = 'Pending' THEN 3
+                        WHEN e.Status = 'Drop Pending' THEN 4
+                        WHEN e.Status = 'Completed' THEN 5
+                        WHEN e.Status = 'Dropped' THEN 6
+                        ELSE 7
                     END,
                     c.CourseCode";
 

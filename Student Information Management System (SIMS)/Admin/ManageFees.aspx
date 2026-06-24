@@ -520,8 +520,8 @@
                             <asp:TemplateField HeaderText="Action">
                                 <ItemTemplate>
                                     <div class="action-row">
-                                        <asp:LinkButton ID="btnApprove" runat="server" CssClass="action-btn approve-btn" CommandName="ApprovePayment" CommandArgument='<%# Eval("FeeId") %>'><i class="fa-solid fa-check"></i> Approve</asp:LinkButton>
-                                        <asp:LinkButton ID="btnReject" runat="server" CssClass="action-btn reject-btn" CommandName="RejectPayment" CommandArgument='<%# Eval("FeeId") %>'><i class="fa-solid fa-xmark"></i> Reject</asp:LinkButton>
+                                        <asp:LinkButton ID="btnApprove" runat="server" CssClass="action-btn approve-btn" CommandName="ApprovePayment" CommandArgument='<%# Eval("PaymentGroupId") %>'><i class="fa-solid fa-check"></i> Approve</asp:LinkButton>
+                                        <asp:LinkButton ID="btnReject" runat="server" CssClass="action-btn reject-btn" CommandName="RejectPayment" CommandArgument='<%# Eval("PaymentGroupId") %>'><i class="fa-solid fa-xmark"></i> Reject</asp:LinkButton>
                                         <asp:LinkButton ID="btnSuspend" runat="server" CssClass="action-btn suspend-btn" CommandName="SuspendStudent" CommandArgument='<%# Eval("StudentId") %>'><i class="fa-solid fa-user-lock"></i> Suspend</asp:LinkButton>
                                         <asp:LinkButton ID="btnUnsuspend" runat="server" CssClass="action-btn unsuspend-btn" CommandName="UnsuspendStudent" CommandArgument='<%# Eval("StudentId") %>'><i class="fa-solid fa-user-check"></i> Unsuspend</asp:LinkButton>
                                     </div>

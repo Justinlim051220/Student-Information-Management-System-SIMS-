@@ -189,72 +189,123 @@ namespace Student_Information_Management_System__SIMS_
             string search = txtPaymentSearch.Text.Trim();
 
             string sql = @"
-                SELECT *
-                FROM
+                WITH FeeRows AS
                 (
-                    SELECT f.FeeId,
+                    SELECT f.PaymentGroupId,
+                           f.FeeId,
                            ISNULL(f.EnrollmentId, 0) AS EnrollmentId,
-                           ('PAY-' + RIGHT('000000' + CAST(f.FeeId AS VARCHAR(6)), 6)) AS PaymentRef,
                            f.StudentId,
                            s.FirstName + ' ' + s.LastName AS StudentName,
                            p.ProgrammeCode,
                            p.ProgrammeName,
+                           s.ProgrammeId,
                            f.Session,
                            f.FeeType,
                            f.Amount,
+                           CASE
+                               WHEN e.EnrollmentId IS NOT NULL
+                                    AND ISNULL(e.Status, '') IN ('Drop Pending', 'Dropped', 'Drop Approved', 'Not Active', 'Inactive')
+                               THEN 0
+                               ELSE 1
+                           END AS IsActiveCourse,
                            CASE 
-                               WHEN f.Status = 'Pending'
-                                    AND ISNULL(f.PaymentReceiptPath, '') = ''
-                                    AND e.EnrollmentId IS NOT NULL
-                                    AND ISNULL(e.Status, '') IN ('Dropped', 'Drop Approved', 'Not Active', 'Inactive')
+                               WHEN e.EnrollmentId IS NOT NULL
+                                    AND ISNULL(e.Status, '') IN ('Drop Pending', 'Dropped', 'Drop Approved', 'Not Active', 'Inactive')
                                THEN CAST(0 AS DECIMAL(18,2))
                                ELSE f.Amount
-                           END AS DisplayAmount,
+                           END AS DisplayAmountRow,
                            f.Status,
                            ISNULL(s.IsSuspended, 0) AS IsSuspended,
                            ISNULL(s.SuspensionReason, '') AS SuspensionReason,
                            CASE 
-                               WHEN f.Status = 'Pending'
-                                    AND ISNULL(f.PaymentReceiptPath, '') = ''
-                                    AND e.EnrollmentId IS NOT NULL
-                                    AND ISNULL(e.Status, '') IN ('Dropped', 'Drop Approved', 'Not Active', 'Inactive')
+                               WHEN e.EnrollmentId IS NOT NULL
+                                    AND ISNULL(e.Status, '') IN ('Drop Pending', 'Dropped', 'Drop Approved', 'Not Active', 'Inactive')
                                THEN 'Not Active'
                                ELSE f.Status
-                           END AS DisplayStatus,
+                           END AS DisplayStatusRow,
                            ISNULL(e.Status, '') AS EnrollmentStatus,
                            f.PaymentDate,
                            ISNULL(f.PaymentReceiptPath, '') AS PaymentReceiptPath,
-                           CASE 
-                               WHEN f.Status = 'Pending'
-                                    AND ISNULL(f.PaymentReceiptPath, '') = ''
-                                    AND e.EnrollmentId IS NOT NULL
-                                    AND ISNULL(e.Status, '') IN ('Dropped', 'Drop Approved', 'Not Active', 'Inactive')
-                               THEN '<span class=""receipt-empty"">Dropped before payment</span>'
-                               ELSE ISNULL(
-                                   STUFF((
-                                       SELECT '<div class=""course-line""><span class=""course-code"">' + c.CourseCode + '</span><span class=""course-name"">' + c.CourseName + '</span><span class=""course-fee"">RM ' + FORMAT(ISNULL(cf.Amount, 0), 'N2') + '</span></div>'
-                                       FROM Enrollment e2
-                                       INNER JOIN Courses c ON e2.CourseId = c.CourseId
-                                       LEFT JOIN CourseFees cf ON cf.CourseId = c.CourseId AND cf.Session = e2.Session
-                                       WHERE e2.EnrollmentId = f.EnrollmentId
-                                       ORDER BY c.CourseCode
-                                       FOR XML PATH(''), TYPE
-                                   ).value('.', 'NVARCHAR(MAX)'), 1, 0, ''),
-                                   '<span class=""receipt-empty"">No active enrolled course found</span>'
-                               )
-                           END AS CoursePaymentList,
-                           ISNULL((
-                                SELECT TOP 1 c.CourseCode + ' ' + c.CourseName
-                                FROM Enrollment e3
-                                INNER JOIN Courses c ON c.CourseId = e3.CourseId
-                                WHERE e3.EnrollmentId = f.EnrollmentId
-                           ), '') AS CourseSearchText
+                           c.CourseCode,
+                           c.CourseName
                     FROM Fees f
                     INNER JOIN StudentDetails s ON f.StudentId = s.StudentId
                     INNER JOIN Programmes p ON s.ProgrammeId = p.ProgrammeId
                     LEFT JOIN Enrollment e ON e.EnrollmentId = f.EnrollmentId
+                    LEFT JOIN Courses c ON c.CourseId = e.CourseId
                     WHERE (@Session = '' OR f.Session = @Session)
                       AND (@ProgrammeId = '' OR CONVERT(VARCHAR(20), s.ProgrammeId) = @ProgrammeId)
+                ),
+                PaymentGroups AS
+                (
+                    SELECT PaymentGroupId,
+                           MIN(FeeId) AS FeeId,
+                           MIN(EnrollmentId) AS EnrollmentId,
+                           StudentId,
+                           StudentName,
+                           ProgrammeCode,
+                           ProgrammeName,
+                           Session,
+                           MIN(FeeType) AS FeeType,
+                           SUM(CASE WHEN IsActiveCourse = 1 THEN Amount ELSE 0 END) AS Amount,
+                           SUM(DisplayAmountRow) AS DisplayAmount,
+                           MAX(CAST(IsSuspended AS INT)) AS IsSuspended,
+                           MIN(SuspensionReason) AS SuspensionReason,
+                           CASE
+                               WHEN SUM(CASE WHEN IsActiveCourse = 1 THEN 1 ELSE 0 END) = 0 THEN 'Not Active'
+                               WHEN SUM(CASE WHEN IsActiveCourse = 1 AND DisplayStatusRow = 'Rejected' THEN 1 ELSE 0 END) > 0 THEN 'Rejected'
+                               WHEN SUM(CASE WHEN IsActiveCourse = 1 AND DisplayStatusRow = 'Overdue' THEN 1 ELSE 0 END) > 0 THEN 'Overdue'
+                               WHEN SUM(CASE WHEN IsActiveCourse = 1 AND DisplayStatusRow <> 'Paid' THEN 1 ELSE 0 END) = 0 THEN 'Paid'
+                               ELSE 'Pending'
+                           END AS DisplayStatus,
+                           MAX(EnrollmentStatus) AS EnrollmentStatus,
+                           MAX(PaymentDate) AS PaymentDate,
+                           MAX(PaymentReceiptPath) AS PaymentReceiptPath
+                    FROM FeeRows
+                    GROUP BY PaymentGroupId, StudentId, StudentName, ProgrammeCode, ProgrammeName, Session
+                )
+                SELECT *
+                FROM
+                (
+                    SELECT CAST(g.PaymentGroupId AS VARCHAR(36)) AS PaymentGroupId,
+                           g.FeeId,
+                           g.EnrollmentId,
+                           ('PAY-' + RIGHT('000000' + CAST(g.FeeId AS VARCHAR(6)), 6)) AS PaymentRef,
+                           g.StudentId,
+                           g.StudentName,
+                           g.ProgrammeCode,
+                           g.ProgrammeName,
+                           g.Session,
+                           g.FeeType,
+                           g.Amount,
+                           g.DisplayAmount,
+                           g.DisplayStatus AS Status,
+                           g.IsSuspended,
+                           g.SuspensionReason,
+                           g.DisplayStatus,
+                           g.EnrollmentStatus,
+                           g.PaymentDate,
+                           g.PaymentReceiptPath,
+                           CASE 
+                               WHEN g.DisplayStatus = 'Not Active'
+                               THEN '<span class=""receipt-empty"">Dropped before payment</span>'
+                               ELSE ISNULL(NULLIF((
+                                   SELECT '<div class=""course-line""><span class=""course-code"">' + ISNULL(fr.CourseCode, 'N/A') + '</span><span class=""course-name"">' + ISNULL(fr.CourseName, 'Legacy payment record') + '</span><span class=""course-fee"">RM ' + FORMAT(fr.DisplayAmountRow, 'N2') + '</span></div>'
+                                   FROM FeeRows fr
+                                   WHERE fr.PaymentGroupId = g.PaymentGroupId
+                                     AND fr.IsActiveCourse = 1
+                                   ORDER BY ISNULL(fr.CourseCode, 'ZZZ')
+                                   FOR XML PATH(''), TYPE
+                               ).value('.', 'NVARCHAR(MAX)'), ''), '<span class=""receipt-empty"">No active enrolled course found</span>')
+                           END AS CoursePaymentList,
+                           ISNULL(NULLIF((
+                                SELECT ' ' + ISNULL(fr2.CourseCode, '') + ' ' + ISNULL(fr2.CourseName, '')
+                                FROM FeeRows fr2
+                                WHERE fr2.PaymentGroupId = g.PaymentGroupId
+                                  AND fr2.IsActiveCourse = 1
+                                FOR XML PATH(''), TYPE
+                           ).value('.', 'NVARCHAR(MAX)'), ''), '') AS CourseSearchText
+                    FROM PaymentGroups g
                 ) x
                 WHERE (@Status = '' OR x.DisplayStatus = @Status)
                   AND (
@@ -607,30 +658,45 @@ namespace Student_Information_Management_System__SIMS_
                 return;
             }
 
-            int feeId;
-            if (!int.TryParse(e.CommandArgument.ToString(), out feeId)) return;
+            string paymentGroupId = e.CommandArgument.ToString();
+
+            if (string.IsNullOrWhiteSpace(paymentGroupId)) return;
 
             if (e.CommandName == "ApprovePayment")
             {
-                UpdatePaymentStatus(feeId, "Paid");
-                ShowMessage("Success", "Payment approved successfully. Student suspension has been removed if the account was suspended.");
+                UpdatePaymentStatus(paymentGroupId, "Paid");
+                ShowMessage("Success", "Payment approved successfully for all course(s) in this payment. Student suspension has been removed if the account was suspended.");
             }
             else if (e.CommandName == "RejectPayment")
             {
-                UpdatePaymentStatus(feeId, "Rejected");
-                ShowMessage("Success", "Payment rejected successfully.");
+                UpdatePaymentStatus(paymentGroupId, "Rejected");
+                ShowMessage("Success", "Payment rejected successfully for all course(s) in this payment.");
             }
 
             LoadStats();
             LoadPayments();
         }
 
-        private void UpdatePaymentStatus(int feeId, string status)
+        private void UpdatePaymentStatus(string paymentGroupId, string status)
         {
-            string readSql = "SELECT StudentId, Session, FeeType FROM Fees WHERE FeeId = @FeeId";
-            DataTable dt = DatabaseHelper.ExecuteQuery(readSql, new[] { new SqlParameter("@FeeId", feeId) });
+            string readSql = @"
+                SELECT TOP 1
+                       MIN(FeeId) OVER (PARTITION BY PaymentGroupId) AS FeeId,
+                       StudentId,
+                       Session,
+                       FeeType
+                FROM Fees
+                WHERE PaymentGroupId = @PaymentGroupId
+                ORDER BY FeeId";
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(readSql, new[]
+            {
+                new SqlParameter("@PaymentGroupId", Guid.Parse(paymentGroupId))
+            });
+
             if (dt.Rows.Count == 0) return;
 
+            int firstFeeId = Convert.ToInt32(dt.Rows[0]["FeeId"]);
             string studentId = dt.Rows[0]["StudentId"].ToString();
             string session = dt.Rows[0]["Session"].ToString();
             string feeType = dt.Rows[0]["FeeType"].ToString();
@@ -641,12 +707,12 @@ namespace Student_Information_Management_System__SIMS_
                     PaymentDate = CASE WHEN @Status = 'Paid' THEN GETDATE() ELSE NULL END,
                     PaymentReceiptPath = CASE WHEN @Status = 'Rejected' THEN NULL ELSE PaymentReceiptPath END,
                     PaymentReceiptUploadedAt = CASE WHEN @Status = 'Rejected' THEN NULL ELSE PaymentReceiptUploadedAt END
-                WHERE FeeId = @FeeId";
+                WHERE PaymentGroupId = @PaymentGroupId";
 
             SqlParameter[] p =
             {
                 new SqlParameter("@Status", status),
-                new SqlParameter("@FeeId", feeId)
+                new SqlParameter("@PaymentGroupId", Guid.Parse(paymentGroupId))
             };
 
             int rows = DatabaseHelper.ExecuteNonQuery(sql, p);
@@ -658,7 +724,7 @@ namespace Student_Information_Management_System__SIMS_
                     UnsuspendStudent(studentId, false);
                 }
 
-                SendPaymentStatusNotificationToStudent(studentId, session, feeType, "PAY-" + feeId.ToString("D6"), status);
+                SendPaymentStatusNotificationToStudent(studentId, session, feeType, "PAY-" + firstFeeId.ToString("D6"), status);
             }
         }
 

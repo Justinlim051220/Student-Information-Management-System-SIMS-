@@ -731,7 +731,7 @@
                             CssClass="data-table"
                             AutoGenerateColumns="false"
                             EmptyDataText="No payment record found."
-                            DataKeyNames="FeeId"
+                            DataKeyNames="PaymentGroupId"
                             OnRowCommand="gvPayments_RowCommand"
                             OnRowDataBound="gvPayments_RowDataBound">
                             <Columns>
