@@ -51,15 +51,6 @@ namespace Student_Information_Management_System__SIMS_
         protected global::System.Web.UI.WebControls.HiddenField hfReadTarget;
 
         /// <summary>
-        /// hfUnreadTarget control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField hfUnreadTarget;
-
-        /// <summary>
         /// StudentSidebar1 control.
         /// </summary>
         /// <remarks>
@@ -94,6 +85,15 @@ namespace Student_Information_Management_System__SIMS_
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label lblTopbarInitial;
+
+        /// <summary>
+        /// imgTopbarAvatar control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Image imgTopbarAvatar;
 
         /// <summary>
         /// lblTotal control.
@@ -184,15 +184,6 @@ namespace Student_Information_Management_System__SIMS_
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnReadConfirmed;
-
-        /// <summary>
-        /// btnUnreadConfirmed control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnUnreadConfirmed;
 
         /// <summary>
         /// btnDeleteConfirmed control.
